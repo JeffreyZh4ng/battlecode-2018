@@ -1,0 +1,7 @@
+.DS_Store
+.DS_Store?
+._*
+MacRelease.app
+*.bc18
+run.bat
+run.sh
