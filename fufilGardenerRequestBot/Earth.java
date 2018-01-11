@@ -49,29 +49,24 @@ public class Earth {
         int currentTaskCount = workerEarthCurrentTaskQueue.size();
         for (int i = 0; i < currentTaskCount; i++) {
 
-            System.out.println("Remaining idle workers: " + earthIdleWorkerHashMap.size());
+            if (earthIdleWorkerHashMap.size() == 0) {
+                break;
+            }
+
             Task task = workerEarthCurrentTaskQueue.poll();
 
-            if (earthIdleWorkerHashMap.size() < MINIMUM_WORKER_THRESHOLD) {
-                workerEarthNextRoundTaskQueue.add(task);
-                cloneWorkerHelper(task);
-                moveRemainingTasksToNextRound();
-                break;
+            switch (task) {
+                case BLUEPRINT_FACTORY:
+                    blueprintFactoryHelper(task);
+                    break;
 
-            } else {
-                switch (task) {
-                    case BLUEPRINT_FACTORY:
-                        blueprintFactoryHelper(task);
-                        break;
+                case BLUEPRINT_ROCKET:
+                    blueprintRocketHelper(task);
+                    break;
 
-                    case BLUEPRINT_ROCKET:
-                        blueprintRocketHelper(task);
-                        break;
-
-                    case CLONE:
-                        cloneWorkerHelper(task);
-                        break;
-                }
+                case CLONE:
+                    cloneWorkerHelper(task);
+                    break;
             }
         }
 
