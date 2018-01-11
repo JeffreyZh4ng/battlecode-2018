@@ -3,3 +3,8 @@ MacRelease.app
 *.bc18
 battlecode.jar
 battlecode-2018.iml
+battlecode/
+battlecode-manager/
+run_nodocker.bat
+run_nodocker.sh
+.idea/
