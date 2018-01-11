@@ -1,6 +1,7 @@
 public enum Task {
-    BUILD_FACTORY,
-    BUILD_ROCKET,
+    BLUEPRINT_FACTORY,
+    BLUEPRINT_ROCKET,
+    BUILD,
     IN_COMBAT,
     MINE_KARBONITE,
     CLONE,

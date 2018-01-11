@@ -1,19 +1,44 @@
 import bc.Direction;
 import bc.MapLocation;
 import bc.Unit;
+import bc.UnitType;
 
 public class Worker extends Robot {
 
     private int id;
+    private int targetId;
     private Task task;
 
     public Worker(int id, Task task) {
         this.id = id;
+        this.targetId = 0;
         this.task = task;
     }
 
-    public void executeTask() {
+    public boolean executeTask() {
+        switch (task) {
+            case BUILD:
+                if (Player.gameController.canBuild(this.id, this.targetId)) {
+                    Player.gameController.build(this.id, this.targetId);
+                    if (Player.gameController.unit(targetId).health() == 200) {
+                        this.task = null;
+                        System.out.println("Finished building blueprint!");
+                        return true;
+                    } else {
+                        return false;
+                    }
 
+                } else {
+                    System.out.println("Idk WTF is going on!");
+                    return true;
+                }
+
+            case MINE_KARBONITE:
+                return true;
+
+            default:
+                return true;
+        }
     }
 
     /**
@@ -45,11 +70,30 @@ public class Worker extends Robot {
     /**
      * Method will find the optimal location to build a factory and will check if the player has enough
      * Karbonite. If all conditions are met, the worker will lay down a blueprint and will start to build the factory.
-     * If the conditions are not met, the buildFactory task will be moved to next round and the robot will remain
+     * If the conditions are not met, the blueprintFactory task will be moved to next round and the robot will remain
      * in the idle robot HashMap.
      */
-    public boolean buildFactory() {
-        return false;
+    public boolean blueprintFactory() {
+        Direction direction = Player.returnAvailableDirection(this.id);
+        if (direction == null) {
+            System.out.println("No directions available to build factory");
+            return false;
+
+        } else if (Player.gameController.canBlueprint(this.id, UnitType.Factory, direction)) {
+            Player.gameController.blueprint(this.id, UnitType.Factory, direction);
+            MapLocation factoryBlueprintLocation = Player.gameController.unit(this.id).location().mapLocation().add(direction);
+            Unit factory = Player.gameController.senseUnitAtLocation(factoryBlueprintLocation);
+
+            this.targetId = factory.id();
+            this.task = Task.BUILD;
+
+            System.out.println("Successfully built blueprint... Building!");
+            return true;
+
+        } else {
+            System.out.println("Could not build factory. Karbonite left: " + Player.gameController.karbonite());
+            return false;
+        }
     }
 
     /**
@@ -59,6 +103,25 @@ public class Worker extends Robot {
      * in the idle robot HashMap.
      */
     public boolean buildRocket() {
-        return false;
+        Direction direction = Player.returnAvailableDirection(this.id);
+        if (direction == null) {
+            System.out.println("No directions available to build rocket");
+            return false;
+
+        } else if (Player.gameController.canBlueprint(this.id, UnitType.Rocket, direction)) {
+            Player.gameController.blueprint(this.id, UnitType.Rocket, direction);
+            MapLocation rocketBlueprintLocation = Player.gameController.unit(this.id).location().mapLocation().add(direction);
+            Unit rocket = Player.gameController.senseUnitAtLocation(rocketBlueprintLocation);
+
+            this.targetId = rocket.id();
+            this.task = Task.BUILD;
+
+            System.out.println("Successfully built blueprint... Building!");
+            return true;
+
+        } else {
+            System.out.println("Could not build rocket. Karbonite left: " + Player.gameController.karbonite());
+            return false;
+        }
     }
 }
