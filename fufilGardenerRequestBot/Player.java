@@ -21,8 +21,6 @@ public class Player {
         gameController.queueResearch(UnitType.Worker);
         gameController.queueResearch(UnitType.Ranger);
         gameController.queueResearch(UnitType.Rocket);
-        Earth.workerEarthNextRoundTaskQueue.add(Task.BLUEPRINT_FACTORY);
-        Earth.workerEarthNextRoundTaskQueue.add(Task.CLONE);
         Earth.workerEarthNextRoundTaskQueue.add(Task.BLUEPRINT_ROCKET);
         //printKarboniteValues();
 

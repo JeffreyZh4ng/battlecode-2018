@@ -27,6 +27,7 @@ public class Earth {
 
         System.out.println("Current round: " + Player.gameController.round());
         System.out.println("Workers on standby: " + earthIdleWorkerHashMap.size());
+        printIdleWorkers();
         remainingTasksInQueue();
 
         // This method will iterate through the busy worker list and will move each robot according to
@@ -88,6 +89,12 @@ public class Earth {
             earthIdleWorkerHashMap.put(workerId, worker);
         }
         earthStagingWorkerHashMap = new HashMap<>();
+    }
+
+    private void printIdleWorkers() {
+        for (int id: earthIdleWorkerHashMap.keySet()) {
+            System.out.println("Worker " + id);
+        }
     }
 
     /**

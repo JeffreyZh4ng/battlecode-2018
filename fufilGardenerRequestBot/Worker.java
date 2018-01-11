@@ -63,6 +63,7 @@ public class Worker extends Robot {
 
         } else {
             System.out.println("Could not replicate. Karbonite left: " + Player.gameController.karbonite());
+            System.out.println("LOGIC" + Player.gameController.canReplicate(this.id, direction));
             return false;
         }
     }
