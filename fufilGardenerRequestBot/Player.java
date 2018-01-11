@@ -61,4 +61,17 @@ public class Player {
         }
         return null;
     }
+
+    /**
+     * itterates through map locations and prints karbonite values for all locations
+     */
+    public static void printKarboniteValues() {
+        int width = gameController.startingMap(Planet.Earth).getWidth();
+        int height = gameController.startingMap(Planet.Earth).getHeight();
+        for(int x = 0; x <= width; x++) {
+            for(int y = 0; y <= height;y++) {
+                System.out.println(gameController.karboniteAt(Planet.Earth,x,y));
+            }
+        }
+    }
 }
