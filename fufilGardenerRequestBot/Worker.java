@@ -7,21 +7,26 @@ public class Worker extends Robot {
 
     private int id;
     private int targetId;
-    private Task task;
+    private Command command;
 
-    public Worker(int id, Task task) {
-        this.id = id;
+    public Worker(int id, Command command) {
+        super(id);
         this.targetId = 0;
-        this.task = task;
+        this.command = command;
     }
 
-    public boolean executeTask() {
-        switch (task) {
+    @Override
+    public boolean addTaskToQueue(Task task) {
+        return false;
+    }
+
+    /* public boolean executeTask() {
+        switch (command) {
             case BUILD:
                 if (Player.gameController.canBuild(this.id, this.targetId)) {
                     Player.gameController.build(this.id, this.targetId);
                     if (Player.gameController.unit(targetId).health() == 200) {
-                        this.task = null;
+                        this.command = null;
                         System.out.println("Finished building blueprint!");
                         return true;
                     } else {
@@ -39,13 +44,13 @@ public class Worker extends Robot {
             default:
                 return true;
         }
-    }
+    }*/
 
     /**
      * Method that will need to clone an idle worker and will remove it from the idle worker HashMap. Add the
      * new robot to the staging area
      */
-    public boolean cloneWorker() {
+    /*public boolean cloneWorker() {
         Direction direction = Player.returnAvailableDirection(this.id);
         if (direction == null) {
             System.out.println("No directions available to clone");
@@ -65,15 +70,15 @@ public class Worker extends Robot {
             System.out.println("Could not replicate. Karbonite left: " + Player.gameController.karbonite());
             return false;
         }
-    }
+    }*/
 
     /**
      * Method will find the optimal location to build a factory and will check if the player has enough
      * Karbonite. If all conditions are met, the worker will lay down a blueprint and will start to build the factory.
-     * If the conditions are not met, the blueprintFactory task will be moved to next round and the robot will remain
+     * If the conditions are not met, the blueprintFactory command will be moved to next round and the robot will remain
      * in the idle robot HashMap.
      */
-    public boolean blueprintFactory() {
+    /*public boolean blueprintFactory() {
         Direction direction = Player.returnAvailableDirection(this.id);
         if (direction == null) {
             System.out.println("No directions available to build factory");
@@ -85,7 +90,7 @@ public class Worker extends Robot {
             Unit factory = Player.gameController.senseUnitAtLocation(factoryBlueprintLocation);
 
             this.targetId = factory.id();
-            this.task = Task.BUILD;
+            this.command = Command.BUILD;
 
             System.out.println("Successfully built blueprint... Building!");
             return true;
@@ -94,15 +99,15 @@ public class Worker extends Robot {
             System.out.println("Could not build factory. Karbonite left: " + Player.gameController.karbonite());
             return false;
         }
-    }
+    }*/
 
     /**
      * Method will find the optimal location to build a rocket and will check if the player has enough
      * Karbonite. If all conditions are met, the worker will lay down a blueprint and will start to build the rocket.
-     * If the conditions are not met, the buildRocket task will be moved to next round and the robot will remain
+     * If the conditions are not met, the buildRocket command will be moved to next round and the robot will remain
      * in the idle robot HashMap.
      */
-    public boolean buildRocket() {
+    /*public boolean buildRocket() {
         Direction direction = Player.returnAvailableDirection(this.id);
         if (direction == null) {
             System.out.println("No directions available to build rocket");
@@ -114,7 +119,7 @@ public class Worker extends Robot {
             Unit rocket = Player.gameController.senseUnitAtLocation(rocketBlueprintLocation);
 
             this.targetId = rocket.id();
-            this.task = Task.BUILD;
+            this.command = Command.BUILD;
 
             System.out.println("Successfully built blueprint... Building!");
             return true;
@@ -123,5 +128,5 @@ public class Worker extends Robot {
             System.out.println("Could not build rocket. Karbonite left: " + Player.gameController.karbonite());
             return false;
         }
-    }
+    }*/
 }

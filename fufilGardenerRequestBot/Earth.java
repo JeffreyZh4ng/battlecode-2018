@@ -16,13 +16,13 @@ public class Earth {
     public static HashMap<Integer, Worker> earthStagingWorkerHashMap = new HashMap<>();
 
     public static Queue<MapLocation> karboniteQueue = new PriorityQueue<>();
-    public static Queue<Task> workerEarthCurrentTaskQueue = new PriorityQueue<>();
-    public static Queue<Task> workerEarthNextRoundTaskQueue = new PriorityQueue<>();
+    public static Queue<Command> workerEarthCurrentCommandQueue = new PriorityQueue<>();
+    public static Queue<Command> workerEarthNextRoundCommandQueue = new PriorityQueue<>();
 
     public void execute() {
-        workerEarthCurrentTaskQueue = new PriorityQueue<>();
-        workerEarthCurrentTaskQueue.addAll(workerEarthNextRoundTaskQueue);
-        workerEarthNextRoundTaskQueue = new PriorityQueue<>();
+        workerEarthCurrentCommandQueue = new PriorityQueue<>();
+        workerEarthCurrentCommandQueue.addAll(workerEarthNextRoundCommandQueue);
+        workerEarthNextRoundCommandQueue = new PriorityQueue<>();
         // removeDeadUnits(); // Need to wait for an implementation that will check if a unit died from the API
 
         System.out.println("Current round: " + Player.gameController.round());
@@ -46,26 +46,26 @@ public class Earth {
 
         // Iterates through the worker queue and will assign tasks to the idle workers. Helper methods
         // should remove the robot from the idle map and put it in the busy map.
-        int currentTaskCount = workerEarthCurrentTaskQueue.size();
+        int currentTaskCount = workerEarthCurrentCommandQueue.size();
         for (int i = 0; i < currentTaskCount; i++) {
 
             if (earthIdleWorkerHashMap.size() == 0) {
                 break;
             }
 
-            Task task = workerEarthCurrentTaskQueue.poll();
+            Command command = workerEarthCurrentCommandQueue.poll();
 
-            switch (task) {
+            switch (command) {
                 case BLUEPRINT_FACTORY:
-                    blueprintFactoryHelper(task);
+                    blueprintFactoryHelper(command);
                     break;
 
                 case BLUEPRINT_ROCKET:
-                    blueprintRocketHelper(task);
+                    blueprintRocketHelper(command);
                     break;
 
                 case CLONE:
-                    cloneWorkerHelper(task);
+                    cloneWorkerHelper(command);
                     break;
             }
         }
@@ -96,14 +96,14 @@ public class Earth {
      * Helper method that will move the worker instance from one HasMap to another based on if it can perform
      * the action or not
      */
-    private static void blueprintFactoryHelper(Task task) {
-        int workerId = selectWorkerForTask(Task.BLUEPRINT_FACTORY);
+    private static void blueprintFactoryHelper(Command command) {
+        int workerId = selectWorkerForTask(Command.BLUEPRINT_FACTORY);
         if(earthIdleWorkerHashMap.get(workerId).blueprintFactory()) {
             Worker worker = earthIdleWorkerHashMap.get(workerId);
             earthIdleWorkerHashMap.remove(workerId);
             earthBusyWorkerHashMap.put(workerId, worker);
         } else {
-            workerEarthNextRoundTaskQueue.add(task);
+            workerEarthNextRoundCommandQueue.add(command);
         }
     }
 
@@ -111,14 +111,14 @@ public class Earth {
      * Helper method that will move the worker instance from one HasMap to another based on if it can perform
      * the action or not
      */
-    private static void blueprintRocketHelper(Task task) {
-        int workerId = selectWorkerForTask(Task.BLUEPRINT_ROCKET);
+    private static void blueprintRocketHelper(Command command) {
+        int workerId = selectWorkerForTask(Command.BLUEPRINT_ROCKET);
         if (earthIdleWorkerHashMap.get(workerId).buildRocket()) {
             Worker worker = earthIdleWorkerHashMap.get(workerId);
             earthIdleWorkerHashMap.remove(workerId);
             earthBusyWorkerHashMap.put(workerId, worker);
         } else {
-            workerEarthNextRoundTaskQueue.add(task);
+            workerEarthNextRoundCommandQueue.add(command);
         }
     }
 
@@ -126,14 +126,14 @@ public class Earth {
      * Helper method that will move the worker instance from one HasMap to another based on if it can perform
      * the action or not
      */
-    private static void cloneWorkerHelper(Task task) {
-        int workerId = selectWorkerForTask(Task.CLONE);
+    private static void cloneWorkerHelper(Command command) {
+        int workerId = selectWorkerForTask(Command.CLONE);
         if (earthIdleWorkerHashMap.get(workerId).cloneWorker()) {
             Worker worker = earthIdleWorkerHashMap.get(workerId);
             earthIdleWorkerHashMap.remove(workerId);
             earthStagingWorkerHashMap.put(workerId, worker);
         } else {
-            workerEarthNextRoundTaskQueue.add(task);
+            workerEarthNextRoundCommandQueue.add(command);
         }
         return;
     }
@@ -143,19 +143,19 @@ public class Earth {
      * tasks to the next round queue
      */
     private static void moveRemainingTasksToNextRound() {
-        workerEarthNextRoundTaskQueue.addAll(workerEarthCurrentTaskQueue);
-        workerEarthCurrentTaskQueue = new PriorityQueue<>();
+        workerEarthNextRoundCommandQueue.addAll(workerEarthCurrentCommandQueue);
+        workerEarthCurrentCommandQueue = new PriorityQueue<>();
     }
 
     /**
-     * This method will return the best worker to complete a given task. This method will then return the int
-     * id that robot is referenced by in the HashMap. The instance of the robot will then implement the task
-     * @param task The given task a worker needs to complete
-     * @return The id of the worker most suited to complete a task
+     * This method will return the best worker to complete a given command. This method will then return the int
+     * id that robot is referenced by in the HashMap. The instance of the robot will then implement the command
+     * @param command The given command a worker needs to complete
+     * @return The id of the worker most suited to complete a command
      */
-    public static int selectWorkerForTask(Task task) {
+    public static int selectWorkerForTask(Command command) {
         Integer[] keySet;
-        switch (task) {
+        switch (command) {
             case BLUEPRINT_FACTORY:
                 keySet = earthIdleWorkerHashMap.keySet()
                         .toArray(new Integer[earthIdleWorkerHashMap.keySet().size()]);
@@ -196,9 +196,9 @@ public class Earth {
     }
 
     private static void remainingTasksInQueue() {
-        Queue<Task> copyOfCurrentQueue = new PriorityQueue<>();
-        copyOfCurrentQueue.addAll(workerEarthCurrentTaskQueue);
-        for (int i = 0; i < workerEarthCurrentTaskQueue.size(); i++) {
+        Queue<Command> copyOfCurrentQueue = new PriorityQueue<>();
+        copyOfCurrentQueue.addAll(workerEarthCurrentCommandQueue);
+        for (int i = 0; i < workerEarthCurrentCommandQueue.size(); i++) {
             System.out.println(copyOfCurrentQueue.poll());
         }
     }

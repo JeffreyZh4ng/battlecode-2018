@@ -8,8 +8,8 @@ public class Player {
     // public static HashMap<Integer, Robot> earthUnitsHashMap = new HashMap<>();
     // public static HashMap<Integer, Building> earthStructureHashMap = new HashMap<>();
     // public static HashMap<Integer, Squadron> squadronHashMap = new HashMap<>();
-    // public static Queue<Task> hitList = new PriorityQueue<>();
-    // public static Stack<Task> emergencyTasks = new Stack<>();
+    // public static Queue<Command> hitList = new PriorityQueue<>();
+    // public static Stack<Command> emergencyTasks = new Stack<>();
 
     public static void main(String[] args) {
 
@@ -21,9 +21,9 @@ public class Player {
         gameController.queueResearch(UnitType.Worker);
         gameController.queueResearch(UnitType.Ranger);
         gameController.queueResearch(UnitType.Rocket);
-        Earth.workerEarthNextRoundTaskQueue.add(Task.BLUEPRINT_FACTORY);
-        Earth.workerEarthNextRoundTaskQueue.add(Task.CLONE);
-        Earth.workerEarthNextRoundTaskQueue.add(Task.BLUEPRINT_ROCKET);
+        Earth.workerEarthNextRoundCommandQueue.add(Command.BLUEPRINT_FACTORY);
+        Earth.workerEarthNextRoundCommandQueue.add(Command.CLONE);
+        Earth.workerEarthNextRoundCommandQueue.add(Command.BLUEPRINT_ROCKET);
         //printKarboniteValues();
 
         Earth earth = new Earth();
