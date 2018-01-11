@@ -35,6 +35,7 @@ public class Player {
         workerNextRoundTaskQueue.add(Task.CLONE);
 
         while (true) {
+
             workerCurrentTaskQueue = workerNextRoundTaskQueue;
             workerNextRoundTaskQueue = new PriorityQueue<>();
             // removeDeadUnits(); // Need to wait for an implementation that will check if a unit died from the API
@@ -43,8 +44,8 @@ public class Player {
             // This method will iterate through the busy worker list and will move each robot according to
             // its assigned task. If the task is completed this turn, the robot should be removed from the
             // busy list and moved to the staging list for next round (implemented in execute task).
-            for (int robotId: earthBusyWorkerHashMap.keySet()) {
-                Worker worker = earthBusyWorkerHashMap.get(robotId);
+            for (int workerId: earthBusyWorkerHashMap.keySet()) {
+                Worker worker = earthBusyWorkerHashMap.get(workerId);
                 worker.executeTask();
             }
 
@@ -52,21 +53,24 @@ public class Player {
             // should remove the robot from the idle map and put it in the busy map.
             for (int i = 0; i < workerCurrentTaskQueue.size(); i++) {
 
+                int workerId;
+                Task task = workerCurrentTaskQueue.poll();
+
                 if (earthIdleWorkerHashMap.size() < MINIMUM_WORKER_THRESHOLD) {
-                    workerNextRoundTaskQueue.add(Task.CLONE);
-                    cloneWorker();
-                    break;
+                    cloneWorkerHelper(task);
+
                 } else {
-                    Task task = workerCurrentTaskQueue.poll();
                     switch (task) {
                         case BUILD_FACTORY:
-                            buildFactory();
+                            buildFactoryHelper(task);
                             break;
+
                         case BUILD_ROCKET:
-                            buildRocket();
+                            buildRocketHelper(task);
                             break;
+
                         case CLONE:
-                            cloneWorker();
+                            cloneWorkerHelper(task);
                             break;
                     }
                 }
@@ -74,39 +78,94 @@ public class Player {
 
             // If there are still idle workers after completing all tasks, send them off to collect karbonite
             for (int i = 0; i < earthIdleWorkerHashMap.size(); i++) {
+                // int robotId = selectWorkerForTask()
                 // Given a queue of MapLocations, search for the nearest idle robot and send the task off to it
             }
 
+            // Removes workers from the staging area to the idle map at the end of each round
+            for (int workerId: earthStagingWorkerHashMap.keySet()) {
+                Worker worker = earthStagingWorkerHashMap.get(workerId);
+                earthStagingWorkerHashMap.remove(workerId);
+                earthIdleWorkerHashMap.put(workerId, worker);
+            }
             gameController.nextTurn();
         }
     }
 
     /**
-     * Method that will need to clone an idle worker and will remove it from the idle worker HashMap. Add the
-     * new robot to the staging area
+     * Helper method that will move the worker instance from one HasMap to another based on if it can perform
+     * the action or not
      */
-    public static void cloneWorker() {
-
+    private static void buildFactoryHelper(Task task) {
+        int workerId;
+        workerId = selectWorkerForTask(Task.BUILD_FACTORY);
+        if(earthIdleWorkerHashMap.get(workerId).buildFactory()) {
+            Worker worker = earthIdleWorkerHashMap.get(workerId);
+            earthIdleWorkerHashMap.remove(workerId);
+            earthBusyWorkerHashMap.put(workerId, worker);
+        } else {
+            workerNextRoundTaskQueue.add(task);
+        }
     }
 
     /**
-     * Method will find the optimal location to build a factory and will check if the player has enough
-     * Karbonite. If all conditions are met, the worker will lay down a blueprint and will start to build the factory.
-     * If the conditions are not met, the buildFactory task will be moved to next round and the robot will remain
-     * in the idle robot HashMap.
+     * Helper method that will move the worker instance from one HasMap to another based on if it can perform
+     * the action or not
      */
-    public static void buildFactory() {
-
+    private static void buildRocketHelper(Task task) {
+        int workerId;
+        workerId = selectWorkerForTask(Task.BUILD_ROCKET);
+        if (earthIdleWorkerHashMap.get(workerId).buildRocket()) {
+            Worker worker = earthIdleWorkerHashMap.get(workerId);
+            earthIdleWorkerHashMap.remove(workerId);
+            earthBusyWorkerHashMap.put(workerId, worker);
+        } else {
+            workerNextRoundTaskQueue.add(task);
+        }
     }
 
     /**
-     * Method will find the optimal location to build a rocket and will check if the player has enough
-     * Karbonite. If all conditions are met, the worker will lay down a blueprint and will start to build the rocket.
-     * If the conditions are not met, the buildRocket task will be moved to next round and the robot will remain
-     * in the idle robot HashMap.
+     * Helper method that will move the worker instance from one HasMap to another based on if it can perform
+     * the action or not
      */
-    public static void buildRocket() {
+    private static void cloneWorkerHelper(Task task) {
+        int workerId;
+        workerId = selectWorkerForTask(Task.CLONE);
+        if (earthIdleWorkerHashMap.get(workerId).cloneWorker()) {
+            Worker worker = earthIdleWorkerHashMap.get(workerId);
+            earthIdleWorkerHashMap.remove(workerId);
+            earthStagingWorkerHashMap.put(workerId, worker);
+        } else {
+            workerNextRoundTaskQueue.add(task);
+        }
+        return;
+    }
 
+    /**
+     * This method will return the best worker to complete a given task. This method will then return the int
+     * id that robot is referenced by in the HashMap. The instance of the robot will then implement the task
+     * @param task The given task a worker needs to complete
+     * @return The id of the worker most suited to complete a task
+     */
+    public static int selectWorkerForTask(Task task) {
+        switch (task) {
+            case BUILD_FACTORY:
+                break;
+            case BUILD_ROCKET:
+                break;
+            case CLONE:
+        }
+        return 1;
+    }
+
+    /**
+     * Method will be given a karbonite location and will return the id of the closest idle worker. Method
+     * much more depth. Dont want to send a worker to a deposit where one worker is already near ect.
+     * @param mapLocation The location of the karbonite deposit
+     * @return The id of the worker that will be sent to mine the karbonite
+     */
+    public static int selectWorkerForTask(MapLocation mapLocation) {
+        return 1;
     }
 
     /**
@@ -128,25 +187,20 @@ public class Player {
      */
     public static Direction pickRandomDirection() {
         int randomInt = (int)(Math.random()*8 + 1);
-        switch (randomInt) {
-            case 1:
-                return Direction.North;
-            case 2:
-                return Direction.Northeast;
-            case 3:
-                return Direction.East;
-            case 4:
-                return Direction.Southeast;
-            case 5:
-                return Direction.South;
-            case 6:
-                return Direction.Southwest;
-            case 7:
-                return Direction.West;
-            case 8:
-                return Direction.Northwest;
-            default:
-                return Direction.Center;
+        return Direction.swigToEnum(randomInt);
+    }
+
+    /**
+     * Subject to change. The isOccupiable method is bugged in the API
+     * @param robotId The id of the robot
+     * @return An available direction. Null if none are available
+     */
+    public static Direction returnAvailableDirection(int robotId) {
+        for (int i = 0; i < 8; i++) {
+            if (gameController.canMove(robotId, Direction.swigToEnum(i))) {
+                return Direction.swigToEnum(i);
+            }
         }
+        return null;
     }
 }
