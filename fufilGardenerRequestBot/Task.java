@@ -1,5 +1,3 @@
-package src;
-
 public enum Task {
     BUILD_FACTORY,
     BUILD_ROCKET,

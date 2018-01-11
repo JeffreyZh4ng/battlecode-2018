@@ -1,6 +1,4 @@
-package src;
-
-public class Worker extends Robot{
+public class Worker extends Robot {
 
     private int id;
     private Task task;

@@ -1,5 +1,3 @@
-package src;
-
 import bc.*;
 
 import java.util.HashMap;
@@ -11,7 +9,7 @@ public class Player {
     private static final int MINIMUM_WORKER_THRESHOLD = 2;
 
     public static GameController gameController = new GameController();
-    // public static HashMap<Integer, src.Robot> earthUnitsHashMap = new HashMap<>();
+    // public static HashMap<Integer, Robot> earthUnitsHashMap = new HashMap<>();
     public static HashMap<Integer, Worker> earthBusyWorkerHashMap = new HashMap<>();
     public static HashMap<Integer, Worker> earthIdleWorkerHashMap = new HashMap<>();
     public static HashMap<Integer, Worker> earthStagingWorkerHashMap = new HashMap<>();
@@ -20,8 +18,8 @@ public class Player {
     public static Queue<MapLocation> karboniteQueue = new PriorityQueue<>();
     public static Queue<Task> workerCurrentTaskQueue = new PriorityQueue<>();
     public static Queue<Task> workerNextRoundTaskQueue = new PriorityQueue<>();
-    // public static Queue<src.Task> hitList = new PriorityQueue<>();
-    // public static Stack<src.Task> emergencyTasks = new Stack<>();
+    // public static Queue<Task> hitList = new PriorityQueue<>();
+    // public static Stack<Task> emergencyTasks = new Stack<>();
 
     public static void main(String[] args) {
 
