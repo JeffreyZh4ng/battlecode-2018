@@ -9,6 +9,7 @@ import java.util.Queue;
 public class Earth {
 
     private static final int MINIMUM_WORKER_THRESHOLD = 2;
+    private static final int BEST_LAUNCH_ROUND = 375;
 
     public static HashMap<Integer, Worker> earthBusyWorkerHashMap = new HashMap<>();
     public static HashMap<Integer, Worker> earthIdleWorkerHashMap = new HashMap<>();
@@ -19,37 +20,51 @@ public class Earth {
     public static Queue<Task> workerEarthNextRoundTaskQueue = new PriorityQueue<>();
 
     public void execute() {
-        workerEarthCurrentTaskQueue = workerEarthNextRoundTaskQueue;
+        workerEarthCurrentTaskQueue = new PriorityQueue<>();
+        workerEarthCurrentTaskQueue.addAll(workerEarthNextRoundTaskQueue);
         workerEarthNextRoundTaskQueue = new PriorityQueue<>();
         // removeDeadUnits(); // Need to wait for an implementation that will check if a unit died from the API
+
         System.out.println("Current round: " + Player.gameController.round());
+        System.out.println("Workers on standby: " + earthIdleWorkerHashMap.size());
+        remainingTasksInQueue();
 
         // This method will iterate through the busy worker list and will move each robot according to
         // its assigned task. If the task is completed this turn, the robot should be removed from the
         // busy list and moved to the staging list for next round (implemented in execute task).
+        HashMap<Integer, Worker> tempBusyWorkerHashMap = new HashMap<>();
         for (int workerId: earthBusyWorkerHashMap.keySet()) {
             Worker worker = earthBusyWorkerHashMap.get(workerId);
-            worker.executeTask();
+            if (worker.executeTask()) {
+                earthIdleWorkerHashMap.put(workerId, worker);
+            } else {
+                tempBusyWorkerHashMap.put(workerId, worker);
+            }
         }
+        earthBusyWorkerHashMap = tempBusyWorkerHashMap;
 
         // Iterates through the worker queue and will assign tasks to the idle workers. Helper methods
         // should remove the robot from the idle map and put it in the busy map.
-        for (int i = 0; i < workerEarthCurrentTaskQueue.size(); i++) {
+        int currentTaskCount = workerEarthCurrentTaskQueue.size();
+        for (int i = 0; i < currentTaskCount; i++) {
 
-            int workerId;
+            System.out.println("Remaining idle workers: " + earthIdleWorkerHashMap.size());
             Task task = workerEarthCurrentTaskQueue.poll();
 
             if (earthIdleWorkerHashMap.size() < MINIMUM_WORKER_THRESHOLD) {
+                workerEarthNextRoundTaskQueue.add(task);
                 cloneWorkerHelper(task);
+                moveRemainingTasksToNextRound();
+                break;
 
             } else {
                 switch (task) {
-                    case BUILD_FACTORY:
-                        buildFactoryHelper(task);
+                    case BLUEPRINT_FACTORY:
+                        blueprintFactoryHelper(task);
                         break;
 
-                    case BUILD_ROCKET:
-                        buildRocketHelper(task);
+                    case BLUEPRINT_ROCKET:
+                        blueprintRocketHelper(task);
                         break;
 
                     case CLONE:
@@ -59,6 +74,7 @@ public class Earth {
             }
         }
 
+        System.out.println("There are: " + earthIdleWorkerHashMap.size() + " Idle workers left");
         // If there are still idle workers after completing all tasks, send them off to collect karbonite
         for (int i = 0; i < earthIdleWorkerHashMap.size(); i++) {
             // int robotId = selectWorkerForTask()
@@ -66,7 +82,7 @@ public class Earth {
         }
 
         // Removes workers from the staging area to the idle map at the end of each round
-        System.out.println("Staging workers size: " + earthStagingWorkerHashMap.keySet().size());
+        // System.out.println("Staging workers size: " + earthStagingWorkerHashMap.keySet().size());
         for (int workerId: earthStagingWorkerHashMap.keySet()) {
             Worker worker = earthStagingWorkerHashMap.get(workerId);
             earthIdleWorkerHashMap.put(workerId, worker);
@@ -78,10 +94,9 @@ public class Earth {
      * Helper method that will move the worker instance from one HasMap to another based on if it can perform
      * the action or not
      */
-    private static void buildFactoryHelper(Task task) {
-        int workerId;
-        workerId = selectWorkerForTask(Task.BUILD_FACTORY);
-        if(earthIdleWorkerHashMap.get(workerId).buildFactory()) {
+    private static void blueprintFactoryHelper(Task task) {
+        int workerId = selectWorkerForTask(Task.BLUEPRINT_FACTORY);
+        if(earthIdleWorkerHashMap.get(workerId).blueprintFactory()) {
             Worker worker = earthIdleWorkerHashMap.get(workerId);
             earthIdleWorkerHashMap.remove(workerId);
             earthBusyWorkerHashMap.put(workerId, worker);
@@ -94,9 +109,8 @@ public class Earth {
      * Helper method that will move the worker instance from one HasMap to another based on if it can perform
      * the action or not
      */
-    private static void buildRocketHelper(Task task) {
-        int workerId;
-        workerId = selectWorkerForTask(Task.BUILD_ROCKET);
+    private static void blueprintRocketHelper(Task task) {
+        int workerId = selectWorkerForTask(Task.BLUEPRINT_ROCKET);
         if (earthIdleWorkerHashMap.get(workerId).buildRocket()) {
             Worker worker = earthIdleWorkerHashMap.get(workerId);
             earthIdleWorkerHashMap.remove(workerId);
@@ -111,8 +125,7 @@ public class Earth {
      * the action or not
      */
     private static void cloneWorkerHelper(Task task) {
-        int workerId;
-        workerId = selectWorkerForTask(Task.CLONE);
+        int workerId = selectWorkerForTask(Task.CLONE);
         if (earthIdleWorkerHashMap.get(workerId).cloneWorker()) {
             Worker worker = earthIdleWorkerHashMap.get(workerId);
             earthIdleWorkerHashMap.remove(workerId);
@@ -124,20 +137,33 @@ public class Earth {
     }
 
     /**
+     * If there are no more idle workers, no more tasks will be able to be completed. Must move the remaining
+     * tasks to the next round queue
+     */
+    private static void moveRemainingTasksToNextRound() {
+        workerEarthNextRoundTaskQueue.addAll(workerEarthCurrentTaskQueue);
+        workerEarthCurrentTaskQueue = new PriorityQueue<>();
+    }
+
+    /**
      * This method will return the best worker to complete a given task. This method will then return the int
      * id that robot is referenced by in the HashMap. The instance of the robot will then implement the task
      * @param task The given task a worker needs to complete
      * @return The id of the worker most suited to complete a task
      */
     public static int selectWorkerForTask(Task task) {
+        Integer[] keySet;
         switch (task) {
-            case BUILD_FACTORY:
-                break;
-            case BUILD_ROCKET:
-                break;
+            case BLUEPRINT_FACTORY:
+                keySet = earthIdleWorkerHashMap.keySet()
+                        .toArray(new Integer[earthIdleWorkerHashMap.keySet().size()]);
+                return keySet[0];
+            case BLUEPRINT_ROCKET:
+                keySet = earthIdleWorkerHashMap.keySet()
+                        .toArray(new Integer[earthIdleWorkerHashMap.keySet().size()]);
+                return keySet[0];
             case CLONE:
-                System.out.println(earthIdleWorkerHashMap.keySet().size());
-                Integer[] keySet = earthIdleWorkerHashMap.keySet()
+                keySet = earthIdleWorkerHashMap.keySet()
                         .toArray(new Integer[earthIdleWorkerHashMap.keySet().size()]);
                 return keySet[0];
         }
@@ -146,7 +172,7 @@ public class Earth {
 
     /**
      * Method will be given a karbonite location and will return the id of the closest idle worker. Method
-     * much more depth. Dont want to send a worker to a deposit where one worker is already near ect.
+     * much more depth. Don't want to send a worker to a deposit where one worker is already near ect.
      * @param mapLocation The location of the karbonite deposit
      * @return The id of the worker that will be sent to mine the karbonite
      */
@@ -164,6 +190,14 @@ public class Earth {
             int unitId = units.get(i).id();
             Worker worker = new Worker(unitId, null);
             earthIdleWorkerHashMap.put(unitId, worker);
+        }
+    }
+
+    private static void remainingTasksInQueue() {
+        Queue<Task> copyOfCurrentQueue = new PriorityQueue<>();
+        copyOfCurrentQueue.addAll(workerEarthCurrentTaskQueue);
+        for (int i = 0; i < workerEarthCurrentTaskQueue.size(); i++) {
+            System.out.println(copyOfCurrentQueue.poll());
         }
     }
 }

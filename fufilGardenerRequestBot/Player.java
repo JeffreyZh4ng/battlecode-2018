@@ -21,8 +21,10 @@ public class Player {
         gameController.queueResearch(UnitType.Worker);
         gameController.queueResearch(UnitType.Ranger);
         gameController.queueResearch(UnitType.Rocket);
-        Earth.workerEarthNextRoundTaskQueue.add(Task.BUILD_FACTORY);
+        Earth.workerEarthNextRoundTaskQueue.add(Task.BLUEPRINT_FACTORY);
         Earth.workerEarthNextRoundTaskQueue.add(Task.CLONE);
+        Earth.workerEarthNextRoundTaskQueue.add(Task.BLUEPRINT_ROCKET);
+        //printKarboniteValues();
 
         Earth earth = new Earth();
         Mars mars = new Mars();
@@ -63,14 +65,14 @@ public class Player {
     }
 
     /**
-     * itterates through map locations and prints karbonite values for all locations
+     * Iterates through map locations and prints karbonite values for all locations
      */
     public static void printKarboniteValues() {
         long width = gameController.startingMap(Planet.Earth).getWidth();
         long height = gameController.startingMap(Planet.Earth).getHeight();
-        for(int x = 0; x <= width; x++) {
-            for(int y = 0; y <= height;y++) {
-                System.out.println(gameController.karboniteAt(new MapLocation(Planet.Earth,x,y)));
+        for(int x = 0; x < width; x++) {
+            for(int y = 0; y < height; y++) {
+                System.out.println(gameController.startingMap(Planet.Earth).initialKarboniteAt(new MapLocation(Planet.Earth,x,y)));
             }
         }
     }
