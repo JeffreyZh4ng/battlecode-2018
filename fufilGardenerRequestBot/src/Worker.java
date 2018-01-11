@@ -1,4 +1,6 @@
-public class Worker {
+package src;
+
+public class Worker extends Robot{
 
     private int id;
     private Task task;
@@ -6,5 +8,9 @@ public class Worker {
     public Worker(int id, Task task) {
         this.id = id;
         this.task = task;
+    }
+
+    public void executeTask() {
+
     }
 }
