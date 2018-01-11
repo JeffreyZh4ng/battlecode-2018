@@ -13,26 +13,26 @@ public class Player {
 
     public static void main(String[] args) {
 
-        Earth.addWorkersToHashMap(gameController);
-        PlanetMap earthMap = gameController.startingMap(Planet.Earth);
-        //findKarbonite(earthMap); // Need to write a method that will iterate over all spaces on the map
-        // And will find the greatest concentrations of karbonite
+//        Earth.addWorkersToHashMap(gameController);
+//        PlanetMap earthMap = gameController.startingMap(Planet.Earth);
+//        //findKarbonite(earthMap); // Need to write a method that will iterate over all spaces on the map
+//        // And will find the greatest concentrations of karbonite
+//
+//        gameController.queueResearch(UnitType.Worker);
+//        gameController.queueResearch(UnitType.Ranger);
+//        gameController.queueResearch(UnitType.Rocket);
+//        Earth.workerEarthNextRoundCommandQueue.add(Command.BLUEPRINT_FACTORY);
+//        Earth.workerEarthNextRoundCommandQueue.add(Command.CLONE);
+//        Earth.workerEarthNextRoundCommandQueue.add(Command.BLUEPRINT_ROCKET);
+//        //printKarboniteValues();
 
-        gameController.queueResearch(UnitType.Worker);
-        gameController.queueResearch(UnitType.Ranger);
-        gameController.queueResearch(UnitType.Rocket);
-        Earth.workerEarthNextRoundCommandQueue.add(Command.BLUEPRINT_FACTORY);
-        Earth.workerEarthNextRoundCommandQueue.add(Command.CLONE);
-        Earth.workerEarthNextRoundCommandQueue.add(Command.BLUEPRINT_ROCKET);
-        //printKarboniteValues();
-
-        Earth earth = new Earth();
+        EarthOld earth = new EarthOld();
         Mars mars = new Mars();
 
         while (true) {
 
             if (gameController.planet() == Planet.Earth && gameController.round() < FLOOD_ROUND) {
-                earth.execute();
+                // earth.execute();
             } else if (gameController.planet() == Planet.Mars) {
                 mars.execute();
             }
