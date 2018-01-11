@@ -1,4 +1,6 @@
 import bc.Direction;
+import bc.MapLocation;
+import bc.Unit;
 
 public class Worker extends Robot {
 
@@ -26,6 +28,12 @@ public class Worker extends Robot {
 
         } else if (Player.gameController.canReplicate(this.id, direction)) {
             Player.gameController.replicate(this.id, direction);
+            MapLocation clonedWorkerLocation = Player.gameController.unit(this.id).location().mapLocation().add(direction);
+            Unit clonedWorker = Player.gameController.senseUnitAtLocation(clonedWorkerLocation);
+            Worker clonedWorkerInstance = new Worker(clonedWorker.id(), null);
+            Earth.earthStagingWorkerHashMap.put(clonedWorker.id(), clonedWorkerInstance);
+
+            System.out.println("Successfully cloned!");
             return true;
 
         } else {
