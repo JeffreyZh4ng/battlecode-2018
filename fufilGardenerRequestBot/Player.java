@@ -65,16 +65,24 @@ public class Player {
         return null;
     }
 
+//    /**
+//     * Iterates through map locations and prints karbonite values for all locations
+//     */
+//    public static void printKarboniteValues() {
+//        long width = gameController.startingMap(Planet.Earth).getWidth();
+//        long height = gameController.startingMap(Planet.Earth).getHeight();
+//        for (int x = 0; x < width; x++) {
+//            for (int y = 0; y < height; y++) {
+//                System.out.println(gameController.startingMap(Planet.Earth).initialKarboniteAt(new MapLocation(Planet.Earth, x, y)));
+//            }
+//        }
+//    }
+
     /**
-     * Iterates through map locations and prints karbonite values for all locations
+     * finds next optimal locations for each robot to move to and moves them to that location
      */
-    public static void printKarboniteValues() {
-        long width = gameController.startingMap(Planet.Earth).getWidth();
-        long height = gameController.startingMap(Planet.Earth).getHeight();
-        for(int x = 0; x < width; x++) {
-            for(int y = 0; y < height; y++) {
-                System.out.println(gameController.startingMap(Planet.Earth).initialKarboniteAt(new MapLocation(Planet.Earth,x,y)));
-            }
-        }
+    public static void moveWorkers() {
+        //find optimal next locations, consider if robot in path is moving, find optimal order of execution
+        //execute move actions
     }
 }
