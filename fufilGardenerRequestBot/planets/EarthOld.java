@@ -1,3 +1,5 @@
+package planets;
+
 import bc.GameController;
 import bc.MapLocation;
 import bc.VecUnit;

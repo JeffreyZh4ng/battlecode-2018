@@ -1,3 +1,7 @@
+package robotStuff;
+
+import commandsAndQueues.Task;
+
 import java.util.PriorityQueue;
 
 /**
@@ -13,7 +17,7 @@ public abstract class Robot {
      * @param id The id of the robot
      */
     public Robot(int id) {
-       this.id = id;
+        this.id = id;
     }
 
     /**

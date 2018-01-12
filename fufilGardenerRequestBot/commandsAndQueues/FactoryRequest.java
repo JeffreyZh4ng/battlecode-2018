@@ -1,4 +1,4 @@
-import bc.MapLocation;
+package commandsAndQueues;
 import bc.UnitType;
 
 public class FactoryRequest {
