@@ -1,9 +1,13 @@
 package robots;
 
 import bc.Direction;
+import bc.MapLocation;
+import bc.Planet;
+import bc.PlanetMap;
 import commandsAndRequests.Globals;
 import commandsAndRequests.Task;
-
+import java.util.HashMap;
+import java.util.Queue;
 import java.util.PriorityQueue;
 
 /**
@@ -13,6 +17,9 @@ public abstract class Robot {
 
     private int id;
     private PriorityQueue<Task> robotTaskQueue;
+
+    private static final Direction[] moveDirections = {Direction.North, Direction.Northeast, Direction.East, Direction.Southeast, Direction.South, Direction.Southwest, Direction.West, Direction.Northwest};
+    PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
 
     /**
      * Constructor that will set the id of the robot when it is created
@@ -66,13 +73,7 @@ public abstract class Robot {
 //        }
 //    }
 
-    /**
-     * finds next optimal locations for each robot to move to and moves them to that location
-     */
-    public static void moveWorkers() {
-        // find optimal next locations, consider if robot in path is moving, find optimal order of execution
-        // execute move actions
-    }
+
 
     /**
      * Abstract method that needs to be implemented for each unit that is a Robot. Workers will add tasks to
@@ -81,4 +82,52 @@ public abstract class Robot {
      * @return If the task was successfully assigned to the robots task queue
      */
     public abstract boolean addTaskToQueue(Task task);
+
+
+    /**
+     * finds next optimal locations for each robot to move to and moves them to that location
+     */
+    public static void moveWorkers() {
+        //TODO: find optimal next locations, consider if robot in path is moving, find optimal order of execution, execute moves
+        //for now will find path bassed only on impassable object and move immediately
+    }
+
+    /**
+     * uses BreadthFirstSearch algorithm to get the next location based on current map
+     * @param startingLocation current location of object to move
+     * @param destinationLocation
+     * @param map
+     * @return the next place to step
+     */
+    public static MapLocation getNextForBreadthFirstSearch(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
+        try {
+            Queue<MapLocation> frontier = new PriorityQueue<>();
+            frontier.add(startingLocation);
+            HashMap<MapLocation,MapLocation> came_from = new HashMap<>();
+            came_from.put(startingLocation, null);
+
+            while(!frontier.isEmpty()) {
+                MapLocation currentLocation = frontier.poll();
+                for(Direction nextDirection : moveDirections) {
+                    MapLocation nextLocation = currentLocation.add(nextDirection);
+                    if(map.onMap(nextLocation) && map.isPassableTerrainAt(nextLocation)&& came_from.get(nextLocation)!=null) {
+                        frontier.add(nextLocation);
+                        came_from.put(nextLocation,currentLocation);
+                    }
+                }
+            }
+            MapLocation resultLocation = null;
+            MapLocation currentLocation = destinationLocation;
+            while(currentLocation != startingLocation) {
+                resultLocation = currentLocation;
+                currentLocation = came_from.get(currentLocation);
+            }
+            return resultLocation;
+        } catch (Exception error) {
+            System.out.println(error);
+        }
+        return null;
+    }
 }
+
+
