@@ -1,5 +1,4 @@
 import bc.*;
-import planet.Mars;
 
 public class Player {
 
