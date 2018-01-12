@@ -12,6 +12,9 @@ public class Worker extends Robot {
         return false;
     }
 
+    public boolean execute() {
+        return true;
+    }
 //    public boolean executeTask() {
 //        switch (command) {
 //            case BUILD:

@@ -8,12 +8,14 @@ public class Task {
     public static int taskIndex = 0;
 
     private int taskId;
+    private boolean isRequestFulfilled;
     private Command command;
     private ArrayList<Integer> workersOnTaskList;
     private MapLocation taskLocation;
 
     public Task(Task task, Command command, MapLocation taskLocation) {
         taskIndex++;
+        this.isRequestFulfilled = false;
         this.taskId = taskIndex;
         this.command = command;
         workersOnTaskList = new ArrayList<>();

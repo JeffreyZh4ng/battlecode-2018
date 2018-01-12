@@ -28,7 +28,21 @@ public class Earth {
 
         // Execute blueprints, Rockets, Workers, Factories, Attackers
         for (int blueprintId: earthBlueprintMap.keySet()) {
+            earthBlueprintMap.get(blueprintId).execute();
+        }
+        for (int rocketId: earthRocketMap.keySet()) {
+            earthRocketMap.get(rocketId).execute();
+        }
+        for (int workerId: earthWorkerMap.keySet())
+    }
 
+    public boolean sendRequestsToWorkers() {
+
+    }
+
+    private <T> void runUnitMap(HashMap<Integer, T> searchMap) {
+        for (int unitId: searchMap.keySet()) {
+            searchMap.get(unitId);
         }
     }
 
