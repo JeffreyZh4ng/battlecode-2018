@@ -1,17 +1,10 @@
-package robotStuff;
-import commandsAndQueues.Command;
-import commandsAndQueues.Task;
+package robots;
+import commandsAndRequests.Task;
 
 public class Worker extends Robot {
 
-    private int id;
-    private int targetId;
-    private Command command;
-
-    public Worker(int id, Command command) {
+    public Worker(int id) {
         super(id);
-        this.targetId = 0;
-        this.command = command;
     }
 
     @Override

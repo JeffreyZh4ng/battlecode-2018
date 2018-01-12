@@ -1,4 +1,4 @@
-package commandsAndQueues;
+package commandsAndRequests;
 import bc.MapLocation;
 
 import java.util.ArrayList;
