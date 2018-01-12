@@ -1,6 +1,3 @@
-<<<<<<< HEAD:fufilGardenerRequestBot/Earth.java
-public class Earth {
-=======
 package planets;
 import robotStuff.Robot;
 import commandsAndQueues.Task;
@@ -26,5 +23,4 @@ public class Earth {
         // Execute blueprints, Rockets, Workers, Factories, Attackers
 
     }
->>>>>>> 1eccfd7cd8289f77ced26bf46436a62f978d2e73:fufilGardenerRequestBot/planets/Earth.java
 }
