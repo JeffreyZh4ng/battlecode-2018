@@ -1,4 +1,4 @@
-package commandsAndQueues;
+package commandsAndRequests;
 import bc.UnitType;
 
 public class FactoryRequest {

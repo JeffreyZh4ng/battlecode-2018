@@ -1,6 +1,6 @@
 package planets;
-import robotStuff.Robot;
-import commandsAndQueues.Task;
+import robots.Robot;
+import commandsAndRequests.Task;
 import structureStuff.Blueprint;
 import structureStuff.Factory;
 import structureStuff.Rocket;

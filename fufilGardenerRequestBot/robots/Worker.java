@@ -1,6 +1,6 @@
-package robotStuff;
-import commandsAndQueues.Command;
-import commandsAndQueues.Task;
+package robots;
+import commandsAndRequests.Command;
+import commandsAndRequests.Task;
 
 public class Worker extends Robot {
 

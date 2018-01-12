@@ -1,6 +1,6 @@
-package robotStuff;
+package robots;
 
-import commandsAndQueues.Task;
+import commandsAndRequests.Task;
 
 import java.util.PriorityQueue;
 
