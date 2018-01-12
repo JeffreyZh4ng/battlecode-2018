@@ -1,4 +1,4 @@
-package structureStuff;
+package structures;
 
 import bc.MapLocation;
 

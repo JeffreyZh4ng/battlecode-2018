@@ -1,45 +1,42 @@
 import bc.*;
-import planets.EarthOld;
+import commandsAndRequests.Globals;
+import planets.Earth;
 import planets.Mars;
+import robots.Robot;
+import robots.Worker;
 
 public class Player {
 
     private static final int FLOOD_ROUND = 750;
     
-    public static GameController gameController = new GameController();
-    // public static HashMap<Integer, Robot> earthUnitsHashMap = new HashMap<>();
-    // public static HashMap<Integer, Building> earthStructureHashMap = new HashMap<>();
-    // public static HashMap<Integer, Squadron> squadronHashMap = new HashMap<>();
-    // public static Queue<Command> hitList = new PriorityQueue<>();
-    // public static Stack<Command> emergencyTasks = new Stack<>();
 
     public static void main(String[] args) {
 
-//        Earth.addWorkersToHashMap(gameController);
-//        PlanetMap earthMap = gameController.startingMap(Planet.Earth);
-//        //findKarbonite(earthMap); // Need to write a method that will iterate over all spaces on the map
-//        // And will find the greatest concentrations of karbonite
-//
-//        gameController.queueResearch(UnitType.Worker);
-//        gameController.queueResearch(UnitType.Ranger);
-//        gameController.queueResearch(UnitType.Rocket);
-//        Earth.workerEarthNextRoundCommandQueue.add(Command.BLUEPRINT_FACTORY);
-//        Earth.workerEarthNextRoundCommandQueue.add(Command.CLONE);
-//        Earth.workerEarthNextRoundCommandQueue.add(Command.BLUEPRINT_ROCKET);
-//        //printKarboniteValues();
-
-        EarthOld earth = new EarthOld();
+        Earth earth = new Earth();
         Mars mars = new Mars();
 
-        while (true) {
+        addStartingWorkersToEarthMap();
 
-            if (gameController.planet() == Planet.Earth && gameController.round() < FLOOD_ROUND) {
-                // earth.execute();
-            } else if (gameController.planet() == Planet.Mars) {
+        while (true) {
+            if (Globals.gameController.planet() == Planet.Earth && Globals.gameController.round() < FLOOD_ROUND) {
+                earth.execute();
+            } else if (Globals.gameController.planet() == Planet.Mars) {
                 mars.execute();
             }
 
-            gameController.nextTurn();
+            Globals.gameController.nextTurn();
+        }
+    }
+
+    /**
+     * Method that will add all the workers on earth to the HashMap of workers at the beginning of the game
+     */
+    private static void addStartingWorkersToEarthMap() {
+        VecUnit units = Globals.gameController.myUnits();
+        for (int i = 0; i < units.size(); i++) {
+            int unitId = units.get(i).id();
+            Robot worker = new Worker(unitId);
+            Earth.earthWorkerMap.put(unitId, worker);
         }
     }
 
@@ -59,14 +56,22 @@ public class Player {
      */
     public static Direction returnAvailableDirection(int robotId) {
         for (int i = 0; i < 8; i++) {
-            if (gameController.canMove(robotId, Direction.swigToEnum(i))) {
+            if (Globals.gameController.canMove(robotId, Direction.swigToEnum(i))) {
                 return Direction.swigToEnum(i);
             }
         }
         return null;
     }
 
-//    /**
+    /**
+     * finds next optimal locations for each robot to move to and moves them to that location
+     */
+    public static void moveWorkers() {
+        //find optimal next locations, consider if robot in path is moving, find optimal order of execution
+        //execute move actions
+    }
+
+    //    /**
 //     * Iterates through map locations and prints karbonite values for all locations
 //     */
 //    public static void printKarboniteValues() {
@@ -78,12 +83,4 @@ public class Player {
 //            }
 //        }
 //    }
-
-    /**
-     * finds next optimal locations for each robot to move to and moves them to that location
-     */
-    public static void moveWorkers() {
-        //find optimal next locations, consider if robot in path is moving, find optimal order of execution
-        //execute move actions
-    }
 }
