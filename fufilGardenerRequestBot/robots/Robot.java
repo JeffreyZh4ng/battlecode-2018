@@ -6,7 +6,10 @@ import bc.Planet;
 import bc.PlanetMap;
 import commandsAndRequests.Globals;
 import commandsAndRequests.Task;
+import planets.Earth;
+
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 import java.util.PriorityQueue;
 
@@ -15,11 +18,15 @@ import java.util.PriorityQueue;
  */
 public abstract class Robot {
 
+    private static final Direction[] moveDirections = {Direction.North, Direction.Northeast, Direction.East, Direction.Southeast, Direction.South, Direction.Southwest, Direction.West, Direction.Northwest};
+    public static final PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
+
+
     private int id;
     private PriorityQueue<Task> robotTaskQueue;
 
-    private static final Direction[] moveDirections = {Direction.North, Direction.Northeast, Direction.East, Direction.Southeast, Direction.South, Direction.Southwest, Direction.West, Direction.Northwest};
-    PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
+    public MapLocation destinationLocation = new MapLocation(Planet.Earth,0,0); // will be chagned latter
+
 
     /**
      * Constructor that will set the id of the robot when it is created
@@ -88,8 +95,18 @@ public abstract class Robot {
      * finds next optimal locations for each robot to move to and moves them to that location
      */
     public static void moveWorkers() {
+        System.out.println("moving workers");
         //TODO: find optimal next locations, consider if robot in path is moving, find optimal order of execution, execute moves
         //for now will find path bassed only on impassable object and move immediately
+        for (int workerId: Earth.earthWorkerMap.keySet()) {
+            if(Globals.gameController.unit(workerId).movementHeat() < 10) {
+                MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Globals.gameController.unit(workerId).location().mapLocation(), Earth.earthWorkerMap.get(workerId).destinationLocation, initialEarthMap);
+                Direction directionToMove = Globals.gameController.unit(workerId).location().mapLocation().directionTo(locationToMoveTo);
+                if (Globals.gameController.canMove(workerId, directionToMove)) {
+                    Globals.gameController.moveRobot(workerId, directionToMove);
+                }
+            }
+        }
     }
 
     /**
@@ -106,13 +123,13 @@ public abstract class Robot {
             HashMap<MapLocation,MapLocation> came_from = new HashMap<>();
             came_from.put(startingLocation, null);
 
-            while(!frontier.isEmpty()) {
+            while (!frontier.isEmpty()) {
                 MapLocation currentLocation = frontier.poll();
-                for(Direction nextDirection : moveDirections) {
+                for (Direction nextDirection : moveDirections) {
                     MapLocation nextLocation = currentLocation.add(nextDirection);
-                    if(map.onMap(nextLocation) && map.isPassableTerrainAt(nextLocation)&& came_from.get(nextLocation)!=null) {
+                    if (map.onMap(nextLocation) && map.isPassableTerrainAt(nextLocation) == 1 && (!Globals.gameController.canSenseLocation(nextLocation)||!Globals.gameController.hasUnitAtLocation(nextLocation))&& came_from.get(nextLocation) != null) {
                         frontier.add(nextLocation);
-                        came_from.put(nextLocation,currentLocation);
+                        came_from.put(nextLocation, currentLocation);
                     }
                 }
             }

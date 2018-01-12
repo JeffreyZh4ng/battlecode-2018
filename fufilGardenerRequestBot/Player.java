@@ -17,6 +17,8 @@ public class Player {
         addStartingWorkersToEarthMap();
 
         while (true) {
+
+
             if (Globals.gameController.planet() == Planet.Earth && Globals.gameController.round() < FLOOD_ROUND) {
                 earth.execute();
             } else if (Globals.gameController.planet() == Planet.Mars) {
