@@ -1,4 +1,6 @@
 import bc.*;
+import planets.EarthOld;
+import planets.Mars;
 
 public class Player {
 

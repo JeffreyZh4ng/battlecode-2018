@@ -1,3 +1,10 @@
+package planets;
+import robotStuff.Robot;
+import commandsAndQueues.Task;
+import structureStuff.Blueprint;
+import structureStuff.Factory;
+import structureStuff.Rocket;
+
 import java.util.HashMap;
 
 public class Earth {
@@ -14,6 +21,6 @@ public class Earth {
 
     public void execute() {
         // Execute blueprints, Rockets, Workers, Factories, Attackers
-        
+
     }
 }

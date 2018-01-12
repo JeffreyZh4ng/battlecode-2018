@@ -1,7 +1,6 @@
-import bc.Direction;
-import bc.MapLocation;
-import bc.Unit;
-import bc.UnitType;
+package robotStuff;
+import commandsAndQueues.Command;
+import commandsAndQueues.Task;
 
 public class Worker extends Robot {
 
@@ -130,3 +129,4 @@ public class Worker extends Robot {
 //        }
 //    }
 }
+
