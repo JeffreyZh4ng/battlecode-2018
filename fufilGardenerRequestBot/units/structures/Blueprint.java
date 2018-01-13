@@ -11,7 +11,7 @@ public class Blueprint extends Structure {
     }
 
     @Override
-    public void execute() {
+    public void run() {
 
     }
 

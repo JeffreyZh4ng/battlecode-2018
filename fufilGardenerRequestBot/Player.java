@@ -1,8 +1,10 @@
 import bc.*;
+import commandsAndRequests.Command;
 import commandsAndRequests.Globals;
+import commandsAndRequests.RobotTask;
 import planets.Earth;
 import planets.Mars;
-import units.Robot;
+import units.Unit;
 import units.robots.Worker;
 
 public class Player {
@@ -15,6 +17,7 @@ public class Player {
         Mars mars = new Mars();
 
         addStartingWorkersToEarthMap();
+        addTaskToWorkers();
 
         while (true) {
 
@@ -29,6 +32,13 @@ public class Player {
         }
     }
 
+    private static void addTaskToWorkers() {
+        for (int robotId : Earth.earthWorkerMap.keySet()) {
+            RobotTask task = new RobotTask(Command.MOVE, new MapLocation(Planet.Earth, 10, 10));
+            Earth.earthWorkerMap.get(robotId).robotTaskQueue.add(task);
+        }
+    }
+
     /**
      * Method that will add all the workers on earth to the HashMap of workers at the beginning of the game
      */
@@ -36,7 +46,7 @@ public class Player {
         VecUnit units = Globals.gameController.myUnits();
         for (int i = 0; i < units.size(); i++) {
             int unitId = units.get(i).id();
-            Robot worker = new Worker(unitId);
+            Unit worker = new Worker(unitId);
             Earth.earthWorkerMap.put(unitId, worker);
         }
     }

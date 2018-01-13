@@ -11,4 +11,12 @@ public class RobotTask {
         this.command = command;
         this.commandLocation = commandLocation;
     }
+
+    public Command getCommand() {
+        return command;
+    }
+
+    public MapLocation getCommandLocation() {
+        return commandLocation;
+    }
 }

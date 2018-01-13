@@ -22,7 +22,7 @@ public class EarthOld {
 //    public static Queue<Command> workerEarthCurrentCommandQueue = new PriorityQueue<>();
 //    public static Queue<Command> workerEarthNextRoundCommandQueue = new PriorityQueue<>();
 //
-//    public void execute() {
+//    public void run() {
 //        workerEarthCurrentCommandQueue = new PriorityQueue<>();
 //        workerEarthCurrentCommandQueue.addAll(workerEarthNextRoundCommandQueue);
 //        workerEarthNextRoundCommandQueue = new PriorityQueue<>();
@@ -35,7 +35,7 @@ public class EarthOld {
 //
 //        // This method will iterate through the busy worker list and will move each robot according to
 //        // its assigned task. If the task is completed this turn, the robot should be removed from the
-//        // busy list and moved to the staging list for next round (implemented in execute task).
+//        // busy list and moved to the staging list for next round (implemented in run task).
 //        HashMap<Integer, Worker> tempBusyWorkerHashMap = new HashMap<>();
 //        for (int workerId: earthBusyWorkerHashMap.keySet()) {
 //            Worker worker = earthBusyWorkerHashMap.get(workerId);

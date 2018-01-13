@@ -1,5 +1,7 @@
 package units.robots;
-import commandsAndRequests.GlobalTask;
+import bc.MapLocation;
+import commandsAndRequests.Command;
+import commandsAndRequests.RobotTask;
 import units.Robot;
 
 public class Worker extends Robot {
@@ -9,42 +11,49 @@ public class Worker extends Robot {
     }
 
     @Override
-    public void execute() {
-        if (this.robotTaskQueue.isEmpty()) {
-            //searchForKarbonite();
+    public void run() {
+        if (this.emergencyTask != null) {
+            if (executeTask(this.emergencyTask)) {
+                this.emergencyTask = null;
+            }
+            return;
+        }
+
+        if (this.robotTaskQueue.size() != 0) {
+            RobotTask currentTask = this.robotTaskQueue.peek();
+            if (executeTask(currentTask)) {
+                this.robotTaskQueue.poll();
+            }
+
         } else {
-            performTask();
+            // Mine for karbonite
+        }
+
+    }
+
+    private boolean executeTask(RobotTask robotTask) {
+        Command robotCommand = robotTask.getCommand();
+        MapLocation commandLocation = robotTask.getCommandLocation();
+        switch (robotCommand) {
+            case MOVE:
+                //return move(this.id, commandLocation);
+            case BUILD:
+                //return build(commandLocation);
+            case CLONE:
+                //return clone();
+            case BLUEPRINT_FACTORY:
+                //return blueprintFactory(commandLocation);
+            case BLUEPRINT_ROCKET:
+                //return blueprintRocket(commandLocation);
+            default:
+                return mineKarbonite(commandLocation);
         }
     }
 
-    private void performTask() {
-
+    private boolean mineKarbonite(MapLocation commandLocation) {
+        return true;
     }
-//    public boolean executeTask() {
-//        switch (command) {
-//            case BUILD:
-//                if (Player.gameController.canBuild(this.id, this.targetId)) {
-//                    Player.gameController.build(this.id, this.targetId);
-//                    if (Player.gameController.unit(targetId).health() == 200) {
-//                        this.command = null;
-//                        System.out.println("Finished building blueprint!");
-//                        return true;
-//                    } else {
-//                        return false;
-//                    }
-//
-//                } else {
-//                    System.out.println("Idk WTF is going on!");
-//                    return true;
-//                }
-//
-//            case MINE_KARBONITE:
-//                return true;
-//
-//            default:
-//                return true;
-//        }
-//    }
+
 //
 //    /**
 //     * Method that will need to clone an idle worker and will remove it from the idle worker HashMap. Add the

@@ -1,14 +1,13 @@
 package planets;
 
+import bc.MapLocation;
+import bc.Planet;
 import bc.VecUnit;
+import commandsAndRequests.Command;
 import commandsAndRequests.Globals;
-import units.Robot;
 import commandsAndRequests.GlobalTask;
+import commandsAndRequests.RobotTask;
 import units.Unit;
-import units.structures.Blueprint;
-import units.structures.Factory;
-import units.structures.Rocket;
-import units.Structure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,10 +25,14 @@ public class Earth {
     public static HashMap<Integer, Unit> earthAttackerMap = new HashMap<>();
 
     public void execute() {
+
         updateDeadUnits();
-        Robot.moveWorkers();
 
         runUnitMap(earthBlueprintMap);
+        runUnitMap(earthRocketMap);
+        runUnitMap(earthWorkerMap);
+        runUnitMap(earthFactoryMap);
+        runUnitMap(earthAttackerMap);
     }
 
     public boolean sendRequestsToWorkers() {
@@ -38,7 +41,7 @@ public class Earth {
 
     private void runUnitMap(HashMap<Integer, Unit> searchMap) {
         for (int unitId: searchMap.keySet()) {
-            searchMap.get(unitId).execute();
+            searchMap.get(unitId).run();
         }
     }
 

@@ -9,7 +9,7 @@ public class Ranger extends Robot {
         super(id);
     }
 
-    public void execute() {
+    public void run() {
         if (this.robotTaskQueue.isEmpty()) {
             //searchForKarbonite();
         } else {

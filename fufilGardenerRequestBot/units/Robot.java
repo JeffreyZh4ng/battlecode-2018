@@ -6,6 +6,7 @@ import bc.Planet;
 import bc.PlanetMap;
 import commandsAndRequests.Globals;
 import commandsAndRequests.GlobalTask;
+import commandsAndRequests.RobotTask;
 import planets.Earth;
 
 import java.util.HashMap;
@@ -18,11 +19,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public abstract class Robot extends Unit{
 
-    public PriorityQueue<GlobalTask> robotTaskQueue;
-
-    private static final Direction[] moveDirections = {Direction.North, Direction.Northeast, Direction.East, Direction.Southeast, Direction.South, Direction.Southwest, Direction.West, Direction.Northwest};
-    private static final PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
-    private MapLocation destinationLocation = new MapLocation(Planet.Earth,0,0); // will be chagned latter
+    public RobotTask emergencyTask = null;
 
     /**
      * Constructor that will set the id of the robot when it is created
@@ -86,9 +83,9 @@ public abstract class Robot extends Unit{
     /**
      * finds next optimal locations for each robot to move to and moves them to that location
      */
-    public static void moveWorkers() {
+    /*public static void moveWorkers() {
         System.out.println("moving workers");
-        //TODO: find optimal next locations, consider if robot in path is moving, find optimal order of execution, execute moves
+        //TODO: find optimal next locations, consider if robot in path is moving, find optimal order of execution, run moves
         //for now will find path bassed only on impassable object and move immediately
         for (int workerId: Earth.earthWorkerMap.keySet()) {
             if(Globals.gameController.unit(workerId).movementHeat() < 10) {
@@ -101,7 +98,12 @@ public abstract class Robot extends Unit{
                 }
             }
         }
-    }
+    }*/
+
+
+    private static final Direction[] moveDirections = {Direction.North, Direction.Northeast, Direction.East, Direction.Southeast, Direction.South, Direction.Southwest, Direction.West, Direction.Northwest};
+    private static final PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
+    private MapLocation destinationLocation = new MapLocation(Planet.Earth,0,0); // will be chagned latter
 
     /**
      * uses BreadthFirstSearch algorithm to get the next location based on current map
