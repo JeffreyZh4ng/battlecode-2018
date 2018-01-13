@@ -1,4 +1,5 @@
 .DS_Store
+Mac.app
 MacRelease.app
 *.bc18
 battlecode.jar
