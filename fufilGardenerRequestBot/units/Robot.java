@@ -84,12 +84,23 @@ public abstract class Robot extends Unit{
 //        }
 //    }
 
+
+    /**
+     * checks if location both passable and appears not to have robots in it
+     * @param map
+     * @param location
+     * @return
+     */
     public static boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
         return map.onMap(location) && map.isPassableTerrainAt(location) == 1 &&
                 (!Globals.gameController.canSenseLocation(location) || !Globals.gameController.hasUnitAtLocation(location));
     }
-    
 
+
+    /**
+     *
+     * @return all directions besides center
+     */
     public static Direction[] getMoveDirections() {
         Direction[] moveDirections = new Direction[8];
         for (int i = 0; i < 8; i++) {
@@ -98,18 +109,25 @@ public abstract class Robot extends Unit{
         return moveDirections;
     }
 
-    public void moveRobot(int robotId, MapLocation destinationLocation) {
+    /**
+     *
+     * @param robotId robot to move
+     * @param destinationLocation
+     * @return if the robot has reached within on square of its destination or cannot get to destination at all
+     */
+    public boolean move(int robotId, MapLocation destinationLocation) {
         MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Globals.gameController.unit(robotId).location().mapLocation(), destinationLocation, initialEarthMap);
         System.out.println(Globals.gameController.unit(robotId).location().mapLocation());
         System.out.println(locationToMoveTo);
         if (locationToMoveTo==null) {
-            System.out.println("cannot get within1square of destination");
-            return;
+            System.out.println("cannot get within1square of destination or is already at destination/within 1 square");
+            return true;
         }
         Direction directionToMove = Globals.gameController.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
         if (Globals.gameController.canMove(robotId, directionToMove)) {
             Globals.gameController.moveRobot(robotId, directionToMove);
         }
+        return false;
     }
 
     /**
