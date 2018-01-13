@@ -26,7 +26,7 @@ public abstract class Robot {
     private int id;
     private PriorityQueue<Task> robotTaskQueue;
 
-    public MapLocation destinationLocation = new MapLocation(Planet.Earth,0,0); // will be chagned latter
+    public MapLocation destinationLocation = new MapLocation(Planet.Earth,9,9); // will be chagned latter
 
 
     /**
@@ -123,8 +123,8 @@ public abstract class Robot {
 
         Queue<MapLocation> frontier = new LinkedBlockingQueue<>();
         frontier.add(startingLocation);
-        HashMap<MapLocation, MapLocation> came_from = new HashMap<>();
-        came_from.put(startingLocation, startingLocation);
+        HashMap<String, MapLocation> came_from = new HashMap<>();
+        came_from.put(startingLocation.toString(), startingLocation);
 
         while (!frontier.isEmpty()) {
             System.out.println("frintier not empty: " + frontier.size());
@@ -133,19 +133,19 @@ public abstract class Robot {
                 //System.out.println("checking direction: " + nextDirection);
                 MapLocation nextLocation = currentLocation.add(nextDirection);
                 //System.out.println("nextLocation: " + nextLocation);
-                if (map.onMap(nextLocation) && map.isPassableTerrainAt(nextLocation) == 1 && (!Globals.gameController.canSenseLocation(nextLocation) || !Globals.gameController.hasUnitAtLocation(nextLocation)) && !came_from.containsKey(nextLocation)) {//probaly broken becuase of java object comparison stuff
+                if (map.onMap(nextLocation) && map.isPassableTerrainAt(nextLocation) == 1 && (!Globals.gameController.canSenseLocation(nextLocation) || !Globals.gameController.hasUnitAtLocation(nextLocation)) && !came_from.containsKey(nextLocation.toString())) {//probaly broken becuase of java object comparison stuff
                     System.out.println("adding to frinter: "+nextLocation);
                     frontier.add(nextLocation);
-                    came_from.put(nextLocation, currentLocation);
+                    came_from.put(nextLocation.toString(), currentLocation);
                 }
             }
         }
         MapLocation resultLocation = null;
-        MapLocation currentLocation = startingLocation;
+        MapLocation currentLocation = destinationLocation;
         while (!currentLocation.equals(startingLocation)) {
             System.out.println("not equal: " + currentLocation + "dest: " + startingLocation);
             resultLocation = currentLocation;
-            currentLocation = came_from.get(currentLocation);
+            currentLocation = came_from.get(currentLocation.toString());
         }
         return resultLocation;
 
