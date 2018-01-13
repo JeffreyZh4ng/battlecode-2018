@@ -112,16 +112,19 @@ public abstract class Robot extends Unit{
      * @return if the robot has reached within on square of its destination or cannot get to destination at all
      */
     public boolean move(int robotId, MapLocation destinationLocation) {
-        MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Globals.gameController.unit(robotId).location().mapLocation(), destinationLocation, initialEarthMap);
-        System.out.println(Globals.gameController.unit(robotId).location().mapLocation());
-        System.out.println(locationToMoveTo);
-        if (locationToMoveTo==null) {
-            System.out.println("cannot get within1square of destination or is already at destination/within 1 square");
-            return true;
-        }
-        Direction directionToMove = Globals.gameController.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
-        if (Globals.gameController.canMove(robotId, directionToMove)) {
-            Globals.gameController.moveRobot(robotId, directionToMove);
+        if (Globals.gameController.unit(robotId).movementHeat() < 10) {
+            System.out.println("moving robot: " + robotId);
+            MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Globals.gameController.unit(robotId).location().mapLocation(), destinationLocation, initialEarthMap);
+            System.out.println(Globals.gameController.unit(robotId).location().mapLocation());
+            System.out.println(locationToMoveTo);
+            if (locationToMoveTo == null) {
+                System.out.println("cannot get within 1 square of destination or is already at destination/within 1 square");
+                return true;
+            }
+            Direction directionToMove = Globals.gameController.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
+            if (Globals.gameController.canMove(robotId, directionToMove)) {
+                Globals.gameController.moveRobot(robotId, directionToMove);
+            }
         }
         return false;
     }
