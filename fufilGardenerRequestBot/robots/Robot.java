@@ -8,6 +8,7 @@ import commandsAndRequests.Globals;
 import commandsAndRequests.Task;
 import planets.Earth;
 
+import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -19,7 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public abstract class Robot {
 
-    private static final Direction[] moveDirections = {Direction.North, Direction.Northeast, Direction.East, Direction.Southeast, Direction.South, Direction.Southwest, Direction.West, Direction.Northwest};
+
     public static final PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
 
 
@@ -120,7 +121,10 @@ public abstract class Robot {
      * @return the next place to step
      */
     public static MapLocation getNextForBreadthFirstSearch(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
-
+        Direction[] moveDirections = new Direction[8];
+        for(int i = 0; i<8; i++) {
+            moveDirections[i] = Direction.swigToEnum(i+1);
+        }
         Queue<MapLocation> frontier = new LinkedBlockingQueue<>();
         frontier.add(startingLocation);
         HashMap<String, MapLocation> came_from = new HashMap<>();
