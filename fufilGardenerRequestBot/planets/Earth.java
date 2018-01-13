@@ -25,6 +25,7 @@ public class Earth {
 
     public void execute() {
         updateDeadUnits();
+        Robot.moveWorkers();
 
         // Execute blueprints, Rockets, Workers, Factories, Attackers
         for (int blueprintId: earthBlueprintMap.keySet()) {
