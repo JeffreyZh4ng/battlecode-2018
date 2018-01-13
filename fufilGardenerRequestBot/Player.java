@@ -21,7 +21,7 @@ public class Player {
 
         while (true) {
 
-
+            System.out.println("Round number: " + Globals.gameController.round());
             if (Globals.gameController.planet() == Planet.Earth && Globals.gameController.round() < FLOOD_ROUND) {
                 earth.execute();
             } else if (Globals.gameController.planet() == Planet.Mars) {
@@ -35,7 +35,11 @@ public class Player {
     private static void addTaskToWorkers() {
         for (int robotId : Earth.earthWorkerMap.keySet()) {
             RobotTask task = new RobotTask(Command.MOVE, new MapLocation(Planet.Earth, 10, 10));
+
+            System.out.println("robotId: " + robotId);
             Earth.earthWorkerMap.get(robotId).robotTaskQueue.add(task);
+
+            System.out.println("Task name in queue: " + Earth.earthWorkerMap.get(robotId).robotTaskQueue.poll().getCommand());
         }
     }
 

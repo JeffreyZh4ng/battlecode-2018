@@ -6,7 +6,7 @@ import java.util.PriorityQueue;
 
 public abstract class Unit {
     public int id;
-    public PriorityQueue<RobotTask> robotTaskQueue;
+    public PriorityQueue<RobotTask> robotTaskQueue = new PriorityQueue<>();
 
 
     public Unit(int id) {

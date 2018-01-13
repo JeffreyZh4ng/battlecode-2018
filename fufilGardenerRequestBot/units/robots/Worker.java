@@ -12,6 +12,8 @@ public class Worker extends Robot {
 
     @Override
     public void run() {
+        
+        System.out.println("Got to run method!");
         if (this.emergencyTask != null) {
             if (executeTask(this.emergencyTask)) {
                 this.emergencyTask = null;
@@ -20,6 +22,7 @@ public class Worker extends Robot {
         }
 
         if (this.robotTaskQueue.size() != 0) {
+            System.out.println("Successfully ran robot: " + this.id + "'s run() method!");
             RobotTask currentTask = this.robotTaskQueue.peek();
             if (executeTask(currentTask)) {
                 this.robotTaskQueue.poll();
@@ -36,7 +39,8 @@ public class Worker extends Robot {
         MapLocation commandLocation = robotTask.getCommandLocation();
         switch (robotCommand) {
             case MOVE:
-                //return move(this.id, commandLocation);
+                System.out.println("Running MOVE!");
+                return move(this.id, commandLocation);
             case BUILD:
                 //return build(commandLocation);
             case CLONE:

@@ -19,8 +19,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 public abstract class Robot extends Unit{
 
     public RobotTask emergencyTask = null;
-    public PriorityQueue<GlobalTask> robotTaskQueue;
-
     private static final PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
 
     /**

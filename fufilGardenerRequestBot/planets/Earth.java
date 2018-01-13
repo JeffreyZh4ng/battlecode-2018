@@ -41,6 +41,7 @@ public class Earth {
 
     private void runUnitMap(HashMap<Integer, Unit> searchMap) {
         for (int unitId: searchMap.keySet()) {
+            System.out.println("Earth running run(): " + unitId);
             searchMap.get(unitId).run();
         }
     }
@@ -80,6 +81,7 @@ public class Earth {
         }
 
         for (int unitId: deadUnits) {
+            System.out.println("Removing unit: " + unitId);
             searchMap.remove(unitId);
         }
 
