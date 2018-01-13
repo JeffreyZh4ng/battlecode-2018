@@ -3,7 +3,7 @@ import bc.MapLocation;
 
 import java.util.ArrayList;
 
-public class Task {
+public class GlobalTask {
 
     public static int taskIndex = 0;
 
@@ -13,7 +13,7 @@ public class Task {
     private ArrayList<Integer> workersOnTaskList;
     private MapLocation taskLocation;
 
-    public Task(Task task, Command command, MapLocation taskLocation) {
+    public GlobalTask(Command command, MapLocation taskLocation) {
         taskIndex++;
         this.isRequestFulfilled = false;
         this.taskId = taskIndex;

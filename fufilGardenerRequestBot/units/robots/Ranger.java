@@ -1,7 +1,7 @@
-package robots;
+package units.robots;
 
-import commandsAndRequests.Task;
-import planets.Earth;
+import commandsAndRequests.GlobalTask;
+import units.Robot;
 
 public class Ranger extends Robot {
 
@@ -9,18 +9,12 @@ public class Ranger extends Robot {
         super(id);
     }
 
-    @Override
-    public void addTaskToQueue(Task task) {
-        //Earth.earthTaskMap.put()
-    }
-
-    public boolean execute() {
+    public void execute() {
         if (this.robotTaskQueue.isEmpty()) {
             //searchForKarbonite();
         } else {
             performTask();
         }
-        return true;
     }
 
     private void performTask() {

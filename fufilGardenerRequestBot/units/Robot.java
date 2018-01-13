@@ -1,11 +1,11 @@
-package robots;
+package units;
 
 import bc.Direction;
 import bc.MapLocation;
 import bc.Planet;
 import bc.PlanetMap;
 import commandsAndRequests.Globals;
-import commandsAndRequests.Task;
+import commandsAndRequests.GlobalTask;
 import planets.Earth;
 
 import java.util.HashMap;
@@ -16,33 +16,38 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Superclass of all robots that specifies actions that all robots will be able to make
  */
-public abstract class Robot {
+public abstract class Robot extends Unit{
+
+    public PriorityQueue<GlobalTask> robotTaskQueue;
 
     private static final Direction[] moveDirections = {Direction.North, Direction.Northeast, Direction.East, Direction.Southeast, Direction.South, Direction.Southwest, Direction.West, Direction.Northwest};
-    public static final PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
-
-    private int id;
-    private PriorityQueue<Task> robotTaskQueue;
-
-    public MapLocation destinationLocation = new MapLocation(Planet.Earth,0,0); // will be chagned latter
+    private static final PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
+    private MapLocation destinationLocation = new MapLocation(Planet.Earth,0,0); // will be chagned latter
 
     /**
      * Constructor that will set the id of the robot when it is created
      * @param id The id of the robot
      */
     public Robot(int id) {
-        this.id = id;
+        super(id);
     }
 
     /**
      * Every robot will be able to send a request to the factory if it sees an enemy and needs an attacking
      * robot produced
-     * @return If the request was successfully sent to the factory
      */
-    public boolean sendRequestToFactory() {
-        return true;
+    public void sendRequestToFactory() {
+        // TODO: Need to write an algorithm that will detect how many enemies are nearby. Based on this number,
+        // TODO: the robot will send a request to the nearest factory to produce "X" number of attacking units.
     }
 
+//    /**
+//     * Abstract method that needs to be implemented for each unit that is a Robot. Workers will add tasks to
+//     * the queue differently from attacking robots.
+//     * @param task The task a robot is assigned to do
+//     */
+//    public abstract void addTaskToQueue(GlobalTask task);
+//
 //    /**
 //     * Method that will return a random direction when called. Intended to be used for preliminary testing
 //     * @return One of 8 random directions
@@ -77,15 +82,6 @@ public abstract class Robot {
 //            }
 //        }
 //    }
-
-    /**
-     * Abstract method that needs to be implemented for each unit that is a Robot. Workers will add tasks to
-     * the queue differently from attacking robots.
-     * @param task The task a robot is assigned to do
-     * @return If the task was successfully assigned to the robots task queue
-     */
-    public abstract void addTaskToQueue(Task task);
-
 
     /**
      * finds next optimal locations for each robot to move to and moves them to that location
