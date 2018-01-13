@@ -2,34 +2,43 @@ package planets;
 
 import bc.VecUnit;
 import commandsAndRequests.Globals;
-import robots.Robot;
-import commandsAndRequests.Task;
-import structures.Blueprint;
-import structures.Factory;
-import structures.Rocket;
+import units.Robot;
+import commandsAndRequests.GlobalTask;
+import units.Unit;
+import units.structures.Blueprint;
+import units.structures.Factory;
+import units.structures.Rocket;
+import units.Structure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
 public class Earth {
-    public static HashMap<Integer, Task> earthTaskMap = new HashMap<>();
-    public static HashMap<Integer, Task> earthAttackTargetsMap = new HashMap<>();
-    public static HashMap<Integer, Task> earthProduceRobotMap = new HashMap<>();
+    public static HashMap<Integer, GlobalTask> earthTaskMap = new HashMap<>();
+    public static HashMap<Integer, GlobalTask> earthAttackTargetsMap = new HashMap<>();
+    public static HashMap<Integer, GlobalTask> earthProduceRobotMap = new HashMap<>();
 
-    public static HashMap<Integer, Blueprint> earthBlueprintMap = new HashMap<>();
-    public static HashMap<Integer, Rocket> earthRocketMap = new HashMap<>();
-    public static HashMap<Integer, Robot> earthWorkerMap = new HashMap<>();
-    public static HashMap<Integer, Factory> earthFactoryMap = new HashMap<>();
-    public static HashMap<Integer, Robot> earthAttackerMap = new HashMap<>();
+    public static HashMap<Integer, Unit> earthBlueprintMap = new HashMap<>();
+    public static HashMap<Integer, Unit> earthRocketMap = new HashMap<>();
+    public static HashMap<Integer, Unit> earthWorkerMap = new HashMap<>();
+    public static HashMap<Integer, Unit> earthFactoryMap = new HashMap<>();
+    public static HashMap<Integer, Unit> earthAttackerMap = new HashMap<>();
 
     public void execute() {
         updateDeadUnits();
         Robot.moveWorkers();
 
-        // Execute blueprints, Rockets, Workers, Factories, Attackers
-        for (int blueprintId: earthBlueprintMap.keySet()) {
+        runUnitMap(earthBlueprintMap);
+    }
 
+    public boolean sendRequestsToWorkers() {
+        return true;
+    }
+
+    private void runUnitMap(HashMap<Integer, Unit> searchMap) {
+        for (int unitId: searchMap.keySet()) {
+            searchMap.get(unitId).execute();
         }
     }
 
@@ -57,10 +66,9 @@ public class Earth {
      * units specified by the array and remove them from the map
      * @param unitSet The set of units returned by the Game Controller
      * @param searchMap The current map you are purging
-     * @param <T> The value of the map
      * @return A new map without the dead units
      */
-    private <T> HashMap<Integer, T> findDeadUnits(HashSet<Integer> unitSet, HashMap<Integer, T> searchMap) {
+    private HashMap<Integer, Unit> findDeadUnits(HashSet<Integer> unitSet, HashMap<Integer, Unit> searchMap) {
         ArrayList<Integer> deadUnits = new ArrayList<>();
         for (int unitId: searchMap.keySet()) {
             if (!unitSet.contains(unitId)) {

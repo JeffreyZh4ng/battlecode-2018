@@ -1,5 +1,6 @@
-package robots;
-import commandsAndRequests.Task;
+package units.robots;
+import commandsAndRequests.GlobalTask;
+import units.Robot;
 
 public class Worker extends Robot {
 
@@ -8,10 +9,17 @@ public class Worker extends Robot {
     }
 
     @Override
-    public boolean addTaskToQueue(Task task) {
-        return false;
+    public void execute() {
+        if (this.robotTaskQueue.isEmpty()) {
+            //searchForKarbonite();
+        } else {
+            performTask();
+        }
     }
 
+    private void performTask() {
+
+    }
 //    public boolean executeTask() {
 //        switch (command) {
 //            case BUILD:

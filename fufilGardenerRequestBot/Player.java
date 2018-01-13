@@ -2,8 +2,8 @@ import bc.*;
 import commandsAndRequests.Globals;
 import planets.Earth;
 import planets.Mars;
-import robots.Robot;
-import robots.Worker;
+import units.Robot;
+import units.robots.Worker;
 
 public class Player {
 
