@@ -12,8 +12,8 @@ public class Worker extends Robot {
 
     @Override
     public void run() {
-        
-        System.out.println("Got to run method!");
+
+        System.out.println("Got to run method! Task queue size: " + this.robotTaskQueue.size());
         if (this.emergencyTask != null) {
             if (executeTask(this.emergencyTask)) {
                 this.emergencyTask = null;

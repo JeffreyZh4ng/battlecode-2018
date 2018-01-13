@@ -17,7 +17,6 @@ public class Player {
         Mars mars = new Mars();
 
         addStartingWorkersToEarthMap();
-        addTaskToWorkers();
 
         while (true) {
 
@@ -32,17 +31,6 @@ public class Player {
         }
     }
 
-    private static void addTaskToWorkers() {
-        for (int robotId : Earth.earthWorkerMap.keySet()) {
-            RobotTask task = new RobotTask(Command.MOVE, new MapLocation(Planet.Earth, 10, 10));
-
-            System.out.println("robotId: " + robotId);
-            Earth.earthWorkerMap.get(robotId).robotTaskQueue.add(task);
-
-            System.out.println("Task name in queue: " + Earth.earthWorkerMap.get(robotId).robotTaskQueue.poll().getCommand());
-        }
-    }
-
     /**
      * Method that will add all the workers on earth to the HashMap of workers at the beginning of the game
      */
@@ -51,6 +39,9 @@ public class Player {
         for (int i = 0; i < units.size(); i++) {
             int unitId = units.get(i).id();
             Unit worker = new Worker(unitId);
+
+            RobotTask task = new RobotTask(Command.MOVE, new MapLocation(Planet.Earth, 10, 10));
+            worker.robotTaskQueue.add(task);
             Earth.earthWorkerMap.put(unitId, worker);
         }
     }
