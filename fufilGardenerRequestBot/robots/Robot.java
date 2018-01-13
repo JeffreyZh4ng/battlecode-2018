@@ -16,7 +16,7 @@ import java.util.PriorityQueue;
 public abstract class Robot {
 
     private int id;
-    private PriorityQueue<Task> robotTaskQueue;
+    public PriorityQueue<Task> robotTaskQueue;
 
     private static final Direction[] moveDirections = {Direction.North, Direction.Northeast, Direction.East, Direction.Southeast, Direction.South, Direction.Southwest, Direction.West, Direction.Northwest};
     PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
@@ -73,15 +73,13 @@ public abstract class Robot {
 //        }
 //    }
 
-
-
     /**
      * Abstract method that needs to be implemented for each unit that is a Robot. Workers will add tasks to
      * the queue differently from attacking robots.
      * @param task The task a robot is assigned to do
      * @return If the task was successfully assigned to the robots task queue
      */
-    public abstract boolean addTaskToQueue(Task task);
+    public abstract void addTaskToQueue(Task task);
 
 
     /**
@@ -110,10 +108,10 @@ public abstract class Robot {
                 MapLocation currentLocation = frontier.poll();
                 for(Direction nextDirection : moveDirections) {
                     MapLocation nextLocation = currentLocation.add(nextDirection);
-                    if(map.onMap(nextLocation) && map.isPassableTerrainAt(nextLocation)&& came_from.get(nextLocation)!=null) {
+                    /*if(map.onMap(nextLocation) && map.isPassableTerrainAt(nextLocation)&& came_from.get(nextLocation)!=null) {
                         frontier.add(nextLocation);
                         came_from.put(nextLocation,currentLocation);
-                    }
+                    }*/
                 }
             }
             MapLocation resultLocation = null;

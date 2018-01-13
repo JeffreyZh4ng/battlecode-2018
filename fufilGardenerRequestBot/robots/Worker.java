@@ -8,8 +8,7 @@ public class Worker extends Robot {
     }
 
     @Override
-    public boolean addTaskToQueue(Task task) {
-        return false;
+    public void addTaskToQueue(Task task) {
     }
 
     public boolean execute() {

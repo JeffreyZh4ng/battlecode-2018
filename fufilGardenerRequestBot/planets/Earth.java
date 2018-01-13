@@ -33,11 +33,11 @@ public class Earth {
         for (int rocketId: earthRocketMap.keySet()) {
             earthRocketMap.get(rocketId).execute();
         }
-        for (int workerId: earthWorkerMap.keySet())
+        //for (int workerId: earthWorkerMap.keySet())
     }
 
     public boolean sendRequestsToWorkers() {
-
+        return true;
     }
 
     private <T> void runUnitMap(HashMap<Integer, T> searchMap) {
