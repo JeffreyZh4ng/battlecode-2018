@@ -7,7 +7,6 @@ import bc.PlanetMap;
 import commandsAndRequests.Globals;
 import commandsAndRequests.GlobalTask;
 import commandsAndRequests.RobotTask;
-import planets.Earth;
 
 import java.util.HashMap;
 import java.util.Queue;
@@ -20,6 +19,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 public abstract class Robot extends Unit{
 
     public RobotTask emergencyTask = null;
+    public PriorityQueue<GlobalTask> robotTaskQueue;
+
+    private static final PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
 
     /**
      * Constructor that will set the id of the robot when it is created
@@ -80,30 +82,51 @@ public abstract class Robot extends Unit{
 //        }
 //    }
 
+
     /**
-     * finds next optimal locations for each robot to move to and moves them to that location
+     * checks if location both passable and appears not to have robots in it
+     * @param map
+     * @param location
+     * @return
      */
-    /*public static void moveWorkers() {
-        System.out.println("moving workers");
-        //TODO: find optimal next locations, consider if robot in path is moving, find optimal order of execution, run moves
-        //for now will find path bassed only on impassable object and move immediately
-        for (int workerId: Earth.earthWorkerMap.keySet()) {
-            if(Globals.gameController.unit(workerId).movementHeat() < 10) {
-                MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Globals.gameController.unit(workerId).location().mapLocation(), Earth.earthWorkerMap.get(workerId).destinationLocation, initialEarthMap);
-                System.out.println(Globals.gameController.unit(workerId).location().mapLocation());
-                System.out.println(locationToMoveTo);
-                Direction directionToMove = Globals.gameController.unit(workerId).location().mapLocation().directionTo(locationToMoveTo);
-                if (Globals.gameController.canMove(workerId, directionToMove)) {
-                    Globals.gameController.moveRobot(workerId, directionToMove);
-                }
-            }
+    public static boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
+        return map.onMap(location) && map.isPassableTerrainAt(location) == 1 &&
+                (!Globals.gameController.canSenseLocation(location) || !Globals.gameController.hasUnitAtLocation(location));
+    }
+
+
+    /**
+     *
+     * @return all directions besides center
+     */
+    public static Direction[] getMoveDirections() {
+        Direction[] moveDirections = new Direction[8];
+        for (int i = 0; i < 8; i++) {
+            moveDirections[i] = Direction.swigToEnum(i+1);
         }
-    }*/
+        return moveDirections;
+    }
 
-
-    private static final Direction[] moveDirections = {Direction.North, Direction.Northeast, Direction.East, Direction.Southeast, Direction.South, Direction.Southwest, Direction.West, Direction.Northwest};
-    private static final PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
-    private MapLocation destinationLocation = new MapLocation(Planet.Earth,0,0); // will be chagned latter
+    /**
+     *
+     * @param robotId robot to move
+     * @param destinationLocation
+     * @return if the robot has reached within on square of its destination or cannot get to destination at all
+     */
+    public boolean move(int robotId, MapLocation destinationLocation) {
+        MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Globals.gameController.unit(robotId).location().mapLocation(), destinationLocation, initialEarthMap);
+        System.out.println(Globals.gameController.unit(robotId).location().mapLocation());
+        System.out.println(locationToMoveTo);
+        if (locationToMoveTo==null) {
+            System.out.println("cannot get within1square of destination or is already at destination/within 1 square");
+            return true;
+        }
+        Direction directionToMove = Globals.gameController.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
+        if (Globals.gameController.canMove(robotId, directionToMove)) {
+            Globals.gameController.moveRobot(robotId, directionToMove);
+        }
+        return false;
+    }
 
     /**
      * uses BreadthFirstSearch algorithm to get the next location based on current map
@@ -114,31 +137,39 @@ public abstract class Robot extends Unit{
      */
     public static MapLocation getNextForBreadthFirstSearch(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
 
+        Direction[] moveDirections = getMoveDirections();
+
         Queue<MapLocation> frontier = new LinkedBlockingQueue<>();
         frontier.add(startingLocation);
-        HashMap<MapLocation, MapLocation> came_from = new HashMap<>();
-        came_from.put(startingLocation, startingLocation);
+        HashMap<String, MapLocation> cameFrom = new HashMap<>();
+        cameFrom.put(startingLocation.toString(), startingLocation);
 
         while (!frontier.isEmpty()) {
             System.out.println("frintier not empty: " + frontier.size());
             MapLocation currentLocation = frontier.poll();
             for (Direction nextDirection : moveDirections) {
-                //System.out.println("checking direction: " + nextDirection);
                 MapLocation nextLocation = currentLocation.add(nextDirection);
-                //System.out.println("nextLocation: " + nextLocation);
-                if (map.onMap(nextLocation) && map.isPassableTerrainAt(nextLocation) == 1 && (!Globals.gameController.canSenseLocation(nextLocation) || !Globals.gameController.hasUnitAtLocation(nextLocation)) && !came_from.containsKey(nextLocation)) {//probaly broken becuase of java object comparison stuff
+
+                if ( doesLocationAppearEmpty(map, nextLocation)&& !cameFrom.containsKey(nextLocation.toString())) {
                     System.out.println("adding to frinter: "+nextLocation);
                     frontier.add(nextLocation);
-                    came_from.put(nextLocation, currentLocation);
+                    cameFrom.put(nextLocation.toString(), currentLocation);
                 }
             }
         }
         MapLocation resultLocation = null;
-        MapLocation currentLocation = startingLocation;
+        MapLocation currentLocation = destinationLocation;
+        if (!cameFrom.containsKey(destinationLocation.toString())) {
+            for (Direction moveDirection : moveDirections) {
+                if (doesLocationAppearEmpty(map, destinationLocation.add(moveDirection))) {
+                    currentLocation = destinationLocation.add(moveDirection);
+                }
+            }
+        }
         while (!currentLocation.equals(startingLocation)) {
             System.out.println("not equal: " + currentLocation + "dest: " + startingLocation);
             resultLocation = currentLocation;
-            currentLocation = came_from.get(currentLocation);
+            currentLocation = cameFrom.get(currentLocation.toString());
         }
         return resultLocation;
 
