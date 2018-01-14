@@ -1,15 +1,12 @@
 package units.robots;
 
 import bc.MapLocation;
-import com.sun.javafx.collections.MapListenerHelper;
 import commandsAndRequests.Command;
 import commandsAndRequests.Globals;
 import commandsAndRequests.RobotTask;
 import units.Robot;
 import bc.VecUnit;
 import bc.Unit;
-
-import java.util.Map;
 
 public class Ranger extends Robot {
 
@@ -84,23 +81,23 @@ public class Ranger extends Robot {
     private MapLocation getWeakestEnemyRobotInRange() {
 
         //get and store this units location
-        MapLocation thisUnitsLocation = Globals.gameController.unit(this.id).location().mapLocation();
+        MapLocation thisUnitsLocation = Globals.gc.unit(this.id).location().mapLocation();
 
         //get enemy units within attack radius
-        VecUnit enemyUnits = Globals.gameController.senseNearbyUnitsByTeam(thisUnitsLocation,
-                Globals.gameController.unit(this.id).attackRange(), Globals.gameController.team());
+        VecUnit enemyUnits = Globals.gc.senseNearbyUnitsByTeam(thisUnitsLocation,
+                Globals.gc.unit(this.id).attackRange(), Globals.gc.team());
 
         //if no enemy unit in range return false
         if (enemyUnits.size() == 0) {
             return null;
         }
 
-        //find weakest enemy unit in range
+        //find weakest enemy unit in rangeg
         Unit weakestEnemyUnit = enemyUnits.get(0);
         for (int i= 0; i < enemyUnits.size(); i ++) {
 
             //check if weakest and can attack
-            if (Globals.gameController.canAttack(this.id, enemyUnits.get(i).id()) && enemyUnits.get(i).health()<weakestEnemyUnit.health()) {
+            if (Globals.gc.canAttack(this.id, enemyUnits.get(i).id()) && enemyUnits.get(i).health()<weakestEnemyUnit.health()) {
                 weakestEnemyUnit = enemyUnits.get(i);
             }
         }

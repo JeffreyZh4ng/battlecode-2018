@@ -1,6 +1,5 @@
 package units.robots;
 import bc.Direction;
-import bc.GameController;
 import bc.MapLocation;
 import bc.UnitType;
 import commandsAndRequests.Command;
@@ -53,7 +52,7 @@ public class Worker extends Robot {
 
         switch (robotCommand) {
             case MOVE:
-                if (Globals.gameController.unit(this.id).movementHeat() < 10) {
+                if (Globals.gc.unit(this.id).movementHeat() < 10) {
 
                     // TODO: After the worker has moved, it can still perform actions. EX: It can mine karbonite every turn it moves
                     return move(this.id, commandLocation);
@@ -81,13 +80,13 @@ public class Worker extends Robot {
      * @return If the worker was cloned or not
      */
     private boolean cloneWorker(MapLocation commandLocation) {
-        MapLocation robotCurrentLocation = Globals.gameController.unit(this.id).location().mapLocation();
+        MapLocation robotCurrentLocation = Globals.gc.unit(this.id).location().mapLocation();
         Direction directionToClone = robotCurrentLocation.directionTo(commandLocation);
 
-        if (Globals.gameController.canReplicate(this.id, directionToClone)) {
-            Globals.gameController.replicate(this.id, directionToClone);
+        if (Globals.gc.canReplicate(this.id, directionToClone)) {
+            Globals.gc.replicate(this.id, directionToClone);
 
-            int clonedWorkerId = Globals.gameController.senseUnitAtLocation(commandLocation).id();
+            int clonedWorkerId = Globals.gc.senseUnitAtLocation(commandLocation).id();
             Unit newWorker = new Worker(clonedWorkerId);
 
             //TODO: Don't know if this will break. Need to find out if a worker can move/act the round it was created.
@@ -105,24 +104,24 @@ public class Worker extends Robot {
      * @return If the blueprint has reached full health
      */
     private boolean buildBlueprint(MapLocation commandLocation) {
-        int blueprintId = Globals.gameController.senseUnitAtLocation(commandLocation).id();
+        int blueprintId = Globals.gc.senseUnitAtLocation(commandLocation).id();
 
         // Fucking MIT spaghetti code. Why does a boolean named method not return a boolean...
         // Check if one of the workers earlier in the list finished building it before you.
         // TODO: Make it so that when the building is complete, pop it from the global tasks and from any worker who has the task
-        if (Globals.gameController.unit(blueprintId).structureIsBuilt() > 0) {
+        if (Globals.gc.unit(blueprintId).structureIsBuilt() > 0) {
             return true;
         }
 
-        if (Globals.gameController.canBuild(this.id, blueprintId)) {
-            Globals.gameController.build(this.id, blueprintId);
+        if (Globals.gc.canBuild(this.id, blueprintId)) {
+            Globals.gc.build(this.id, blueprintId);
 
             // If this robot finished building the structure, remove it from the blueprint list and add it rockets/factories
             // TODO: Combine the blueprint and factory/rocket classes into one. Create a boolean isBuilt in Structure to help
-            if (Globals.gameController.unit(blueprintId).structureIsBuilt() > 0) {
+            if (Globals.gc.unit(blueprintId).structureIsBuilt() > 0) {
 
                 Earth.earthBlueprintMap.remove(blueprintId);
-                UnitType blueprintType = Globals.gameController.unit(blueprintId).unitType();
+                UnitType blueprintType = Globals.gc.unit(blueprintId).unitType();
 
                 if (blueprintType == UnitType.Factory) {
                     Unit newFactory = new Factory(blueprintId, commandLocation);
@@ -148,13 +147,13 @@ public class Worker extends Robot {
      * @return If the blueprint was built or not
      */
     private boolean blueprintStructure(MapLocation commandLocation, UnitType unitType) {
-        MapLocation robotCurrentLocation = Globals.gameController.unit(this.id).location().mapLocation();
+        MapLocation robotCurrentLocation = Globals.gc.unit(this.id).location().mapLocation();
         Direction directionToBlueprint = robotCurrentLocation.directionTo(commandLocation);
 
-        if (Globals.gameController.canBlueprint(this.id, unitType, directionToBlueprint)) {
-            Globals.gameController.blueprint(this.id, unitType, directionToBlueprint);
+        if (Globals.gc.canBlueprint(this.id, unitType, directionToBlueprint)) {
+            Globals.gc.blueprint(this.id, unitType, directionToBlueprint);
 
-            int structureId = Globals.gameController.senseUnitAtLocation(commandLocation).id();
+            int structureId = Globals.gc.senseUnitAtLocation(commandLocation).id();
             Unit newStructure = new Blueprint(structureId, commandLocation);
             Earth.earthBlueprintMap.put(structureId, newStructure);
 

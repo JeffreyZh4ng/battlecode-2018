@@ -16,7 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public abstract class Robot extends Unit {
 
     public RobotTask emergencyTask = null;
-    private static final PlanetMap initialEarthMap = Globals.gameController.startingMap(Planet.Earth);
+    private static final PlanetMap initialEarthMap = Globals.gc.startingMap(Planet.Earth);
 
     public Robot(int id) {
         super(id);
@@ -106,10 +106,10 @@ public abstract class Robot extends Unit {
 
         for (int i = 1; i < 9; i++) {
             MapLocation locationToCheck = currentLocation.add(Direction.swigToEnum(i));
-            PlanetMap earthMap = Globals.gameController.startingMap(Planet.Earth);
+            PlanetMap earthMap = Globals.gc.startingMap(Planet.Earth);
 
             if (earthMap.onMap(locationToCheck) && earthMap.isPassableTerrainAt(locationToCheck) > 0) {
-                if (!Globals.gameController.canSenseLocation(locationToCheck) || !Globals.gameController.hasUnitAtLocation(locationToCheck)) {
+                if (!Globals.gc.canSenseLocation(locationToCheck) || !Globals.gc.hasUnitAtLocation(locationToCheck)) {
                     availablePositions.add(mapLocationToString(locationToCheck));
                 }
             }
@@ -175,7 +175,7 @@ public abstract class Robot extends Unit {
 
         //returns if location is onMap, passableTerrain, and if it appears unocupied by a Unit
         return map.onMap(location) && map.isPassableTerrainAt(location) == 1 &&
-                (!Globals.gameController.canSenseLocation(location) || !Globals.gameController.hasUnitAtLocation(location));
+                (!Globals.gc.canSenseLocation(location) || !Globals.gc.hasUnitAtLocation(location));
     }
 
 
@@ -200,11 +200,11 @@ public abstract class Robot extends Unit {
     public boolean move(int robotId, MapLocation destinationLocation) {
 
         //if can move this turn
-        if (Globals.gameController.unit(robotId).movementHeat() < 10) {
+        if (Globals.gc.unit(robotId).movementHeat() < 10) {
             System.out.println("moving robot: " + robotId);
 
             //get optimal location to move to
-            MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Globals.gameController.unit(robotId).location().mapLocation(), destinationLocation, initialEarthMap);
+            MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Globals.gc.unit(robotId).location().mapLocation(), destinationLocation, initialEarthMap);
 
             //if no location to move to, return true
             if (locationToMoveTo == null) {
@@ -213,9 +213,9 @@ public abstract class Robot extends Unit {
             }
 
             //try to move to location
-            Direction directionToMove = Globals.gameController.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
-            if (Globals.gameController.canMove(robotId, directionToMove)) {
-                Globals.gameController.moveRobot(robotId, directionToMove);
+            Direction directionToMove = Globals.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
+            if (Globals.gc.canMove(robotId, directionToMove)) {
+                Globals.gc.moveRobot(robotId, directionToMove);
             }
         }
         return false;

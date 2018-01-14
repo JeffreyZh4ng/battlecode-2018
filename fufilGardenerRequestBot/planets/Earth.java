@@ -1,13 +1,8 @@
 package planets;
 
-import bc.MapLocation;
-import bc.Planet;
-import bc.PlanetMap;
 import bc.VecUnit;
-import commandsAndRequests.Command;
 import commandsAndRequests.Globals;
 import commandsAndRequests.GlobalTask;
-import commandsAndRequests.RobotTask;
 import units.Unit;
 
 import java.util.ArrayList;
@@ -53,7 +48,7 @@ public class Earth {
      */
     private void updateDeadUnits() {
         HashSet<Integer> unitSet = new HashSet<>();
-        VecUnit units = Globals.gameController.myUnits();
+        VecUnit units = Globals.gc.myUnits();
         for (int i = 0; i < units.size(); i++) {
             unitSet.add(units.get(i).id());
         }

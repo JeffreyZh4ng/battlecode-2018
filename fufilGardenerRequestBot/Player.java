@@ -21,15 +21,15 @@ public class Player {
         while (true) {
 
             // Will only run blue code for the time being to help with testing
-            System.out.println("Round number: " + Globals.gameController.round());
-            if (Globals.gameController.planet() == Planet.Earth && Globals.gameController.round() < FLOOD_ROUND
-                    && Globals.gameController.team().equals(Team.Blue)) {
+            System.out.println("Round number: " + Globals.gc.round());
+            if (Globals.gc.planet() == Planet.Earth && Globals.gc.round() < FLOOD_ROUND
+                    && Globals.gc.team().equals(Team.Blue)) {
                 earth.execute();
-            } else if (Globals.gameController.planet() == Planet.Mars && Globals.gameController.team().equals(Team.Blue)) {
+            } else if (Globals.gc.planet() == Planet.Mars && Globals.gc.team().equals(Team.Blue)) {
                 mars.execute();
             }
 
-            Globals.gameController.nextTurn();
+            Globals.gc.nextTurn();
         }
     }
 
@@ -37,7 +37,7 @@ public class Player {
      * Method that will add all the workers on earth to the HashMap of workers at the beginning of the game
      */
     private static void addStartingWorkersToEarthMap() {
-        VecUnit units = Globals.gameController.myUnits();
+        VecUnit units = Globals.gc.myUnits();
         for (int i = 0; i < units.size(); i++) {
             int unitId = units.get(i).id();
             Unit worker = new Worker(unitId);
