@@ -4,6 +4,10 @@ import commandsAndRequests.RobotTask;
 
 import java.util.PriorityQueue;
 
+/**
+ * The top level class of all kinds of units. Each unit has an ID and a task queue. All units have a run method
+ * to execute their code
+ */
 public abstract class Unit {
     public int id;
     public PriorityQueue<RobotTask> robotTaskQueue = new PriorityQueue<>();

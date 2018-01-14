@@ -2,7 +2,6 @@ package units.robots;
 
 import bc.MapLocation;
 import commandsAndRequests.Command;
-import commandsAndRequests.GlobalTask;
 import commandsAndRequests.RobotTask;
 import units.Robot;
 
@@ -33,7 +32,7 @@ public class Ranger extends Robot {
     }
 
     /**
-     * exceutes the given task
+     * Executes the given task
      * @param robotTask the task to complete
      * @return whether or not task is done being completed
      */

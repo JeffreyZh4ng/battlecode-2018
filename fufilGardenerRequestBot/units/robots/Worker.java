@@ -42,6 +42,11 @@ public class Worker extends Robot {
 
     }
 
+    /**
+     * Executes the task from the task queue
+     * @param robotTask The task the robot has to complete
+     * @return If the task was completed or not
+     */
     private boolean executeTask(RobotTask robotTask) {
         Command robotCommand = robotTask.getCommand();
         MapLocation commandLocation = robotTask.getCommandLocation();
