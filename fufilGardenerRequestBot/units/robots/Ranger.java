@@ -1,6 +1,7 @@
 package units.robots;
 
 import bc.MapLocation;
+import bc.bc;
 import commandsAndRequests.Command;
 import commandsAndRequests.Globals;
 import commandsAndRequests.RobotTask;
@@ -60,7 +61,8 @@ public class Ranger extends Robot {
      * attacks enemy robots within its range, or move towards nearest one
      * @return if it has an attack objective
      */
-    private boolean fight() {
+    private boolean aggressiveAttack() {
+        //TODO: find best nearby targets and attacks
         return true;
     }
 
@@ -71,21 +73,97 @@ public class Ranger extends Robot {
      * @return whether or enemy robot was killed yet
      */
     private boolean targetedAttack(MapLocation targetLocation, int targetId) {
+        //TODO: seek and destroy a unit
+        return true;
+    }
+
+
+    /**
+     * will find the most powerful but also weakest target to attack
+     * in other words, finds which unit to attack to most hurt the enemy
+     * @return best Target Enemy Unit or null if none found in range
+     */
+    private Unit getBestEnemyTargetInRange() {
+        //get and store this units location
+        MapLocation thisUnitsLocation = Globals.gc.unit(this.id).location().mapLocation();
+
+        //get enemy units within attack radius
+        VecUnit enemyUnits = Globals.gc.senseNearbyUnitsByTeam(thisUnitsLocation, Globals.gc.unit(this.id).attackRange(), Globals.gc.team());
+
+        //if no enemy unit in range return false
+        if (enemyUnits.size() == 0) {
+            return null;
+        }
+
+        //find best enemy target unit in rangeg
+        Unit bestTargetEnemyUnit = enemyUnits.get(0);
+        float currentGoodness = calculateTargetGoodness(bestTargetEnemyUnit);
+        for (int i= 0; i < enemyUnits.size(); i ++) {
+
+            //check if weakest and can attack
+            if (Globals.gc.canAttack(this.id, enemyUnits.get(i).id()) && currentGoodness < calculateTargetGoodness(enemyUnits.get(i))) {
+                bestTargetEnemyUnit = enemyUnits.get(i);
+            }
+        }
+        return bestTargetEnemyUnit;
+    }
+
+    /**
+     * idk wtf to name this
+     * @param enemyUnit the unit to calculate the value for
+     * @return a value that represents how much attacking this unit will hurt the enemy
+     */
+    private float calculateTargetGoodness(Unit enemyUnit) {
+
+        int healthWeight = 1;
+        int costWeight = 4;
+        // the objective of attacking a unit is to kill it eventually so that it can no longer be useful for the enemy
+        // for this reason, if the unit has low heath and can die soon it should probably attacked, also if the unit is
+        // more important to the enemy it should be attacked importance is realted to the cost of the unit
+        return - enemyUnit.health()*healthWeight + bc.bcUnitTypeFactoryCost(enemyUnit.factoryUnitType())*costWeight;
+    }
+
+
+
+    /**
+     * given a unit to defend, move around and kill threats to that unit
+     * @param defendedUnitId
+     * @return
+     */
+    private boolean defendUnit(int defendedUnitId) {
+        //TODO: move and defend a defined unit
         return true;
     }
 
     /**
-     * finds the weakest enemy robot that it can attack
-     * @return the location of the weakest enemy that can be attacked or null if none
+     * attacks the weakest enemy that it can
+     * @return true if nothing to attack false if attacked or has enemy in range
      */
-    private MapLocation getWeakestEnemyRobotInRange() {
+    private boolean attackWeakestEnemyInRange() {
+        if (Globals.gc.unit(this.id).attackHeat()<10) {
+
+            Unit weakestEnemy = getWeakestEnemyInRange();
+            if (weakestEnemy == null) {
+                return true;
+            }
+
+            Globals.gc.attack(this.id, getWeakestEnemyInRange().id());
+            return false;
+        }
+        return false;
+    }
+
+    /**
+     * finds the weakest enemy robot that it can attack
+     * @return the weakest enemy that can be attacked or null if none
+     */
+    private Unit getWeakestEnemyInRange() {
 
         //get and store this units location
         MapLocation thisUnitsLocation = Globals.gc.unit(this.id).location().mapLocation();
 
         //get enemy units within attack radius
-        VecUnit enemyUnits = Globals.gc.senseNearbyUnitsByTeam(thisUnitsLocation,
-                Globals.gc.unit(this.id).attackRange(), Globals.gc.team());
+        VecUnit enemyUnits = Globals.gc.senseNearbyUnitsByTeam(thisUnitsLocation, Globals.gc.unit(this.id).attackRange(), Globals.gc.team());
 
         //if no enemy unit in range return false
         if (enemyUnits.size() == 0) {
@@ -101,7 +179,7 @@ public class Ranger extends Robot {
                 weakestEnemyUnit = enemyUnits.get(i);
             }
         }
-        return weakestEnemyUnit.location().mapLocation();
+        return weakestEnemyUnit;
     }
 
 
@@ -112,7 +190,7 @@ public class Ranger extends Robot {
      * @return if completed this round returns true otherwise returns false
      */
     private boolean snipe(MapLocation snipeLocation) {
-
+        //TODO: sniper stuff p simple but not v important
         //sniping ist that great so will implement latter
         return true;
     }
