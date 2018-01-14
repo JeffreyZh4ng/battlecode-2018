@@ -83,11 +83,13 @@ public abstract class Robot extends Unit{
 
     /**
      * checks if location both passable and appears not to have robots in it
-     * @param map
-     * @param location
-     * @return
+     * @param map the map to check
+     * @param location the location to check
+     * @return if the location appears empty
      */
     public static boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
+
+        //returns if location is onMap, passableTerrain, and if it appears unocupied by a Unit
         return map.onMap(location) && map.isPassableTerrainAt(location) == 1 &&
                 (!Globals.gameController.canSenseLocation(location) || !Globals.gameController.hasUnitAtLocation(location));
     }
@@ -106,21 +108,27 @@ public abstract class Robot extends Unit{
     }
 
     /**
-     *
+     * move a robot
      * @param robotId robot to move
      * @param destinationLocation
      * @return if the robot has reached within on square of its destination or cannot get to destination at all
      */
     public boolean move(int robotId, MapLocation destinationLocation) {
+
+        //if can move this turn
         if (Globals.gameController.unit(robotId).movementHeat() < 10) {
             System.out.println("moving robot: " + robotId);
+
+            //get optimal location to move to
             MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Globals.gameController.unit(robotId).location().mapLocation(), destinationLocation, initialEarthMap);
-            System.out.println(Globals.gameController.unit(robotId).location().mapLocation());
-            System.out.println(locationToMoveTo);
+
+            //if no location to move to, return true
             if (locationToMoveTo == null) {
                 System.out.println("cannot get within 1 square of destination or is already at destination/within 1 square");
                 return true;
             }
+
+            //try to move to location
             Direction directionToMove = Globals.gameController.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
             if (Globals.gameController.canMove(robotId, directionToMove)) {
                 Globals.gameController.moveRobot(robotId, directionToMove);
@@ -145,8 +153,13 @@ public abstract class Robot extends Unit{
         HashMap<String, MapLocation> cameFrom = new HashMap<>();
         cameFrom.put(startingLocation.toString(), startingLocation);
 
+        // while there are more locations to check
         while (!frontier.isEmpty()) {
+
+            //get next direction to check around
             MapLocation currentLocation = frontier.poll();
+
+            //check if locations around frontier location have alredy been added to came from and if they are empty
             for (Direction nextDirection : moveDirections) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
@@ -156,6 +169,7 @@ public abstract class Robot extends Unit{
                 }
             }
         }
+
 
         MapLocation resultLocation = null;
         MapLocation currentLocation = destinationLocation;
@@ -172,15 +186,13 @@ public abstract class Robot extends Unit{
             }
         }
 
+        //trace back from destination to start
         if (currentLocation == null) {
             return null;
         }
-
         while (!currentLocation.equals(startingLocation)) {
             resultLocation = currentLocation;
             currentLocation = cameFrom.get(currentLocation.toString());
-            System.out.println("cur loc: "+ currentLocation);
-            System.out.println("start loc: "+ startingLocation);
             if (currentLocation == null) {
                 return null;
             }
