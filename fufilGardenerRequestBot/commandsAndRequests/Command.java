@@ -12,5 +12,6 @@ public enum Command {
     IN_COMBAT,
     BUILD,
     CLONE,
+    SNIPE,
     MOVE,
 }

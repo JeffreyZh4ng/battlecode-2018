@@ -199,8 +199,6 @@ public abstract class Robot extends Unit{
         }
 
         return resultLocation;
-
-        //return null;
     }
 }
 
