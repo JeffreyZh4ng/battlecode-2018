@@ -21,9 +21,10 @@ public class Player {
         while (true) {
 
             System.out.println("Round number: " + Globals.gameController.round());
-            if (Globals.gameController.planet() == Planet.Earth && Globals.gameController.round() < FLOOD_ROUND) {
+            if (Globals.gameController.planet() == Planet.Earth && Globals.gameController.round() < FLOOD_ROUND
+                    && Globals.gameController.team().equals(Team.Blue)) {
                 earth.execute();
-            } else if (Globals.gameController.planet() == Planet.Mars) {
+            } else if (Globals.gameController.planet() == Planet.Mars && Globals.gameController.team().equals(Team.Blue)) {
                 mars.execute();
             }
 
