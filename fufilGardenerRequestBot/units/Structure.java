@@ -1,8 +1,10 @@
 package units;
 
 import bc.MapLocation;
-import units.Unit;
 
+/**
+ * Class that extends the Unit class and holds information specific to the two structure classes: Factories and Rockets
+ */
 public abstract class Structure extends Unit {
 
     private MapLocation structureLocation;

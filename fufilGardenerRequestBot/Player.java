@@ -20,6 +20,7 @@ public class Player {
 
         while (true) {
 
+            // Will only run blue code for the time being to help with testing
             System.out.println("Round number: " + Globals.gameController.round());
             if (Globals.gameController.planet() == Planet.Earth && Globals.gameController.round() < FLOOD_ROUND
                     && Globals.gameController.team().equals(Team.Blue)) {
@@ -47,17 +48,5 @@ public class Player {
         }
     }
 }
-//    /**
-//     * Iterates through map locations and prints karbonite values for all locations
-//     */
-//    public static void printKarboniteValues() {
-//        long width = gameController.startingMap(Planet.Earth).getWidth();
-//        long height = gameController.startingMap(Planet.Earth).getHeight();
-//        for (int x = 0; x < width; x++) {
-//            for (int y = 0; y < height; y++) {
-//                System.out.println(gameController.startingMap(Planet.Earth).initialKarboniteAt(new MapLocation(Planet.Earth, x, y)));
-//            }
-//        }
-//    }
 
 
