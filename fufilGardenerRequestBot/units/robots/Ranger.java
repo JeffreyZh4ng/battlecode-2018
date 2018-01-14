@@ -1,11 +1,18 @@
 package units.robots;
 
 import bc.MapLocation;
+import com.sun.javafx.collections.MapListenerHelper;
 import commandsAndRequests.Command;
+import commandsAndRequests.Globals;
 import commandsAndRequests.RobotTask;
 import units.Robot;
+import bc.VecUnit;
+import bc.Unit;
+
+import java.util.Map;
 
 public class Ranger extends Robot {
+
 
     public Ranger(int id) {
         super(id);
@@ -71,22 +78,45 @@ public class Ranger extends Robot {
     }
 
     /**
-     * attacks the weakest enemy robot that it can attack
-     * @return whether or not a robot was attacked
+     * finds the weakest enemy robot that it can attack
+     * @return the location of the weakest enemy that can be attacked or null if none
      */
-    private boolean attackWeakestEnemyRobot() {
-        return true;
+    private MapLocation getWeakestEnemyRobotInRange() {
+
+        //get and store this units location
+        MapLocation thisUnitsLocation = Globals.gameController.unit(this.id).location().mapLocation();
+
+        //get enemy units within attack radius
+        VecUnit enemyUnits = Globals.gameController.senseNearbyUnitsByTeam(thisUnitsLocation,
+                Globals.gameController.unit(this.id).attackRange(), Globals.gameController.team());
+
+        //if no enemy unit in range return false
+        if (enemyUnits.size() == 0) {
+            return null;
+        }
+
+        //find weakest enemy unit in range
+        Unit weakestEnemyUnit = enemyUnits.get(0);
+        for (int i= 0; i < enemyUnits.size(); i ++) {
+
+            //check if weakest and can attack
+            if (Globals.gameController.canAttack(this.id, enemyUnits.get(i).id()) && enemyUnits.get(i).health()<weakestEnemyUnit.health()) {
+                weakestEnemyUnit = enemyUnits.get(i);
+            }
+        }
+        return weakestEnemyUnit.location().mapLocation();
     }
+
 
 
     /**
      * snipes location, does whole proccess and returns true once location is sniped
      * @param snipeLocation location to snipe
-     * @return if compleated this round returns true otherwise returns false
+     * @return if completed this round returns true otherwise returns false
      */
     private boolean snipe(MapLocation snipeLocation) {
 
-        //snipeing ist that great so will implement latter
+        //sniping ist that great so will implement latter
         return true;
     }
 
