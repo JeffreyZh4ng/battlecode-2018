@@ -12,3 +12,6 @@ run_nodocker.sh
 index.html
 run.bat
 run.sh
+viewer_latest/
+install_viewer.py
+viewer_currentInstall.json
