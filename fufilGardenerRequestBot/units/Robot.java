@@ -146,32 +146,46 @@ public abstract class Robot extends Unit{
         cameFrom.put(startingLocation.toString(), startingLocation);
 
         while (!frontier.isEmpty()) {
-            System.out.println("frintier not empty: " + frontier.size());
             MapLocation currentLocation = frontier.poll();
             for (Direction nextDirection : moveDirections) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if ( doesLocationAppearEmpty(map, nextLocation)&& !cameFrom.containsKey(nextLocation.toString())) {
-                    System.out.println("adding to frinter: "+nextLocation);
+                if (doesLocationAppearEmpty(map, nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
                     frontier.add(nextLocation);
                     cameFrom.put(nextLocation.toString(), currentLocation);
                 }
             }
         }
+
         MapLocation resultLocation = null;
         MapLocation currentLocation = destinationLocation;
+        //if could not path to check if already one away from destination else find adjacent destination
         if (!cameFrom.containsKey(destinationLocation.toString())) {
-            for (Direction moveDirection : moveDirections) {
-                if (doesLocationAppearEmpty(map, destinationLocation.add(moveDirection))) {
-                    currentLocation = destinationLocation.add(moveDirection);
+            if (startingLocation.isAdjacentTo(destinationLocation)) {
+                return null;
+            } else {
+                for (Direction moveDirection : moveDirections) {
+                    if (doesLocationAppearEmpty(map, destinationLocation.add(moveDirection))) {
+                        currentLocation = destinationLocation.add(moveDirection);
+                    }
                 }
             }
         }
+
+        if (currentLocation == null) {
+            return null;
+        }
+
         while (!currentLocation.equals(startingLocation)) {
-            System.out.println("not equal: " + currentLocation + "dest: " + startingLocation);
             resultLocation = currentLocation;
             currentLocation = cameFrom.get(currentLocation.toString());
+            System.out.println("cur loc: "+ currentLocation);
+            System.out.println("start loc: "+ startingLocation);
+            if (currentLocation == null) {
+                return null;
+            }
         }
+
         return resultLocation;
 
         //return null;
