@@ -1,4 +1,4 @@
-package commandsAndRequests;
+package fufilGardenerRequest;
 
 /**
  * Commands that will indicate the actions robots need to take for each task

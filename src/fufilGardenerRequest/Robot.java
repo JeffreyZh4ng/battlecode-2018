@@ -1,11 +1,9 @@
-package units;
+package fufilGardenerRequest;
 
 import bc.Direction;
 import bc.MapLocation;
 import bc.Planet;
 import bc.PlanetMap;
-import commandsAndRequests.Globals;
-import commandsAndRequests.RobotTask;
 
 import java.util.*;
 import java.util.LinkedList;
@@ -16,7 +14,7 @@ import java.util.LinkedList;
 public abstract class Robot extends Unit {
 
     public RobotTask emergencyTask = null;
-    private static final PlanetMap initialMap = Globals.gc.startingMap(Globals.gc.planet());
+    private static final PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
 
     public Robot(int id) {
         super(id);
@@ -32,7 +30,7 @@ public abstract class Robot extends Unit {
 
         //give up after a certain number of tries
         int tries = 0;
-        while (Globals.gc.canSenseLocation(randomLocation)&& !(initialMap.isPassableTerrainAt(randomLocation)>0) && tries < 100) {
+        while (Player.gc.canSenseLocation(randomLocation)&& !(initialMap.isPassableTerrainAt(randomLocation)>0) && tries < 100) {
             randomLocation = getRandomLocation(initialMap);
         }
         return randomLocation;
@@ -131,10 +129,10 @@ public abstract class Robot extends Unit {
 
         for (int i = 1; i < 9; i++) {
             MapLocation locationToCheck = currentLocation.add(Direction.swigToEnum(i));
-            PlanetMap earthMap = Globals.gc.startingMap(Planet.Earth);
+            PlanetMap earthMap = Player.gc.startingMap(Planet.Earth);
 
             if (earthMap.onMap(locationToCheck) && earthMap.isPassableTerrainAt(locationToCheck) > 0) {
-                if (!Globals.gc.canSenseLocation(locationToCheck) || !Globals.gc.hasUnitAtLocation(locationToCheck)) {
+                if (!Player.gc.canSenseLocation(locationToCheck) || !Player.gc.hasUnitAtLocation(locationToCheck)) {
                     availablePositions.add(mapLocationToString(locationToCheck));
                 }
             }
@@ -200,7 +198,7 @@ public abstract class Robot extends Unit {
 
         //returns if location is onMap, passableTerrain, and if it appears unocupied by a Unit
         return map.onMap(location) && map.isPassableTerrainAt(location) == 1 &&
-                (!Globals.gc.canSenseLocation(location) || !Globals.gc.hasUnitAtLocation(location));
+                (!Player.gc.canSenseLocation(location) || !Player.gc.hasUnitAtLocation(location));
     }
 
 
@@ -225,11 +223,11 @@ public abstract class Robot extends Unit {
     public boolean move(int robotId, MapLocation destinationLocation) {
 
         //if can move this turn
-        if (Globals.gc.unit(robotId).movementHeat() < 10) {
+        if (Player.gc.unit(robotId).movementHeat() < 10) {
             System.out.println("moving robot: " + robotId);
 
             //get optimal location to move to
-            MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Globals.gc.unit(robotId).location().mapLocation(), destinationLocation, initialMap);
+            MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(), destinationLocation, initialMap);
 
             //if no location to move to, return true
             if (locationToMoveTo == null) {
@@ -238,9 +236,9 @@ public abstract class Robot extends Unit {
             }
 
             //try to move to location
-            Direction directionToMove = Globals.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
-            if (Globals.gc.canMove(robotId, directionToMove)) {
-                Globals.gc.moveRobot(robotId, directionToMove);
+            Direction directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
+            if (Player.gc.canMove(robotId, directionToMove)) {
+                Player.gc.moveRobot(robotId, directionToMove);
             }
         }
         return false;

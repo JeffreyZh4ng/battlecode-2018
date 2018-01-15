@@ -1,11 +1,7 @@
-package units.robots;
+package fufilGardenerRequest;
 
 import bc.MapLocation;
 import bc.bc;
-import commandsAndRequests.Command;
-import commandsAndRequests.Globals;
-import commandsAndRequests.RobotTask;
-import units.Robot;
 import bc.VecUnit;
 import bc.Unit;
 
@@ -85,10 +81,10 @@ public class Ranger extends Robot {
      */
     private Unit getBestEnemyTargetInRange() {
         //get and store this units location
-        MapLocation thisUnitsLocation = Globals.gc.unit(this.id).location().mapLocation();
+        MapLocation thisUnitsLocation = Player.gc.unit(this.id).location().mapLocation();
 
         //get enemy units within attack radius
-        VecUnit enemyUnits = Globals.gc.senseNearbyUnitsByTeam(thisUnitsLocation, Globals.gc.unit(this.id).attackRange(), Globals.gc.team());
+        VecUnit enemyUnits = Player.gc.senseNearbyUnitsByTeam(thisUnitsLocation, Player.gc.unit(this.id).attackRange(), Player.gc.team());
 
         //if no enemy unit in range return false
         if (enemyUnits.size() == 0) {
@@ -101,7 +97,7 @@ public class Ranger extends Robot {
         for (int i= 0; i < enemyUnits.size(); i ++) {
 
             //check if weakest and can attack
-            if (Globals.gc.canAttack(this.id, enemyUnits.get(i).id()) && currentGoodness < calculateTargetGoodness(enemyUnits.get(i))) {
+            if (Player.gc.canAttack(this.id, enemyUnits.get(i).id()) && currentGoodness < calculateTargetGoodness(enemyUnits.get(i))) {
                 bestTargetEnemyUnit = enemyUnits.get(i);
             }
         }
@@ -140,14 +136,14 @@ public class Ranger extends Robot {
      * @return true if nothing to attack false if attacked or has enemy in range
      */
     private boolean attackWeakestEnemyInRange() {
-        if (Globals.gc.unit(this.id).attackHeat()<10) {
+        if (Player.gc.unit(this.id).attackHeat()<10) {
 
             Unit weakestEnemy = getWeakestEnemyInRange();
             if (weakestEnemy == null) {
                 return true;
             }
 
-            Globals.gc.attack(this.id, getWeakestEnemyInRange().id());
+            Player.gc.attack(this.id, getWeakestEnemyInRange().id());
             return false;
         }
         return false;
@@ -160,10 +156,10 @@ public class Ranger extends Robot {
     private Unit getWeakestEnemyInRange() {
 
         //get and store this units location
-        MapLocation thisUnitsLocation = Globals.gc.unit(this.id).location().mapLocation();
+        MapLocation thisUnitsLocation = Player.gc.unit(this.id).location().mapLocation();
 
         //get enemy units within attack radius
-        VecUnit enemyUnits = Globals.gc.senseNearbyUnitsByTeam(thisUnitsLocation, Globals.gc.unit(this.id).attackRange(), Globals.gc.team());
+        VecUnit enemyUnits = Player.gc.senseNearbyUnitsByTeam(thisUnitsLocation, Player.gc.unit(this.id).attackRange(), Player.gc.team());
 
         //if no enemy unit in range return false
         if (enemyUnits.size() == 0) {
@@ -175,7 +171,7 @@ public class Ranger extends Robot {
         for (int i= 0; i < enemyUnits.size(); i ++) {
 
             //check if weakest and can attack
-            if (Globals.gc.canAttack(this.id, enemyUnits.get(i).id()) && enemyUnits.get(i).health()<weakestEnemyUnit.health()) {
+            if (Player.gc.canAttack(this.id, enemyUnits.get(i).id()) && enemyUnits.get(i).health()<weakestEnemyUnit.health()) {
                 weakestEnemyUnit = enemyUnits.get(i);
             }
         }

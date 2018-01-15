@@ -1,7 +1,6 @@
-package units.structures;
+package fufilGardenerRequest;
 
 import bc.MapLocation;
-import units.Structure;
 
 public class Factory extends Structure {
 

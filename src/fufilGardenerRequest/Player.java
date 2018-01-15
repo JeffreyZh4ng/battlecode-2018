@@ -1,16 +1,11 @@
+package fufilGardenerRequest;
+
 import bc.*;
-import commandsAndRequests.Command;
-import commandsAndRequests.Globals;
-import commandsAndRequests.RobotTask;
-import planets.Earth;
-import planets.Mars;
-import units.Robot;
-import units.Unit;
-import units.robots.Worker;
 
 public class Player {
 
     private static final int FLOOD_ROUND = 750;
+    public static final GameController gc = new GameController();
 
     public static void main(String[] args) {
 
@@ -21,15 +16,16 @@ public class Player {
 
         while (true) {
 
+            System.out.println(gc.round());
             // Will only run blue code for the time being to help with testing
-            System.out.println("Round number: " + Globals.gc.round());
-            if (Globals.gc.planet() == Planet.Earth && Globals.gc.round() < FLOOD_ROUND) {
+            System.out.println("Round number: " + gc.round());
+            if (gc.planet() == Planet.Earth && gc.round() < FLOOD_ROUND && gc.team() == Team.Blue) {
                 earth.execute();
-            } else if (Globals.gc.planet() == Planet.Mars) {
+            } else if (gc.planet() == Planet.Mars && gc.team() == Team.Blue) {
                 mars.execute();
             }
 
-            Globals.gc.nextTurn();
+            gc.nextTurn();
         }
     }
 
@@ -37,7 +33,7 @@ public class Player {
      * Method that will add all the workers on earth to the HashMap of workers at the beginning of the game
      */
     private static void addStartingWorkersToEarthMap() {
-        VecUnit units = Globals.gc.myUnits();
+        VecUnit units = gc.myUnits();
         for (int i = 0; i < units.size(); i++) {
             int unitId = units.get(i).id();
             Unit worker = new Worker(unitId);
