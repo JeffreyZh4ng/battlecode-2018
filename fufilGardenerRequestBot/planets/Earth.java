@@ -42,26 +42,26 @@ public class Earth {
      * choose the location of the structure and add it to the global task list
      * @param command The command of the task that you want to be added to the global list
      */
-    public void createGlobalTask(Command command) {
-        MapLocation globalTaskLocation;
-
-        switch (command) {
-            case CONSTRUCT_FACTORY:
-                globalTaskLocation = pickFactoryLocation();
-                break;
-            case CONSTRUCT_ROCKET:
-                globalTaskLocation = pickRocketLocation();
-                break;
-            default:
-                globalTaskLocation = bestRobotSpawnLocation();
-                break;
-        }
-
-        GlobalTask newGlobalTask = new GlobalTask(command, globalTaskLocation);
-        int globalTaskId = newGlobalTask.getTaskId();
-
-        earthTaskMap.put(globalTaskId, newGlobalTask);
-    }
+//    public void createGlobalTask(Command command) {
+//        MapLocation globalTaskLocation;
+//
+//        switch (command) {
+//            case CONSTRUCT_FACTORY:
+//                globalTaskLocation = pickFactoryLocation();
+//                break;
+//            case CONSTRUCT_ROCKET:
+//                globalTaskLocation = pickRocketLocation();
+//                break;
+//            default:
+//                globalTaskLocation = bestRobotSpawnLocation();
+//                break;
+//        }
+//
+//        GlobalTask newGlobalTask = new GlobalTask(command, globalTaskLocation);
+//        int globalTaskId = newGlobalTask.getTaskId();
+//
+//        earthTaskMap.put(globalTaskId, newGlobalTask);
+//    }
 
 //    private void sendTasksToRobot(GlobalTask globalTask, ArrayList<Integer> robotList) {
 //        Command taskCommand = globalTask.getCommand();

@@ -8,7 +8,7 @@ import commandsAndRequests.Globals;
 import commandsAndRequests.RobotTask;
 
 import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.LinkedList;
 
 /**
  * Superclass of all robots that specifies actions that all robots will be able to make
@@ -257,7 +257,7 @@ public abstract class Robot extends Unit {
 
         Direction[] moveDirections = getMoveDirections();
 
-        Queue<MapLocation> frontier = new LinkedBlockingQueue<>();
+        Queue<MapLocation> frontier = new LinkedList<>();
         frontier.add(startingLocation);
         HashMap<String, MapLocation> cameFrom = new HashMap<>();
         cameFrom.put(startingLocation.toString(), startingLocation);

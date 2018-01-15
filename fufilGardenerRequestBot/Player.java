@@ -45,7 +45,7 @@ public class Player {
 
             for (int j = 0; j < 20; j++) {
                 MapLocation randomLocation = Robot.getLocationToExplore();
-                RobotTask task = new RobotTask(Command.MOVE, randomLocation);
+                RobotTask task = new RobotTask(j,Command.MOVE, randomLocation);
                 worker.robotTaskQueue.add(task);
             }
             Earth.earthWorkerMap.put(unitId, worker);

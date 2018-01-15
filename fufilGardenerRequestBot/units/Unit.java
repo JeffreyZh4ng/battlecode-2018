@@ -1,5 +1,5 @@
 package units;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.LinkedList;
 import java.util.Queue;
 
 import commandsAndRequests.RobotTask;
@@ -12,7 +12,7 @@ import java.util.PriorityQueue;
  */
 public abstract class Unit {
     public int id;
-    public Queue<RobotTask> robotTaskQueue = new LinkedBlockingQueue<>();
+    public Queue<RobotTask> robotTaskQueue = new LinkedList<>();
 
 
     public Unit(int id) {

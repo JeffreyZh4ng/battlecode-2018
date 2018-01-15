@@ -87,7 +87,7 @@ public class Worker extends Robot {
 
             int clonedWorkerId = Globals.gc.senseUnitAtLocation(commandLocation).id();
             Unit newWorker = new Worker(clonedWorkerId);
-            
+
             //TODO: Don't know if this will break. Need to find out if a worker can move/act the round it was created.
             // yea something broke
 //[earth:red] Exception in thread "main" java.lang.RuntimeException: No object returned, check whether it exists first.
