@@ -35,9 +35,8 @@ public class Worker extends Robot {
                 this.robotTaskQueue.poll();
             }
 
-        } else {
-            // Mine for karbonite
         }
+            // Mine for karbonite
 
     }
 
@@ -88,7 +87,7 @@ public class Worker extends Robot {
 
             int clonedWorkerId = Globals.gc.senseUnitAtLocation(commandLocation).id();
             Unit newWorker = new Worker(clonedWorkerId);
-
+            
             //TODO: Don't know if this will break. Need to find out if a worker can move/act the round it was created.
             // yea something broke
 //[earth:red] Exception in thread "main" java.lang.RuntimeException: No object returned, check whether it exists first.
@@ -101,8 +100,7 @@ public class Worker extends Robot {
 //[earth:red] 	at planets.Earth.execute(Earth.java:29)
 //[earth:red] 	at Player.main(Player.java:27)
 
-                    Earth.earthWorkerMap.put(clonedWorkerId, newWorker);
-
+            Earth.earthWorkerMap.put(clonedWorkerId, newWorker);
             return true;
         }
 
