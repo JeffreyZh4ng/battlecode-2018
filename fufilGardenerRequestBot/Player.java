@@ -4,6 +4,7 @@ import commandsAndRequests.Globals;
 import commandsAndRequests.RobotTask;
 import planets.Earth;
 import planets.Mars;
+import units.Robot;
 import units.Unit;
 import units.robots.Worker;
 
@@ -22,10 +23,9 @@ public class Player {
 
             // Will only run blue code for the time being to help with testing
             System.out.println("Round number: " + Globals.gc.round());
-            if (Globals.gc.planet() == Planet.Earth && Globals.gc.round() < FLOOD_ROUND
-                    && Globals.gc.team().equals(Team.Blue)) {
+            if (Globals.gc.planet() == Planet.Earth && Globals.gc.round() < FLOOD_ROUND) {
                 earth.execute();
-            } else if (Globals.gc.planet() == Planet.Mars && Globals.gc.team().equals(Team.Blue)) {
+            } else if (Globals.gc.planet() == Planet.Mars) {
                 mars.execute();
             }
 
@@ -42,8 +42,12 @@ public class Player {
             int unitId = units.get(i).id();
             Unit worker = new Worker(unitId);
 
-            RobotTask task = new RobotTask(Command.MOVE, new MapLocation(Planet.Earth, 10, 10));
-            worker.robotTaskQueue.add(task);
+
+            for (int j = 0; j < 20; j++) {
+                MapLocation randomLocation = Robot.getLocationToExplore();
+                RobotTask task = new RobotTask(Command.MOVE, randomLocation);
+                worker.robotTaskQueue.add(task);
+            }
             Earth.earthWorkerMap.put(unitId, worker);
         }
     }

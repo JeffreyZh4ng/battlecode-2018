@@ -16,10 +16,35 @@ import java.util.concurrent.LinkedBlockingQueue;
 public abstract class Robot extends Unit {
 
     public RobotTask emergencyTask = null;
-    private static final PlanetMap initialEarthMap = Globals.gc.startingMap(Planet.Earth);
+    private static final PlanetMap initialMap = Globals.gc.startingMap(Globals.gc.planet());
 
     public Robot(int id) {
         super(id);
+    }
+
+    /**
+     * for when a robot has nothing to do, should move around so that it finds tasks or gain information this method
+     * finds a location to explore
+     * @return a random location that seems good to be explored
+     */
+    public static MapLocation getLocationToExplore() {
+        MapLocation randomLocation = getRandomLocation(initialMap);
+
+        //give up after a certain number of tries
+        int tries = 0;
+        while (Globals.gc.canSenseLocation(randomLocation)&& !(initialMap.isPassableTerrainAt(randomLocation)>0) && tries < 100) {
+            randomLocation = getRandomLocation(initialMap);
+        }
+        return randomLocation;
+    }
+
+    /**
+     * randomly choses a location
+     * @param map the map that the location should be on
+     * @return a random location on the map
+     */
+    private static MapLocation getRandomLocation(PlanetMap map) {
+        return new MapLocation(map.getPlanet(), (int)(Math.random()*map.getWidth()),(int)(Math.random()*map.getHeight()));
     }
 
     /**
@@ -204,7 +229,7 @@ public abstract class Robot extends Unit {
             System.out.println("moving robot: " + robotId);
 
             //get optimal location to move to
-            MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Globals.gc.unit(robotId).location().mapLocation(), destinationLocation, initialEarthMap);
+            MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Globals.gc.unit(robotId).location().mapLocation(), destinationLocation, initialMap);
 
             //if no location to move to, return true
             if (locationToMoveTo == null) {

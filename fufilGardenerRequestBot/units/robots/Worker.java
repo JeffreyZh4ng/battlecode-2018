@@ -90,7 +90,18 @@ public class Worker extends Robot {
             Unit newWorker = new Worker(clonedWorkerId);
 
             //TODO: Don't know if this will break. Need to find out if a worker can move/act the round it was created.
-            Earth.earthWorkerMap.put(clonedWorkerId, newWorker);
+            // yea something broke
+//[earth:red] Exception in thread "main" java.lang.RuntimeException: No object returned, check whether it exists first.
+//[earth:red] 	at bc.bcJNI.GameController_senseUnitAtLocation(Native Method)
+//[earth:red] 	at bc.GameController.senseUnitAtLocation(GameController.java:124)
+//[earth:red] 	at units.robots.Worker.cloneWorker(Worker.java:89)
+//[earth:red] 	at units.robots.Worker.executeTask(Worker.java:67)
+//[earth:red] 	at units.robots.Worker.run(Worker.java:34)
+//[earth:red] 	at planets.Earth.runUnitMap(Earth.java:41)
+//[earth:red] 	at planets.Earth.execute(Earth.java:29)
+//[earth:red] 	at Player.main(Player.java:27)
+
+                    Earth.earthWorkerMap.put(clonedWorkerId, newWorker);
 
             return true;
         }
