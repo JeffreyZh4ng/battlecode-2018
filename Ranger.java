@@ -1,5 +1,3 @@
-package fufilGardenerRequest;
-
 import bc.MapLocation;
 import bc.bc;
 import bc.VecUnit;

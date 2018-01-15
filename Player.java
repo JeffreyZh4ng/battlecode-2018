@@ -1,5 +1,3 @@
-package fufilGardenerRequest;
-
 import bc.*;
 
 public class Player {

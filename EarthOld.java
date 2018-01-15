@@ -1,5 +1,3 @@
-package fufilGardenerRequest;
-
 import bc.GameController;
 import bc.MapLocation;
 import bc.VecUnit;

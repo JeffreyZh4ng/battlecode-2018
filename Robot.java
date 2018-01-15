@@ -1,5 +1,3 @@
-package fufilGardenerRequest;
-
 import bc.Direction;
 import bc.MapLocation;
 import bc.Planet;

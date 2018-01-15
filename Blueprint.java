@@ -1,5 +1,3 @@
-package fufilGardenerRequest;
-
 import bc.MapLocation;
 
 public class Blueprint extends Structure {

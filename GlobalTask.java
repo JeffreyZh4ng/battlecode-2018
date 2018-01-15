@@ -1,5 +1,3 @@
-package fufilGardenerRequest;
-
 import bc.MapLocation;
 
 import java.util.ArrayList;
