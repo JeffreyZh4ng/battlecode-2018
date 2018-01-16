@@ -39,7 +39,7 @@ public abstract class UnitInstance {
     public RobotTask pollTask() {
         RobotTask task = this.getTopTask();
         removeTask();
-        return pollTask();
+        return task;
     }
 
     public void addTask(RobotTask robotTask) {
