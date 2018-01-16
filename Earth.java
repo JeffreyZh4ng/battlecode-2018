@@ -16,6 +16,8 @@ public class Earth {
     public static HashMap<Integer, UnitInstance> earthFactoryMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthAttackerMap = new HashMap<>();
 
+    public static HashMap<Integer, GlobalTask> earthFinishedTasks = new HashMap<>();
+
     public static HashMap<Integer, UnitInstance> earthStagingWorkerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
 
@@ -30,8 +32,13 @@ public class Earth {
         runUnitMap(earthFactoryMap);
         runUnitMap(earthAttackerMap);
 
+        earthTaskMap = removeFinishedTasks(earthTaskMap, earthFinishedTasks);
+        earthFinishedTasks = new HashMap<>();
+
         earthWorkerMap = addStagingUnitsToMap(earthWorkerMap, earthStagingWorkerMap);
+        earthStagingWorkerMap = new HashMap<>();
         earthAttackerMap = addStagingUnitsToMap(earthAttackerMap, earthStagingAttackerMap);
+        earthStagingAttackerMap = new HashMap<>();
     }
 
     /**
@@ -60,13 +67,22 @@ public class Earth {
         earthTaskMap.put(globalTaskId, newGlobalTask);
     }
 
+    public void wrapUpGlobalTask(GlobalTask globalTask) {
+        for (int workerId: globalTask.getWorkersOnTask()) {
+            UnitInstance worker = earthWorkerMap.get(workerId);
+        }
+    }
+
     /**
      * Method that will pick the best MapLocation to build a structure
      * @return The MapLocation of the best place to build a structure
      */
     // TODO: Need to implement this method... Obviously
     private MapLocation pickStructureLocation() {
-        return new MapLocation(Planet.Earth, 10, 10);
+        int x = (int)(Math.random()*21);
+        int y = (int)(Math.random()*21);
+        System.out.println("Coordinates: " + x + ", " + y);
+        return new MapLocation(Planet.Earth, x, y);
     }
 
     /**
@@ -83,10 +99,10 @@ public class Earth {
             } else {
                 switch (taskCommand) {
                     case CONSTRUCT_FACTORY:
-                        addNearbyWorkersToList(globalTask);
+                        manageConstruction(globalTask);
                         break;
                     case CONSTRUCT_ROCKET:
-                        addNearbyWorkersToList(globalTask);
+                        manageConstruction(globalTask);
                         break;
                     case LOAD_ROCKET:
                         break;
@@ -160,26 +176,35 @@ public class Earth {
      * will look for those new workers and add them to the list and send out robot commands.
      * @param globalTask The task you want to add workers to
      */
-    private void addNearbyWorkersToList(GlobalTask globalTask) {
-        VecUnit unitList = Player.gc.senseNearbyUnits(globalTask.getTaskLocation(), 2);
+    private void manageConstruction(GlobalTask globalTask) {
+        if (globalTask.getCompletionStage() == 4) {
+            globalTask.incrementCompletionStage();
+        } else if (globalTask.getCompletionStage() == 5) {
+            earthFinishedTasks.put(globalTask.getTaskId(), globalTask);
 
-        for (int i = 0; i < unitList.size(); i++) {
-            Unit unit = unitList.get(i);
+        } else {
+            VecUnit unitList = Player.gc.senseNearbyUnits(globalTask.getTaskLocation(), 2);
 
-            // If the unit is on your team, a worker, and not already in the list
-            if (unit.team() == Player.gc.team() && unit.unitType() == UnitType.Worker && !globalTask.getWorkersOnTask().contains(unit.id())) {
-                globalTask.addWorkerToList(unit.id());
-                System.out.println("ADDED ROBOT: " + unit.id() + " TO LIST!");
+            for (int i = 0; i < unitList.size(); i++) {
+                Unit unit = unitList.get(i);
 
-                Command robotCommand;
-                if (globalTask.getCommand() == Command.CONSTRUCT_FACTORY) {
-                    robotCommand = Command.BLUEPRINT_FACTORY;
-                } else {
-                    robotCommand = Command.BLUEPRINT_ROCKET;
+                // If the unit is on your team, a worker, and not already in the list
+                if (unit.team() == Player.gc.team() && unit.unitType() == UnitType.Worker && !globalTask.getWorkersOnTask().contains(unit.id())) {
+                    globalTask.addWorkerToList(unit.id());
+                    System.out.println("ADDED ROBOT: " + unit.id() + " TO LIST!");
+
+                    RobotTask blueprintTask;
+                    if (globalTask.getCommand() == Command.CONSTRUCT_FACTORY) {
+                        blueprintTask = new RobotTask(globalTask.getTaskId(), 2, Command.BLUEPRINT_FACTORY, globalTask.getTaskLocation());
+                    } else {
+                        blueprintTask = new RobotTask(globalTask.getTaskId(), 2, Command.BLUEPRINT_ROCKET, globalTask.getTaskLocation());
+
+                    }
+                    earthWorkerMap.get(unit.id()).addTask(blueprintTask);
+
+                    RobotTask buildTask = new RobotTask(globalTask.getTaskId(), 3, Command.BUILD, globalTask.getTaskLocation());
+                    earthWorkerMap.get(unit.id()).addTask(buildTask);
                 }
-
-                RobotTask buildTask = new RobotTask(globalTask.getTaskId(), 3, robotCommand, globalTask.getTaskLocation());
-                earthWorkerMap.get(unit.id()).addTask(buildTask);
             }
         }
     }
@@ -242,16 +267,30 @@ public class Earth {
     }
 
     /**
+     * Method that will remove the completed tasks from the global current earth tasks
+     * @param tasks The current tasks
+     * @param finishedTasks The completed tasks
+     * @return A new HashMap of current tasks
+     */
+    private HashMap<Integer, GlobalTask> removeFinishedTasks(HashMap<Integer, GlobalTask> tasks, HashMap<Integer, GlobalTask> finishedTasks) {
+        for (int taskId: finishedTasks.keySet()) {
+            tasks.remove(taskId);
+            System.out.println("Deleting tasks! Goodbye!");
+        }
+
+        return tasks;
+    }
+
+    /**
      * Method that will add all the robots created this round to their indicated unit map
      * @param unitMap The unit map you want to add robots to
      * @param stagingMap The map you are pulling the units from
      */
     private HashMap<Integer, UnitInstance> addStagingUnitsToMap(HashMap<Integer, UnitInstance> unitMap, HashMap<Integer, UnitInstance> stagingMap) {
-        HashMap<Integer, UnitInstance> newMap = unitMap;
         for (int unitId: stagingMap.keySet()) {
-            newMap.put(unitId, stagingMap.get(unitId));
+            unitMap.put(unitId, stagingMap.get(unitId));
         }
 
-        return newMap;
+        return unitMap;
     }
 }

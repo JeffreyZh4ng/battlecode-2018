@@ -30,7 +30,7 @@ public class Worker extends Robot {
             System.out.println("Robot: " + this.getId() + " Current command: " + currentTask.getCommand());
 
             if (executeTask(currentTask)) {
-                this.getRobotTaskQueue().poll();
+                this.pollTask();
                 GlobalTask globalTask = Earth.earthTaskMap.get(currentTask.getTaskId());
                 globalTask.incrementCompletionStage();
                 System.out.println("Global task stage: " + globalTask.getCompletionStage());
@@ -47,20 +47,30 @@ public class Worker extends Robot {
      */
     private void manageCurrentRobotTask() {
         GlobalTask globalTask = Earth.earthTaskMap.get(this.getTopTask().getTaskId());
-        int completionStage = this.getTopTask().getCompletionStage();
-        if (completionStage > 1 && completionStage < globalTask.getCompletionStage()) {
-            for (int i = completionStage-1; i < globalTask.getCompletionStage(); i++) {
+
+        if (globalTask.getCompletionStage() > 3) {
+            while (this.getRobotTaskQueue().size() > 0 && this.getTopTask().getTaskId() == globalTask.getTaskId()) {
                 this.removeTask();
             }
+            System.out.println("Tasks in queue after removing: " + this.getRobotTaskQueue().size() + " for robot: " + this.getId());
+            return;
+        }
 
-            // Need to reset the completion stage if tasks have been popped.
+        int completionStage = this.getTopTask().getCompletionStage();
+        while (completionStage < globalTask.getCompletionStage() && completionStage < 3) {
+            this.removeTask();
             completionStage = this.getTopTask().getCompletionStage();
         }
 
+        // Need to reset the completion stage if tasks have been popped.
+        completionStage = this.getTopTask().getCompletionStage();
+
         // If the task is on the build stage and there are not more than 4 workers in the list, clone
         if (completionStage == 3 && globalTask.getWorkersOnTask().size() < MIN_WORKER_LIST_SIZE && this.getEmergencyTask() == null) {
-            RobotTask emergencyTask = new RobotTask(-1, -1, Command.CLONE, globalTask.getTaskLocation());
-            this.setEmergencyTask(emergencyTask);
+            if (Player.gc.unit(this.getId()).abilityHeat() < 10) {
+                RobotTask emergencyTask = new RobotTask(-1, -1, Command.CLONE, globalTask.getTaskLocation());
+                this.setEmergencyTask(emergencyTask);
+            }
         }
     }
 
@@ -123,7 +133,6 @@ public class Worker extends Robot {
             }
         }
 
-        System.out.println("Could not clone for some reason??");
         return false;
     }
 
@@ -149,6 +158,7 @@ public class Worker extends Robot {
                     UnitInstance builtRocket = new Factory(rocket.getId(), true, commandLocation);
                     Earth.earthFactoryMap.put(rocket.getId(), builtRocket);
                 }
+
                 System.out.println("Robot: " + this.getId() + " Built structure!");
                 return true;
             }

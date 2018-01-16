@@ -20,15 +20,11 @@ public class Player {
                 //printOutUnitList();
             }
 
-
-
             if (gc.planet() == Planet.Earth && gc.round() < FLOOD_ROUND && gc.team() == Team.Blue) {
                 earth.execute();
             } else if (gc.planet() == Planet.Mars && gc.team() == Team.Blue) {
                 mars.execute();
             }
-
-
 
 
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
@@ -40,6 +36,10 @@ public class Player {
     }
 
     private static void startNewTask(Earth earth) {
+        earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+        earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+        earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+        earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
         earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
     }
 
