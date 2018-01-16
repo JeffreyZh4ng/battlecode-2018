@@ -86,14 +86,20 @@ public abstract class Robot extends UnitInstance {
 
         //trace back path
         HashSet<MapLocation> locationsOnPath = new HashSet<>();
+        System.out.println(depthMap.size());
         for (int i = 0; i < depthMap.size(); i++) {
 
             //find the integer value of the final location
             if (depthMap.get(i).contains(finalLocation)) {
-                while (i>0) {
+                locationsOnPath.add(finalLocation);
+                System.out.println("i is:" + i);
+                while (i>=0) {
+                    i--;
+                    HashSet<MapLocation> nextLocationsOnPath = new HashSet<>();
                     for (MapLocation location : locationsOnPath) {
-                        locationsOnPath.addAll(getAdjacentLocationsFromHashSet(depthMap.get(i),location));
+                        nextLocationsOnPath.addAll(getAdjacentLocationsFromHashSet(depthMap.get(i),location));
                     }
+                    locationsOnPath = nextLocationsOnPath;
                 }
             }
         }
