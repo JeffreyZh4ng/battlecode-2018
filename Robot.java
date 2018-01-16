@@ -19,9 +19,9 @@ public abstract class Robot extends Unit {
     }
 
     /**
-     * for when a robot has nothing to do, should move around so that it finds tasks or gain information this method
+     * For when a robot has nothing to do, should move around so that it finds tasks or gain information this method
      * finds a location to explore
-     * @return a random location that seems good to be explored
+     * @return A random location that seems good to be explored
      */
     public static MapLocation getLocationToExplore() {
         MapLocation randomLocation = getRandomLocation(initialMap);
@@ -35,20 +35,86 @@ public abstract class Robot extends Unit {
     }
 
     /**
-     * randomly choses a location
-     * @param map the map that the location should be on
-     * @return a random location on the map
+     * Randomly chooses a location
+     * @param map The map that the location should be on
+     * @return A random location on the map
      */
     private static MapLocation getRandomLocation(PlanetMap map) {
         return new MapLocation(map.getPlanet(), (int)(Math.random()*map.getWidth()),(int)(Math.random()*map.getHeight()));
     }
+
+    public boolean moveTowardsDestination(int robotId, MapLocation destinationLocation) {
+
+        System.out.println("moving robot: " + robotId);
+
+        //get optimal location to move to
+        HashSet<MapLocation> locationsToMoveTo = getNextLocationsFromDepthMap(Player.gc.unit(robotId).location().mapLocation(), destinationLocation);
+
+        //if no location to move to, return true
+        if (locationsToMoveTo.size() == 0) {
+            System.out.println("locations to moveto size is 0");
+            return true;
+        }
+
+        //try to move to location
+        Direction directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationsToMoveTo.iterator().next());
+        if (Player.gc.canMove(robotId, directionToMove)) {
+            Player.gc.moveRobot(robotId, directionToMove);
+        }
+
+        return false;
+    }
+
+    /**
+     * Gets the next locations to move to in order to get to finalLocation
+     * @param initialLocation The current location of the unit to be moved
+     * @param finalLocation The target destination
+     * @return The next optimal location options to move to
+     */
+    public HashSet<MapLocation> getNextLocationsFromDepthMap(MapLocation initialLocation, MapLocation finalLocation) {
+
+        //get the depth map
+        HashMap<Integer, HashSet<MapLocation>> depthMap = getDepthMap(initialLocation, finalLocation);
+
+        //trace back path
+        HashSet<MapLocation> locationsOnPath = new HashSet<>();
+        for (int i = 0; i < depthMap.size(); i++) {
+
+            //find the integer value of the final location
+            if (depthMap.get(i).contains(finalLocation)) {
+                while (i>0) {
+                    for (MapLocation location : locationsOnPath) {
+                        locationsOnPath.addAll(getAdjacentLocationsFromHashSet(depthMap.get(i),location));
+                    }
+                }
+            }
+        }
+        return locationsOnPath;
+    }
+
+
+
+    public HashSet<MapLocation> getAdjacentLocationsFromHashSet(HashSet<MapLocation> nextLocationSet, MapLocation destinationLocation) {
+        HashSet<MapLocation> adjacentLocations = new HashSet<>();
+        //return all adjacent locations in set
+        for (MapLocation location : nextLocationSet) {
+            if(location.isAdjacentTo(destinationLocation)) {
+                adjacentLocations.add(location);
+            }
+        }
+        return adjacentLocations;
+    }
+
+
+
+
 
     /**
      * This method will get a depth map of all the shortest paths from an initial MapLocation to a final MapLocation
      * @param initialLocation The initial MapLocation
      * @param finalLocation The final MapLocation
      */
-    public void getDepthMap(MapLocation initialLocation, MapLocation finalLocation)
+    public HashMap<Integer, HashSet<MapLocation>> getDepthMap(MapLocation initialLocation, MapLocation finalLocation)
     {
         HashMap<Integer, HashSet<MapLocation>> depthMap = new HashMap<>();
 
@@ -56,6 +122,7 @@ public abstract class Robot extends Unit {
         allLocations.add(initialLocation.toString());
 
         depthMap = searchForPath(initialLocation, finalLocation, 1, depthMap, allLocations);
+        return depthMap;
     }
 
     /**
@@ -219,26 +286,23 @@ public abstract class Robot extends Unit {
      * @return if the robot has reached within on square of its destination or cannot get to destination at all
      */
     public boolean move(int robotId, MapLocation destinationLocation) {
+        System.out.println("moving robot: " + robotId);
 
-        //if can move this turn
-        if (Player.gc.unit(robotId).movementHeat() < 10) {
-            System.out.println("moving robot: " + robotId);
+        //get optimal location to move to
+        MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(), destinationLocation, initialMap);
 
-            //get optimal location to move to
-            MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(), destinationLocation, initialMap);
-
-            //if no location to move to, return true
-            if (locationToMoveTo == null) {
-                System.out.println("cannot get within 1 square of destination or is already at destination/within 1 square");
-                return true;
-            }
-
-            //try to move to location
-            Direction directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
-            if (Player.gc.canMove(robotId, directionToMove)) {
-                Player.gc.moveRobot(robotId, directionToMove);
-            }
+        //if no location to move to, return true
+        if (locationToMoveTo == null) {
+            System.out.println("cannot get within 1 square of destination or is already at destination/within 1 square");
+            return true;
         }
+
+        //try to move to location
+        Direction directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
+        if (Player.gc.canMove(robotId, directionToMove)) {
+            Player.gc.moveRobot(robotId, directionToMove);
+        }
+
         return false;
     }
 

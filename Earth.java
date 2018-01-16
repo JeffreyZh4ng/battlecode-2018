@@ -23,11 +23,11 @@ public class Earth {
 
 
 
-//        updateDeadUnits();
+        updateDeadUnits();
 //
 //        runUnitMap(earthBlueprintMap);
 //        runUnitMap(earthRocketMap);
-//        runUnitMap(earthWorkerMap);
+        runUnitMap(earthWorkerMap);
 //        runUnitMap(earthFactoryMap);
 //        runUnitMap(earthAttackerMap);
     }
