@@ -66,7 +66,7 @@ public class Earth {
      */
     // TODO: Need to implement this method... Obviously
     private MapLocation pickStructureLocation() {
-        return new MapLocation(Planet.Earth, 15, 15);
+        return new MapLocation(Planet.Earth, 10, 10);
     }
 
     /**
@@ -118,18 +118,18 @@ public class Earth {
                 earthWorkerMap.get(workerId).addTask(moveTask);
 
                 blueprintTask = new RobotTask(taskId, 2, Command.BLUEPRINT_FACTORY, taskLocation);
-                earthWorkerMap.get(blueprintTask).addTask(moveTask);
+                earthWorkerMap.get(workerId).addTask(blueprintTask);
 
-                earthWorkerMap.get(buildTask).addTask(moveTask);
+                earthWorkerMap.get(workerId).addTask(buildTask);
 
                 break;
             case CONSTRUCT_ROCKET:
                 earthWorkerMap.get(workerId).addTask(moveTask);
 
                 blueprintTask = new RobotTask(taskId, 2, Command.BLUEPRINT_ROCKET, taskLocation);
-                earthWorkerMap.get(blueprintTask).addTask(moveTask);
+                earthWorkerMap.get(workerId).addTask(blueprintTask);
 
-                earthWorkerMap.get(buildTask).addTask(moveTask);
+                earthWorkerMap.get(workerId).addTask(buildTask);
 
                 break;
             case LOAD_ROCKET:
