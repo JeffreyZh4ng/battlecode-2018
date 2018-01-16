@@ -14,6 +14,8 @@ public class Worker extends Robot {
     @Override
     public void run() {
         if (this.getRobotTaskQueue().size() != 0) {
+
+            System.out.println("Tasks in queue: " + this.getRobotTaskQueue().size());
             manageCurrentRobotTask();
         }
 
@@ -24,6 +26,7 @@ public class Worker extends Robot {
 
         } else if (this.getRobotTaskQueue().size() != 0) {
             RobotTask currentTask = this.getRobotTaskQueue().peek();
+            System.out.println("Current command: " + currentTask.getCommand());
 
             if (executeTask(currentTask)) {
                 this.getRobotTaskQueue().poll();
