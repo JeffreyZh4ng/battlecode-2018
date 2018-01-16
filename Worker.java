@@ -35,6 +35,9 @@ public class Worker extends Robot {
                 globalTask.incrementCompletionStage();
                 System.out.println("Global task stage: " + globalTask.getCompletionStage());
             }
+
+        } else {
+            // TODO: Implement a move method that will make a worker move around and mine karbonite
         }
 
         mineKarbonite();
