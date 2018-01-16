@@ -79,8 +79,8 @@ public class Earth {
      */
     // TODO: Need to implement this method... Obviously
     private MapLocation pickStructureLocation() {
-        int x = (int)(Math.random()*21);
-        int y = (int)(Math.random()*21);
+        int x = (int)(Math.random()*20);
+        int y = (int)(Math.random()*20);
         System.out.println("Coordinates: " + x + ", " + y);
         return new MapLocation(Planet.Earth, x, y);
     }
@@ -179,33 +179,34 @@ public class Earth {
     private void manageConstruction(GlobalTask globalTask) {
         if (globalTask.getCompletionStage() == 4) {
             globalTask.incrementCompletionStage();
+            System.out.println("Finished building! Waiting one turn to delete...");
         } else if (globalTask.getCompletionStage() == 5) {
             earthFinishedTasks.put(globalTask.getTaskId(), globalTask);
 
         } else {
-            VecUnit unitList = Player.gc.senseNearbyUnits(globalTask.getTaskLocation(), 2);
-
-            for (int i = 0; i < unitList.size(); i++) {
-                Unit unit = unitList.get(i);
-
-                // If the unit is on your team, a worker, and not already in the list
-                if (unit.team() == Player.gc.team() && unit.unitType() == UnitType.Worker && !globalTask.getWorkersOnTask().contains(unit.id())) {
-                    globalTask.addWorkerToList(unit.id());
-                    System.out.println("ADDED ROBOT: " + unit.id() + " TO LIST!");
-
-                    RobotTask blueprintTask;
-                    if (globalTask.getCommand() == Command.CONSTRUCT_FACTORY) {
-                        blueprintTask = new RobotTask(globalTask.getTaskId(), 2, Command.BLUEPRINT_FACTORY, globalTask.getTaskLocation());
-                    } else {
-                        blueprintTask = new RobotTask(globalTask.getTaskId(), 2, Command.BLUEPRINT_ROCKET, globalTask.getTaskLocation());
-
-                    }
-                    earthWorkerMap.get(unit.id()).addTask(blueprintTask);
-
-                    RobotTask buildTask = new RobotTask(globalTask.getTaskId(), 3, Command.BUILD, globalTask.getTaskLocation());
-                    earthWorkerMap.get(unit.id()).addTask(buildTask);
-                }
-            }
+//            VecUnit unitList = Player.gc.senseNearbyUnits(globalTask.getTaskLocation(), 2);
+//
+//            for (int i = 0; i < unitList.size(); i++) {
+//                Unit unit = unitList.get(i);
+//
+//                // If the unit is on your team, a worker, and not already in the list
+//                if (unit.team() == Player.gc.team() && unit.unitType() == UnitType.Worker && !globalTask.getWorkersOnTask().contains(unit.id())) {
+//                    globalTask.addWorkerToList(unit.id());
+//                    System.out.println("ADDED ROBOT: " + unit.id() + " TO LIST!");
+//
+//                    RobotTask blueprintTask;
+//                    if (globalTask.getCommand() == Command.CONSTRUCT_FACTORY) {
+//                        blueprintTask = new RobotTask(globalTask.getTaskId(), 2, Command.BLUEPRINT_FACTORY, globalTask.getTaskLocation());
+//                    } else {
+//                        blueprintTask = new RobotTask(globalTask.getTaskId(), 2, Command.BLUEPRINT_ROCKET, globalTask.getTaskLocation());
+//
+//                    }
+//                    earthWorkerMap.get(unit.id()).addTask(blueprintTask);
+//
+//                    RobotTask buildTask = new RobotTask(globalTask.getTaskId(), 3, Command.BUILD, globalTask.getTaskLocation());
+//                    earthWorkerMap.get(unit.id()).addTask(buildTask);
+//                }
+//            }
         }
     }
 

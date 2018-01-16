@@ -37,7 +37,7 @@ public class Worker extends Robot {
             }
 
         } else {
-            // TODO: Implement a move method that will make a worker move around and mine karbonite
+            wanderAndMineKarbonite();
         }
 
         mineKarbonite();
@@ -53,6 +53,7 @@ public class Worker extends Robot {
 
         if (globalTask.getCompletionStage() > 3) {
             while (this.getRobotTaskQueue().size() > 0 && this.getTopTask().getTaskId() == globalTask.getTaskId()) {
+                System.out.println("Robot: " + this.getId() + " Removing all the rest of the tasks with the same ID!");
                 this.removeTask();
             }
             System.out.println("Tasks in queue after removing: " + this.getRobotTaskQueue().size() + " for robot: " + this.getId());
@@ -128,7 +129,12 @@ public class Worker extends Robot {
                     int clonedWorkerId = Player.gc.senseUnitAtLocation(newLocation).id();
                     UnitInstance newWorker = new Worker(clonedWorkerId);
 
+                    RobotTask buildTask = new RobotTask(this.getTopTask().getTaskId(), 3, Command.BUILD, commandLocation);
+                    newWorker.addTask(buildTask);
+
                     Earth.earthStagingWorkerMap.put(clonedWorkerId, newWorker);
+                    Earth.earthTaskMap.get(this.getTopTask().getTaskId()).addWorkerToList(clonedWorkerId);
+
                     System.out.println("Robot: " + this.getId() + " Cloned worker!");
                     System.out.println("New worker has ID of: " + clonedWorkerId);
                     return true;
@@ -202,13 +208,32 @@ public class Worker extends Robot {
     }
 
     /**
+     * Method that will run when the worker has no tasks left. The worker will wander around and will mine karbonite
+     */
+    private void wanderAndMineKarbonite() {
+        for (int i = 0; i < DIRECTION_MAX_VAL + 1; i++) {
+            Direction direction = Direction.swigToEnum(i);
+            MapLocation newLocation = Player.gc.unit(this.getId()).location().mapLocation().add(direction);
+            if (Player.gc.canHarvest(this.getId(), direction) && Player.gc.karboniteAt(newLocation) > 0) {
+
+                if (this.getEmergencyTask() == null) {
+                    RobotTask newTask = new RobotTask(-1, -1, Command.MOVE, newLocation);
+                    System.out.println("Robot: " + this.getId() + " WANDERING!");
+                    this.setEmergencyTask(newTask);
+                }
+            }
+        }
+    }
+
+    /**
      * Method that will check if a worker can mine karbonite. If it has not performed an action this turn and
      * there is a karbonite pocket in adjacent squares, it will mine it
      */
     private void mineKarbonite() {
         for (int i = 0; i < DIRECTION_MAX_VAL + 1; i++) {
             Direction direction = Direction.swigToEnum(i);
-            if (Player.gc.canHarvest(this.getId(), direction)) {
+            MapLocation newLocation = Player.gc.unit(this.getId()).location().mapLocation().add(direction);
+            if (Player.gc.canHarvest(this.getId(), direction) && Player.gc.karboniteAt(newLocation) > 0) {
                 Player.gc.harvest(this.getId(), direction);
                 break;
             }
