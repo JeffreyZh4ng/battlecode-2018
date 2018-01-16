@@ -2,7 +2,6 @@ import bc.*;
 
 public class Player {
 
-    private static final int FLOOD_ROUND = 750;
     public static final GameController gc = new GameController();
 
     public static void main(String[] args) {
@@ -11,22 +10,41 @@ public class Player {
         Mars mars = new Mars();
 
         addStartingWorkersToEarthMap();
-        startNewTask(earth);
+
+        gc.queueResearch(UnitType.Worker);
+        gc.queueResearch(UnitType.Ranger);
+        gc.queueResearch(UnitType.Rocket); // Can build rockets at round 150
+        gc.queueResearch(UnitType.Ranger);
+        gc.queueResearch(UnitType.Worker);
+        gc.queueResearch(UnitType.Worker);
+        gc.queueResearch(UnitType.Worker);
+        gc.queueResearch(UnitType.Knight);
+        gc.queueResearch(UnitType.Knight);
 
         while (true) {
+
+            if (gc.round() == 150 || gc.round() == 300 || gc.round() == 450 || gc.round() == 600 || gc.round() == 700) {
+                buildRockets(earth);
+            }
+
+            if (gc.round() == 1 || gc.round() == 200 || gc.round() == 350) {
+                startNewTask(earth);
+            }
 
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
                 System.out.println("Round number: " + gc.round());
                 //printOutUnitList();
             }
 
-            if (gc.planet() == Planet.Earth && gc.round() < FLOOD_ROUND && gc.team() == Team.Blue) {
+
+            if (gc.planet() == Planet.Earth && gc.round() < 750 && gc.team() == Team.Blue) {
                 earth.execute();
             } else if (gc.planet() == Planet.Mars && gc.team() == Team.Blue) {
                 mars.execute();
             }
 
 
+            // Debug statements
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
                 System.out.println("");
             }
@@ -40,7 +58,14 @@ public class Player {
         earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
         earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
         earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-        earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+    }
+
+    private static void buildRockets(Earth earth) {
+        earth.createGlobalTask(Command.BLUEPRINT_ROCKET);
+        earth.createGlobalTask(Command.BLUEPRINT_ROCKET);
+        earth.createGlobalTask(Command.BLUEPRINT_ROCKET);
+        earth.createGlobalTask(Command.BLUEPRINT_ROCKET);
+        earth.createGlobalTask(Command.BLUEPRINT_ROCKET);
     }
 
     /**

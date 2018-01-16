@@ -1,7 +1,4 @@
-import bc.Direction;
-import bc.MapLocation;
-import bc.Planet;
-import bc.PlanetMap;
+import bc.*;
 
 import java.util.*;
 import java.util.LinkedList;
@@ -12,7 +9,6 @@ import java.util.LinkedList;
 public abstract class Robot extends UnitInstance {
 
     private RobotTask emergencyTask = null;
-    private static final PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
 
     public Robot(int id) {
         super(id);
@@ -27,16 +23,38 @@ public abstract class Robot extends UnitInstance {
     }
 
     /**
+     * Method that will add an attack target to the queue if it is seen
+     * @param robotId The id of the robot sensing
+     * @param radius The radius of the sensing robot
+     */
+    public void senseArea(int robotId, int radius) {
+        MapLocation currentLocation = Player.gc.unit(robotId).location().mapLocation();
+        VecMapLocation locations = Player.gc.allLocationsWithin(currentLocation, radius);
+
+        for (int i = 0; i < locations.size(); i++) {
+            MapLocation location = locations.get(i);
+            if (Player.gc.hasUnitAtLocation(location)) {
+                if (Player.gc.senseUnitAtLocation(location).team() != Player.gc.team()) {
+                    Unit enemy = Player.gc.senseUnitAtLocation(location);
+                    AttackTarget newTarget = new AttackTarget(enemy.id(), location);
+                    Earth.earthAttackTargetsMap.put(enemy.id(), newTarget);
+                }
+            }
+        }
+    }
+
+    /**
      * For when a robot has nothing to do, should move around so that it finds tasks or gain information this method
      * finds a location to explore
      * @return A random location that seems good to be explored
      */
     public static MapLocation getLocationToExplore() {
+        PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
         MapLocation randomLocation = getRandomLocation(initialMap);
 
         //give up after a certain number of tries
         int tries = 0;
-        while (Player.gc.canSenseLocation(randomLocation)&& !(initialMap.isPassableTerrainAt(randomLocation)>0) && tries < 100) {
+        while (Player.gc.canSenseLocation(randomLocation) && !(initialMap.isPassableTerrainAt(randomLocation) > 0) && tries < 100) {
             randomLocation = getRandomLocation(initialMap);
         }
         return randomLocation;
@@ -315,7 +333,8 @@ public abstract class Robot extends UnitInstance {
         }
 
         //get optimal location to move to
-        MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(), destinationLocation, initialMap);
+        MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(),
+                destinationLocation, Player.gc.startingMap(Player.gc.planet()));
 
         //if no location to move to, return true
         if (locationToMoveTo == null) {

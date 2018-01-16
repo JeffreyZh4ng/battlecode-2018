@@ -2,6 +2,7 @@ import bc.Direction;
 import bc.MapLocation;
 import bc.Planet;
 import bc.UnitType;
+import bc.VecMapLocation;
 
 import java.util.Map;
 
@@ -17,6 +18,9 @@ public class Worker extends Robot {
 
     @Override
     public void run() {
+
+        senseArea(this.getId(), 50);
+
         if (this.getRobotTaskQueue().size() != 0) {
 
             System.out.println("Tasks in queue: " + this.getRobotTaskQueue().size() + " for robot: " + this.getId());
@@ -40,7 +44,8 @@ public class Worker extends Robot {
             }
 
         } else {
-            wanderAndMineKarbonite();
+            wander();
+            // wanderAndMineKarbonite();
         }
 
         mineKarbonite();
@@ -211,13 +216,27 @@ public class Worker extends Robot {
     }
 
     /**
+     * Make worker wander to a random location within its vision radius
+     */
+    private void wander() {
+        MapLocation currentLocation = Player.gc.unit(this.getId()).location().mapLocation();
+        VecMapLocation locations = Player.gc.allLocationsWithin(currentLocation, 50);
+        int randomLocation = (int)(Math.random()*locations.size());
+
+        MapLocation wanderLocation = locations.get(randomLocation);
+        RobotTask wanderTask = new RobotTask(-1, -1, Command.MOVE, wanderLocation);
+
+        this.setEmergencyTask(wanderTask);
+    }
+
+    /**
      * Method that will run when the worker has no tasks left. The worker will wander around and will mine karbonite
      */
     private void wanderAndMineKarbonite() {
         for (int i = 0; i < DIRECTION_MAX_VAL + 1; i++) {
             Direction direction = Direction.swigToEnum(i);
             MapLocation newLocation = Player.gc.unit(this.getId()).location().mapLocation().add(direction);
-            if (Player.gc.canHarvest(this.getId(), direction) && Player.gc.karboniteAt(newLocation) > 0) {
+            if (Player.gc.canHarvest(this.getId(), direction) && Player.gc.karboniteAt(newLocation) >= 3) {
 
                 if (this.getEmergencyTask() == null) {
                     RobotTask newTask = new RobotTask(-1, -1, Command.MOVE, newLocation);
