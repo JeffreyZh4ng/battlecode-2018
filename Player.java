@@ -15,11 +15,12 @@ public class Player {
         while (true) {
 
             System.out.println(gc.round());
+            // System.out.println("time left: " + gc.getTimeLeftMs());
             // Will only run blue code for the time being to help with testing
             System.out.println("Round number: " + gc.round());
-            if (gc.planet() == Planet.Earth && gc.round() < FLOOD_ROUND && gc.team() == Team.Blue) {
+            if (gc.planet() == Planet.Earth && gc.round() < FLOOD_ROUND) {
                 earth.execute();
-            } else if (gc.planet() == Planet.Mars && gc.team() == Team.Blue) {
+            } else if (gc.planet() == Planet.Mars) {
                 mars.execute();
             }
 
