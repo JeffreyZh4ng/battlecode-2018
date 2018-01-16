@@ -107,7 +107,9 @@ public class Earth {
         }
 
         int taskId = globalTask.getTaskId();
+        globalTask.addWorkerToList(workerId);
         MapLocation taskLocation = globalTask.getTaskLocation();
+
         RobotTask moveTask = new RobotTask(taskId, 1, Command.MOVE, taskLocation);
         RobotTask blueprintTask;
         RobotTask buildTask = new RobotTask(taskId, 3, Command.BUILD, taskLocation);
@@ -121,6 +123,7 @@ public class Earth {
                 earthWorkerMap.get(workerId).addTask(blueprintTask);
 
                 earthWorkerMap.get(workerId).addTask(buildTask);
+                System.out.println("This should not run! Ran for worker " + workerId);
 
                 break;
             case CONSTRUCT_ROCKET:
@@ -162,8 +165,11 @@ public class Earth {
 
         for (int i = 0; i < unitList.size(); i++) {
             Unit unit = unitList.get(i);
-            if (unit.team() == Player.gc.team() && unit.unitType() == UnitType.Worker) {
+
+            // If the unit is on your team, a worker, and not already in the list
+            if (unit.team() == Player.gc.team() && unit.unitType() == UnitType.Worker && !globalTask.getWorkersOnTask().contains(unit.id())) {
                 globalTask.addWorkerToList(unit.id());
+                System.out.println("ADDED ROBOT: " + unit.id() + " TO LIST!");
 
                 Command robotCommand;
                 if (globalTask.getCommand() == Command.CONSTRUCT_FACTORY) {

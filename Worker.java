@@ -6,6 +6,7 @@ public class Worker extends Robot {
 
     private static final int MOVEMENT_HEAT_LIMIT = 10;
     private static final int MIN_WORKER_LIST_SIZE = 4;
+    private static final int DIRECTION_MAX_VAL = 8;
 
     public Worker(int id) {
         super(id);
@@ -15,7 +16,7 @@ public class Worker extends Robot {
     public void run() {
         if (this.getRobotTaskQueue().size() != 0) {
 
-            System.out.println("Tasks in queue: " + this.getRobotTaskQueue().size());
+            System.out.println("Tasks in queue: " + this.getRobotTaskQueue().size() + " for robot: " + this.getId());
             manageCurrentRobotTask();
         }
 
@@ -26,12 +27,13 @@ public class Worker extends Robot {
 
         } else if (this.getRobotTaskQueue().size() != 0) {
             RobotTask currentTask = this.getRobotTaskQueue().peek();
-            System.out.println("Current command: " + currentTask.getCommand());
+            System.out.println("Robot: " + this.getId() + " Current command: " + currentTask.getCommand());
 
             if (executeTask(currentTask)) {
                 this.getRobotTaskQueue().poll();
                 GlobalTask globalTask = Earth.earthTaskMap.get(currentTask.getTaskId());
                 globalTask.incrementCompletionStage();
+                System.out.println("Global task stage: " + globalTask.getCompletionStage());
             }
         }
 
@@ -74,6 +76,7 @@ public class Worker extends Robot {
         switch (robotCommand) {
             case MOVE:
                 if (Player.gc.unit(this.getId()).movementHeat() < MOVEMENT_HEAT_LIMIT) {
+                    System.out.println("Robot: " + this.getId() + " MOVING!");
                     return move(this.getId(), commandLocation);
                 } else {
                     return false;
@@ -100,24 +103,27 @@ public class Worker extends Robot {
     private boolean cloneWorker(MapLocation commandLocation) {
         MapLocation robotCurrentLocation = Player.gc.unit(this.getId()).location().mapLocation();
 
-        for (int i = 1; i < 9; i++) {
+        for (int i = 0; i < DIRECTION_MAX_VAL; i++) {
             Direction direction = Direction.swigToEnum(i);
-            MapLocation newLocation = commandLocation.add(direction);
+            MapLocation newLocation = robotCurrentLocation.add(direction);
 
-            if (robotCurrentLocation.isAdjacentTo(newLocation)) {
+            if (commandLocation.isAdjacentTo(newLocation)) {
                 Direction directionToClone = robotCurrentLocation.directionTo(newLocation);
                 if (Player.gc.canReplicate(this.getId(), directionToClone)) {
                     Player.gc.replicate(this.getId(), directionToClone);
 
-                    int clonedWorkerId = Player.gc.senseUnitAtLocation(commandLocation).id();
+                    int clonedWorkerId = Player.gc.senseUnitAtLocation(newLocation).id();
                     UnitInstance newWorker = new Worker(clonedWorkerId);
 
                     Earth.earthStagingWorkerMap.put(clonedWorkerId, newWorker);
+                    System.out.println("Robot: " + this.getId() + " Cloned worker!");
+                    System.out.println("New worker has ID of: " + clonedWorkerId);
                     return true;
                 }
             }
         }
 
+        System.out.println("Could not clone for some reason??");
         return false;
     }
 
@@ -143,6 +149,7 @@ public class Worker extends Robot {
                     UnitInstance builtRocket = new Factory(rocket.getId(), true, commandLocation);
                     Earth.earthFactoryMap.put(rocket.getId(), builtRocket);
                 }
+                System.out.println("Robot: " + this.getId() + " Built structure!");
                 return true;
             }
         }
@@ -174,6 +181,7 @@ public class Worker extends Robot {
                 Earth.earthRocketMap.put(structureId, newStructure);
             }
 
+            System.out.println("Robot: " + this.getId() + " Blueprinted structure!");
             return true;
         }
 
@@ -185,7 +193,7 @@ public class Worker extends Robot {
      * there is a karbonite pocket in adjacent squares, it will mine it
      */
     private void mineKarbonite() {
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < DIRECTION_MAX_VAL + 1; i++) {
             Direction direction = Direction.swigToEnum(i);
             if (Player.gc.canHarvest(this.getId(), direction)) {
                 Player.gc.harvest(this.getId(), direction);

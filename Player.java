@@ -15,15 +15,24 @@ public class Player {
 
         while (true) {
 
-            System.out.println(gc.round());
-            // System.out.println("time left: " + gc.getTimeLeftMs());
-            // Will only run blue code for the time being to help with testing
+            if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
+                System.out.println("Round number: " + gc.round());
+                //printOutUnitList();
+            }
 
-            System.out.println("Round number: " + gc.round());
+
+
             if (gc.planet() == Planet.Earth && gc.round() < FLOOD_ROUND && gc.team() == Team.Blue) {
                 earth.execute();
             } else if (gc.planet() == Planet.Mars && gc.team() == Team.Blue) {
                 mars.execute();
+            }
+
+
+
+
+            if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
+                System.out.println("");
             }
 
             gc.nextTurn();
@@ -44,6 +53,15 @@ public class Player {
             UnitInstance worker = new Worker(unitId);
 
             Earth.earthWorkerMap.put(unitId, worker);
+        }
+    }
+
+    private static void printOutUnitList() {
+        System.out.println("Printing from unit map!");
+        for (int i = 0; i < gc.units().size(); i++) {
+            if (gc.units().get(i).team() == Team.Blue && gc.units().get(i).unitType() == UnitType.Worker) {
+                System.out.println("Unit no: " + gc.units().get(i).id());
+            }
         }
     }
 }
