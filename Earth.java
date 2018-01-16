@@ -1,22 +1,21 @@
 import bc.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 public class Earth {
     public static HashMap<Integer, GlobalTask> earthTaskMap = new HashMap<>();
 
     // TODO: Possibly change these two two to queues?
-    public static HashMap<Integer, GlobalTask> earthAttackTargetsMap = new HashMap<>();
-    public static HashMap<Integer, GlobalTask> earthProduceRobotMap = new HashMap<>();
+    public static HashMap<Integer, AttackTarget> earthAttackTargetsMap = new HashMap<>();
+    // public static Queue<AttackTarget> earthProduceRobotMap = new LinkedList<>();
 
     public static HashMap<Integer, UnitInstance> earthRocketMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthWorkerMap = new HashMap<>();
-    public static HashMap<Integer, UnitInstance> earthFactoryMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthAttackerMap = new HashMap<>();
+    public static HashMap<Integer, UnitInstance> earthFactoryMap = new HashMap<>();
 
     public static HashMap<Integer, GlobalTask> earthFinishedTasks = new HashMap<>();
+    public static Queue<AttackTarget> eliminatedTargets = new LinkedList<>();
 
     public static HashMap<Integer, UnitInstance> earthStagingWorkerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
@@ -29,8 +28,8 @@ public class Earth {
 
         runUnitMap(earthRocketMap);
         runUnitMap(earthWorkerMap);
-        runUnitMap(earthFactoryMap);
         runUnitMap(earthAttackerMap);
+        runUnitMap(earthFactoryMap);
 
         earthTaskMap = removeFinishedTasks(earthTaskMap, earthFinishedTasks);
         earthFinishedTasks = new HashMap<>();
@@ -67,10 +66,13 @@ public class Earth {
         earthTaskMap.put(globalTaskId, newGlobalTask);
     }
 
-    public void wrapUpGlobalTask(GlobalTask globalTask) {
-        for (int workerId: globalTask.getWorkersOnTask()) {
-            UnitInstance worker = earthWorkerMap.get(workerId);
-        }
+    /**
+     * When a robot sees a target, send a attackTarget to the attack target map.
+     * @param targetLocation The location of the target
+     * @param targetId The id of the target(if applicable)
+     */
+    public void createAttackTarget(MapLocation targetLocation, int targetId) {
+
     }
 
     /**
@@ -79,10 +81,18 @@ public class Earth {
      */
     // TODO: Need to implement this method... Obviously
     private MapLocation pickStructureLocation() {
-        int x = (int)(Math.random()*20);
-        int y = (int)(Math.random()*20);
-        System.out.println("Coordinates: " + x + ", " + y);
-        return new MapLocation(Planet.Earth, x, y);
+
+//        for (int workerId: earthWorkerMap.keySet()) {
+//            MapLocation currentLocation = Player.gc.unit(workerId).location().mapLocation();
+//            VecMapLocation locations = Player.gc.allLocationsWithin(currentLocation, 50);
+//
+//            for (int i = 0; i < locations.size(); i++) {
+//                MapLocation location = locations.get(i);
+//                if (Player.gc.hasUnitAtLocation(location)) {
+//
+//                }
+//            }
+//        }
     }
 
     /**
