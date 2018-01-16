@@ -9,13 +9,21 @@ import java.util.LinkedList;
 /**
  * Superclass of all robots that specifies actions that all robots will be able to make
  */
-public abstract class Robot extends Unit {
+public abstract class Robot extends UnitInstance {
 
-    public RobotTask emergencyTask = null;
+    private RobotTask emergencyTask = null;
     private static final PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
 
     public Robot(int id) {
         super(id);
+    }
+
+    public RobotTask getEmergencyTask() {
+        return emergencyTask;
+    }
+
+    public void setEmergencyTask(RobotTask emergencyTask) {
+        this.emergencyTask = emergencyTask;
     }
 
     /**
@@ -74,6 +82,7 @@ public abstract class Robot extends Unit {
 
         ArrayList<String> nextLocations = getAvailablePositions(initialLocation);
 
+        // If you have reached the destination, remove all the depthMap paths with greater lengths than the current path
         if (initialLocation.isAdjacentTo(finalLocation)) {
             if (depthIndex < depthMap.size()) {
                 for (int i = depthIndex; i < depthMap.size(); i++) {
@@ -82,13 +91,19 @@ public abstract class Robot extends Unit {
             }
             return depthMap;
         }
+
+        // If the size of the next location to check is 0, (all surrounding positions have been checked) return.
         if (nextLocations.size() == 0) {
             return depthMap;
         }
+
+        // If the current depth index is greater than the size of the depthMap, (there exists in our map a
+        // path that takes less moves than our current path) return.
         if (depthIndex > depthMap.size()) {
             return depthMap;
         }
 
+        // Check all the locations around you. If it has not been checked before, add it to the depth map and location map
         for (String location: nextLocations) {
             if (!allLocations.contains(location)) {
                 allLocations.add(location);
@@ -112,7 +127,7 @@ public abstract class Robot extends Unit {
 
         HashSet<MapLocation> finalDepthSet = new HashSet<>();
         finalDepthSet.add(finalLocation);
-        depthMap.put(depthMap.size(), finalDepthSet);
+        depthMap.put(depthMap.size() + 1, finalDepthSet);
 
         return depthMap;
     }

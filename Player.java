@@ -34,7 +34,7 @@ public class Player {
         VecUnit units = gc.myUnits();
         for (int i = 0; i < units.size(); i++) {
             int unitId = units.get(i).id();
-            Unit worker = new Worker(unitId);
+            UnitInstance worker = new Worker(unitId);
 
 
             for (int j = 0; j < 20; j++) {

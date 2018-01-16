@@ -1,6 +1,4 @@
-import bc.MapLocation;
-import bc.UnitType;
-import bc.VecUnit;
+import bc.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,96 +11,62 @@ public class Earth {
     public static HashMap<Integer, GlobalTask> earthAttackTargetsMap = new HashMap<>();
     public static HashMap<Integer, GlobalTask> earthProduceRobotMap = new HashMap<>();
 
-    public static HashMap<Integer, Unit> earthBlueprintMap = new HashMap<>();
-    public static HashMap<Integer, Unit> earthRocketMap = new HashMap<>();
-    public static HashMap<Integer, Unit> earthWorkerMap = new HashMap<>();
-    public static HashMap<Integer, Unit> earthFactoryMap = new HashMap<>();
-    public static HashMap<Integer, Unit> earthAttackerMap = new HashMap<>();
+    public static HashMap<Integer, UnitInstance> earthRocketMap = new HashMap<>();
+    public static HashMap<Integer, UnitInstance> earthWorkerMap = new HashMap<>();
+    public static HashMap<Integer, UnitInstance> earthFactoryMap = new HashMap<>();
+    public static HashMap<Integer, UnitInstance> earthAttackerMap = new HashMap<>();
+
+    public static HashMap<Integer, UnitInstance> earthStagingWorkerMap = new HashMap<>();
+    public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
 
     public void execute() {
 
+        updateDeadUnits();
 
+        updateTaskMap();
 
-//        updateDeadUnits();
-//
-//        runUnitMap(earthBlueprintMap);
-//        runUnitMap(earthRocketMap);
-//        runUnitMap(earthWorkerMap);
-//        runUnitMap(earthFactoryMap);
-//        runUnitMap(earthAttackerMap);
+        runUnitMap(earthRocketMap);
+        runUnitMap(earthWorkerMap);
+        runUnitMap(earthFactoryMap);
+        runUnitMap(earthAttackerMap);
+
+        earthWorkerMap = addStagingUnitsToMap(earthWorkerMap, earthStagingWorkerMap);
+        earthAttackerMap = addStagingUnitsToMap(earthAttackerMap, earthStagingAttackerMap);
     }
 
-//    /**
-//     * This method will be called when a factory or blueprint want to be constructed. This method will help
-//     * choose the location of the structure and add it to the global task list
-//     * @param command The command of the task that you want to be added to the global list
-//     */
-//    public void createGlobalTask(Command command) {
-//        MapLocation globalTaskLocation;
-//
-//        switch (command) {
-//            case CONSTRUCT_FACTORY:
-//                globalTaskLocation = pickFactoryLocation();
-//                break;
-//            case CONSTRUCT_ROCKET:
-//                globalTaskLocation = pickRocketLocation();
-//                break;
-//            default:
-//                globalTaskLocation = bestRobotSpawnLocation();
-//                break;
-//        }
-//
-//        GlobalTask newGlobalTask = new GlobalTask(command, globalTaskLocation);
-//        int globalTaskId = newGlobalTask.getTaskId();
-//
-//        earthTaskMap.put(globalTaskId, newGlobalTask);
-//    }
+    /**
+     * This method will be called when a factory or blueprint want to be constructed. This method will help
+     * choose the location of the structure and add it to the global task list
+     * @param command The command of the task that you want to be added to the global list
+     */
+    public void createGlobalTask(Command command) {
+        MapLocation globalTaskLocation;
 
-//    private void sendTasksToRobot(GlobalTask globalTask, ArrayList<Integer> robotList) {
-//        Command taskCommand = globalTask.getCommand();
-//        int commandId = globalTask.getTaskId();
-//        MapLocation taskLocation = globalTask.getTaskLocation();
-//
-//        switch (taskCommand) {
-//            case CONSTRUCT_FACTORY:
-//                for (int workerId : robotList) {
-//                    RobotTask moveTask = new RobotTask(commandId, Command.MOVE, taskLocation);
-//                    earthBlueprintMap.get(workerId).robotTaskQueue.add(moveTask);
-//                    RobotTask blueprintTask = new RobotTask(commandId, Command.BLUEPRINT_ROCKET, taskLocation);
-//                    earthBlueprintMap.get(workerId).robotTaskQueue.add(blueprintTask);
-//                    RobotTask buildTask = new RobotTask(commandId, Command.BUILD, taskLocation);
-//                    earthBlueprintMap.get(workerId).robotTaskQueue.add(buildTask);
-//                }
-//
-//            case CONSTRUCT_ROCKET:
-//                for (int workerId : robotList) {
-//                    RobotTask moveTask = new RobotTask(commandId, Command.MOVE, taskLocation);
-//                    earthBlueprintMap.get(workerId).robotTaskQueue.add(moveTask);
-//                    RobotTask blueprintTask = new RobotTask(commandId, Command.BLUEPRINT_FACTORY, taskLocation);
-//                    earthBlueprintMap.get(workerId).robotTaskQueue.add(blueprintTask);
-//                    RobotTask buildTask = new RobotTask(commandId, Command.BUILD, taskLocation);
-//                    earthBlueprintMap.get(workerId).robotTaskQueue.add(buildTask);
-//                }
-//        }
-//    }
-
-    public ArrayList<Integer> getNearestRobots(MapLocation mapLocation) {
-        ArrayList<Integer> nearestRobots = new ArrayList<>();
-
-        VecUnit vecUnit = Player.gc.senseNearbyUnitsByType(mapLocation, 50, UnitType.Worker);
-        for (int i = 0; i < vecUnit.size(); i++) {
-            bc.Unit unit = vecUnit.get(i);
-            if (unit.team() == Player.gc.team()) {
-                nearestRobots.add(unit.id());
-            }
+        switch (command) {
+            case CONSTRUCT_FACTORY:
+                globalTaskLocation = pickStructureLocation();
+                break;
+            case CONSTRUCT_ROCKET:
+                globalTaskLocation = pickStructureLocation();
+                break;
+            default:
+                globalTaskLocation = pickStructureLocation();
+                break;
         }
 
-        return nearestRobots;
+        GlobalTask newGlobalTask = new GlobalTask(command, globalTaskLocation);
+        int globalTaskId = newGlobalTask.getTaskId();
+
+        earthTaskMap.put(globalTaskId, newGlobalTask);
     }
 
-    // Possibly only need one of these parameters
-    public void loadRocketRequest(MapLocation rocketLocation, int rocketId) {
-
+    /**
+     * Method that will pick the best MapLocation to build a structure
+     * @return The MapLocation of the best place to build a structure
+     */
+    // TODO: Need to implement this method... Obviously
+    private MapLocation pickStructureLocation() {
+        return new MapLocation(Planet.Earth, 15, 15);
     }
 
     /**
@@ -110,35 +74,107 @@ public class Earth {
      */
     private void updateTaskMap() {
         for (int globalTaskId: earthTaskMap.keySet()) {
-
+            GlobalTask globalTask = earthTaskMap.get(globalTaskId);
             Command taskCommand = earthTaskMap.get(globalTaskId).getCommand();
-            switch (taskCommand) {
-                case CONSTRUCT_FACTORY:
-                    manageConstruction(globalTaskId);
-                    break;
-                case CONSTRUCT_ROCKET:
-                    break;
-                case LOAD_ROCKET:
-                    break;
-                case BUILD:
+
+            if (globalTask.getWorkersOnTask().size() == 0) {
+                sendTaskToClosestIdleWorker(globalTask);
+
+            } else {
+                switch (taskCommand) {
+                    case CONSTRUCT_FACTORY:
+                        addNearbyWorkersToList(globalTask);
+                        break;
+                    case CONSTRUCT_ROCKET:
+                        addNearbyWorkersToList(globalTask);
+                        break;
+                    case LOAD_ROCKET:
+                        break;
+                    case BUILD:
+                }
             }
         }
     }
 
-    private void manageConstruction(int globalTaskId) {
-        GlobalTask globalTask = earthTaskMap.get(globalTaskId);
-        Command taskCommand = globalTask.getCommand();
+    /**
+     * Sends task to the nearest worker
+     * @param globalTask The task you want to send to the worker
+     */
+    private void sendTaskToClosestIdleWorker(GlobalTask globalTask) {
+        int workerId = findNearestIdleWorker();
+        if (workerId == -1) {
+            return;
+        }
 
-        // Stage 1 means its still trying to find workers to fulfil the task. Stage 2 is building the blueprint
-        // Stage 3 is building the structure.
-        switch (globalTask.getCompletionStage()) {
-            case 1:
-                // Make sure there is atleast one
+        int taskId = globalTask.getTaskId();
+        MapLocation taskLocation = globalTask.getTaskLocation();
+        RobotTask moveTask = new RobotTask(taskId, 1, Command.MOVE, taskLocation);
+        RobotTask blueprintTask;
+        RobotTask buildTask = new RobotTask(taskId, 3, Command.BUILD, taskLocation);
+
+
+        switch (globalTask.getCommand()) {
+            case CONSTRUCT_FACTORY:
+                earthWorkerMap.get(workerId).addTask(moveTask);
+
+                blueprintTask = new RobotTask(taskId, 2, Command.BLUEPRINT_FACTORY, taskLocation);
+                earthWorkerMap.get(blueprintTask).addTask(moveTask);
+
+                earthWorkerMap.get(buildTask).addTask(moveTask);
+
                 break;
-            case 2:
+            case CONSTRUCT_ROCKET:
+                earthWorkerMap.get(workerId).addTask(moveTask);
+
+                blueprintTask = new RobotTask(taskId, 2, Command.BLUEPRINT_ROCKET, taskLocation);
+                earthWorkerMap.get(blueprintTask).addTask(moveTask);
+
+                earthWorkerMap.get(buildTask).addTask(moveTask);
+
                 break;
-            case 3:
+            case LOAD_ROCKET:
                 break;
+        }
+    }
+
+    /**
+     * Finds the nearest worker
+     * @return The nearest worker
+     */
+    private int findNearestIdleWorker() {
+        for (int workerId: earthWorkerMap.keySet()) {
+            if (earthWorkerMap.get(workerId).getRobotTaskQueue().size() == 0) {
+                return workerId;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Method that is called every time the global task is updated. Workers will fulfill the priority task to
+     * clone themselves and put them next to the structure. At the beginning of each round, the global task
+     * will look for those new workers and add them to the list and send out robot commands.
+     * @param globalTask The task you want to add workers to
+     */
+    private void addNearbyWorkersToList(GlobalTask globalTask) {
+        VecUnit unitList = Player.gc.senseNearbyUnits(globalTask.getTaskLocation(), 2);
+
+        for (int i = 0; i < unitList.size(); i++) {
+            Unit unit = unitList.get(i);
+            if (unit.team() == Player.gc.team() && unit.unitType() == UnitType.Worker) {
+                globalTask.addWorkerToList(unit.id());
+
+                Command robotCommand;
+                if (globalTask.getCommand() == Command.CONSTRUCT_FACTORY) {
+                    robotCommand = Command.BLUEPRINT_FACTORY;
+                } else {
+                    robotCommand = Command.BLUEPRINT_ROCKET;
+                }
+
+                RobotTask buildTask = new RobotTask(globalTask.getTaskId(), 3, robotCommand, globalTask.getTaskLocation());
+                earthWorkerMap.get(unit.id()).addTask(buildTask);
+            }
         }
     }
 
@@ -146,16 +182,14 @@ public class Earth {
      * That that will run the execute() command for all the units in the given HashMap
      * @param searchMap The HashMap of units
      */
-    private void runUnitMap(HashMap<Integer, Unit> searchMap) {
+    private void runUnitMap(HashMap<Integer, UnitInstance> searchMap) {
         for (int unitId: searchMap.keySet()) {
-            System.out.println("Earth running run(): " + unitId);
             searchMap.get(unitId).run();
         }
     }
 
     /**
-     * Since the method has not yet been implemented in the API, we must manually check if any unit died
-     * last round
+     * Since the method has not yet been implemented in the API, we must manually check if any unit died last round
      */
     private void updateDeadUnits() {
         HashSet<Integer> unitSet = new HashSet<>();
@@ -164,7 +198,6 @@ public class Earth {
             unitSet.add(units.get(i).id());
         }
 
-        earthBlueprintMap = findDeadUnits(unitSet, earthBlueprintMap);
         earthRocketMap = findDeadUnits(unitSet, earthRocketMap);
         earthWorkerMap = findDeadUnits(unitSet, earthWorkerMap);
         earthFactoryMap = findDeadUnits(unitSet, earthFactoryMap);
@@ -179,11 +212,18 @@ public class Earth {
      * @param searchMap The current map you are purging
      * @return A new map without the dead units
      */
-    private HashMap<Integer, Unit> findDeadUnits(HashSet<Integer> unitSet, HashMap<Integer, Unit> searchMap) {
+    private HashMap<Integer, UnitInstance> findDeadUnits(HashSet<Integer> unitSet, HashMap<Integer, UnitInstance> searchMap) {
         ArrayList<Integer> deadUnits = new ArrayList<>();
         for (int unitId: searchMap.keySet()) {
             if (!unitSet.contains(unitId)) {
                 deadUnits.add(unitId);
+
+                // If the unit is dead, we must update the HashSets of the tasks it was part of.
+                UnitInstance unit = searchMap.get(unitId);
+                for (int i = 0; i < unit.getRobotTaskQueue().size(); i++) {
+                    int globalTaskId = unit.pollTask().getTaskId();
+                    earthTaskMap.get(globalTaskId).removeWorkerFromList(unitId);
+                }
             }
         }
 
@@ -195,5 +235,17 @@ public class Earth {
         return searchMap;
     }
 
+    /**
+     * Method that will add all the robots created this round to their indicated unit map
+     * @param unitMap The unit map you want to add robots to
+     * @param stagingMap The map you are pulling the units from
+     */
+    private HashMap<Integer, UnitInstance> addStagingUnitsToMap(HashMap<Integer, UnitInstance> unitMap, HashMap<Integer, UnitInstance> stagingMap) {
+        HashMap<Integer, UnitInstance> newMap = unitMap;
+        for (int unitId: stagingMap.keySet()) {
+            newMap.put(unitId, stagingMap.get(unitId));
+        }
 
+        return newMap;
+    }
 }

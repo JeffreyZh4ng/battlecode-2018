@@ -2,18 +2,13 @@ import bc.MapLocation;
 
 public class Factory extends Structure {
 
-    private int id;
-    private MapLocation mapLocation;
-
-    public Factory(int id, MapLocation factoryLocation) {
-        super(id, factoryLocation);
+    public Factory(int id, boolean isBuilt, MapLocation factoryLocation) {
+        super(id, isBuilt, factoryLocation);
     }
 
     @Override
     public void run() {
 
     }
-
-
 }
 
