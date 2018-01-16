@@ -303,6 +303,11 @@ public abstract class Robot extends UnitInstance {
     public boolean move(int robotId, MapLocation destinationLocation) {
         System.out.println("moving robot: " + robotId);
 
+        //check if adjacent
+        if (Player.gc.unit(robotId).location().mapLocation().isAdjacentTo(destinationLocation)) {
+            return true;
+        }
+
         //get optimal location to move to
         MapLocation locationToMoveTo = getNextForBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(), destinationLocation, initialMap);
 
