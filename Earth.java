@@ -20,6 +20,8 @@ public class Earth {
     public static HashMap<Integer, UnitInstance> earthStagingWorkerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
 
+    public static HashSet<String> planedStructureLocations = new HashSet<>();
+
     public void execute() {
 
         updateDeadUnits();
@@ -51,12 +53,15 @@ public class Earth {
         switch (command) {
             case CONSTRUCT_FACTORY:
                 globalTaskLocation = pickStructureLocation();
+                planedStructureLocations.add(globalTaskLocation.toString());
                 break;
             case CONSTRUCT_ROCKET:
                 globalTaskLocation = pickStructureLocation();
+                planedStructureLocations.add(globalTaskLocation.toString());
                 break;
             default:
                 globalTaskLocation = pickStructureLocation();
+                planedStructureLocations.add(globalTaskLocation.toString());
                 break;
         }
 
@@ -82,21 +87,24 @@ public class Earth {
     private MapLocation pickStructureLocation() {
 
         ArrayList<MapLocation> clearLocations = new ArrayList<>();
-
+        System.out.println("planned locs: "+planedStructureLocations);
         //iterate over all positions that could be surrounded by empty spaces
         for (int x = 1; x < Player.gc.startingMap(Player.gc.planet()).getWidth()-1; x++) {
             for (int y = 1; y < Player.gc.startingMap(Player.gc.planet()).getHeight()-1; y++) {
+
+                //location to test is the center location
                 MapLocation locationToTest = new MapLocation(Player.gc.planet(),x,y);
+                if (planedStructureLocations.contains(locationToTest.toString()));
                 Boolean isClear = true;
                 for(Direction direction : Direction.values()) {
 
-                    //is not passable terrain
-                    if (Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) > 0) {
+                    //is already a planed location or is not passable terrain
+                    if (planedStructureLocations.contains(locationToTest.add(direction).toString()) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
                         isClear = false;
                         break;
                     }
                     //if has structure
-                    if (Player.gc.canSenseLocation(locationToTest) && Player.gc.hasUnitAtLocation(locationToTest) && (Player.gc.senseUnitAtLocation(locationToTest).unitType() == UnitType.Factory || Player.gc.senseUnitAtLocation(locationToTest).unitType() == UnitType.Rocket)) {
+                    if (Player.gc.canSenseLocation(locationToTest.add(direction)) && Player.gc.hasUnitAtLocation(locationToTest.add(direction)) && (Player.gc.senseUnitAtLocation(locationToTest.add(direction)).unitType() == UnitType.Factory || Player.gc.senseUnitAtLocation(locationToTest.add(direction)).unitType() == UnitType.Rocket)) {
                         isClear = false;
                         break;
                     }
@@ -106,6 +114,7 @@ public class Earth {
                 }
             }
         }
+        System.out.println("clear loc count: " + clearLocations.size());
         MapLocation closestLocation = null;
         long shortestDistance = 1000; //the number this starts as should not matter
 
@@ -132,6 +141,7 @@ public class Earth {
             }
 
         }
+        System.out.println("closesloc: " + closestLocation);
         return closestLocation;
     }
 

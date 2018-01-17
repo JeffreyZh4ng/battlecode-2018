@@ -197,7 +197,6 @@ public class Worker extends Robot {
 
         if (Player.gc.canBlueprint(this.getId(), unitType, directionToBlueprint)) {
             Player.gc.blueprint(this.getId(), unitType, directionToBlueprint);
-
             int structureId = Player.gc.senseUnitAtLocation(commandLocation).id();
             UnitInstance newStructure;
             if (unitType == UnitType.Factory) {
@@ -209,6 +208,9 @@ public class Worker extends Robot {
             }
 
             System.out.println("Robot: " + this.getId() + " Blueprinted structure!");
+
+            //remove from planed locations
+            Earth.planedStructureLocations.remove(commandLocation.toString());
             return true;
         }
 
