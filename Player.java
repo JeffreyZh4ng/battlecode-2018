@@ -112,7 +112,7 @@ public class Player {
      * @param mapLocation The location you want to check
      * @return If it is occupiable or not
      */
-    public static boolean inOccupiable(MapLocation mapLocation) {
+    public static boolean isOccupiable(MapLocation mapLocation) {
         PlanetMap initialMap = Player.gc.startingMap(mapLocation.getPlanet());
         if (initialMap.onMap(mapLocation)) {
             if (Player.gc.canSenseLocation(mapLocation)) {
@@ -120,7 +120,52 @@ public class Player {
             } else {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * Should move robot in given direction,
+     * checks that: unit exists, unit is correct team, unit is on this map, destination is on map, destination is empty
+     * @param id The id of the robot to move
+     * @return If move was successful
+     */
+    public static boolean moveRobot(int id, Direction direction) {
+        PlanetMap startingMap = Player.gc.startingMap(gc.planet());
+        Unit unit;
+        try {
+            unit = gc.unit(id);
+        } catch (Exception e) {
+            System.out.println(e);
+            System.out.println("UNIT WITH ID: " + id + " DOES NOT EXIST");
+            return false;
+        }
+
+        if (unit.team() == gc.team()) {
+            if (unit.location().mapLocation().getPlanet() == gc.planet()) {
+
+                MapLocation unitMapLocation = unit.location().mapLocation();
+
+                if (startingMap.onMap(unitMapLocation) && isOccupiable(unitMapLocation.add(direction)) && gc.canMove(id,direction)) {
+                    try {
+                        gc.moveRobot(id, direction);
+                        return true;
+                    } catch (Exception e) {
+                        System.out.println(e);
+                        System.out.println("ERROR MOVE ROBOT STILL FAILED TO STOP ERROR AFTER MANY TESTS unit: " + unit);
+                        return false;
+                    }
+                } else {
+                    System.out.println("ERROR LOCATION TO MOVE TO INVALID locationtomoveto: " + unitMapLocation.add(direction) + "from unit at: " + unitMapLocation);
+                    return false;
+                }
+            } else {
+                System.out.println("ERROR ROBOT NOT ON THIS PLANET location: " + unit.location().mapLocation());
+                return false;
+            }
         } else {
+            System.out.println("ERROR UNIT TO MOVE TEAM INVALID, unit: " + unit);
             return false;
         }
     }
