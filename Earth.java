@@ -77,14 +77,61 @@ public class Earth {
 
     /**
      * Method that will pick the best MapLocation to build a structure
-     * @return The MapLocation of the best place to build a structure
+     * @return The MapLocation of the best place to build a structure or null if no locations exist or no avalible workers exist
      */
-    // TODO: Need to implement this method... Obviously
     private MapLocation pickStructureLocation() {
-        int x = (int)(Math.random()*12) + 2;
-        int y = (int)(Math.random()*12) + 2;
-        System.out.println("Coordinates: " + x + ", " + y);
-        return new MapLocation(Planet.Earth, x, y);
+        ArrayList<MapLocation> clearLocations = new ArrayList<>();
+
+        //iterate over all positions that could be surrounded by empty spaces
+        for (int x = 1; x < Player.gc.startingMap(Player.gc.planet()).getWidth()-1; x++) {
+            for (int y = 1; y < Player.gc.startingMap(Player.gc.planet()).getHeight()-1; y++) {
+                MapLocation locationToTest = new MapLocation(Player.gc.planet(),x,y);
+                Boolean isClear = true;
+                for(Direction direction : Direction.values()) {
+
+                    //is not passable terrain
+                    if (Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) > 0) {
+                        isClear = false;
+                        break;
+                    }
+                    //if has structure
+                    if (Player.gc.canSenseLocation(locationToTest) && Player.gc.hasUnitAtLocation(locationToTest) && (Player.gc.senseUnitAtLocation(locationToTest).unitType() == UnitType.Factory || Player.gc.senseUnitAtLocation(locationToTest).unitType() == UnitType.Rocket)) {
+                        isClear = false;
+                        break;
+                    }
+                }
+                if (isClear) {
+                    clearLocations.add(locationToTest);
+                }
+            }
+        }
+        MapLocation closestLocation = null;
+        long shortestDistance = 1000; //the number this starts as should not matter
+
+        //choose best location from list
+        for (MapLocation location : clearLocations) {
+            for (int workerId: earthWorkerMap.keySet()) {
+
+                MapLocation workerLocation = Player.gc.unit(workerId).location().mapLocation();
+
+                if (earthWorkerMap.get(workerId).getRobotTaskQueue().size() == 0) {
+
+                    if (workerLocation.distanceSquaredTo(location) <= 32) {
+                        return location;
+
+                    } else if (closestLocation == null) {
+                        closestLocation = location;
+                        shortestDistance = location.distanceSquaredTo(workerLocation);
+
+                    } else if (closestLocation.distanceSquaredTo(workerLocation) < shortestDistance) {
+                        closestLocation = location;
+                        shortestDistance = location.distanceSquaredTo(workerLocation);
+                    }
+                }
+            }
+
+        }
+        return closestLocation;
     }
 
     /**

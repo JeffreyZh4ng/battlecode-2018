@@ -1,7 +1,10 @@
 import bc.Direction;
 import bc.MapLocation;
+import bc.Planet;
 import bc.UnitType;
 import bc.VecMapLocation;
+
+import java.util.Map;
 
 public class Worker extends Robot {
 
@@ -244,6 +247,28 @@ public class Worker extends Robot {
         }
     }
 
+    /**
+     * Finds the nearest known of karbonite location
+     * @return karbonite location or null if none known of
+     */
+    private MapLocation getNearestKarboniteLocation() {
+        MapLocation nearestLocation = null;
+        MapLocation myLocation = Player.gc.unit(this.getId()).location().mapLocation();
+        //check all locations
+        for (int x = 0; x < Player.gc.startingMap(Player.gc.planet()).getWidth(); x++) {
+            for (int y = 0; y < Player.gc.startingMap(Player.gc.planet()).getHeight(); y++) {
+                MapLocation locationToTest = new MapLocation(Player.gc.planet(),x,y);
+                if (Player.gc.canSenseLocation(locationToTest) && Player.gc.karboniteAt(locationToTest)>0) {
+                    if (nearestLocation== null) {
+                        nearestLocation = locationToTest;
+                    } else if (myLocation.distanceSquaredTo(locationToTest)<myLocation.distanceSquaredTo(nearestLocation)){
+                        nearestLocation = locationToTest;
+                    }
+                }
+            }
+        }
+        return nearestLocation;
+    }
     /**
      * Method that will check if a worker can mine karbonite. If it has not performed an action this turn and
      * there is a karbonite pocket in adjacent squares, it will mine it
