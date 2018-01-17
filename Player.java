@@ -12,7 +12,9 @@ public class Player {
         Earth earth = new Earth();
         Mars mars = new Mars();
 
-        addStartingWorkersToEarthMap();
+        if(gc.planet() == Planet.Earth) {
+            addStartingWorkersToEarthMap();
+        }
 
         gc.queueResearch(UnitType.Worker);
         gc.queueResearch(UnitType.Ranger);
@@ -26,14 +28,16 @@ public class Player {
 
         while (true) {
 
-            /*if (gc.round() == 150 || gc.round() == 300 || gc.round() == 450 || gc.round() == 600 || gc.round() == 700) {
-                buildRockets(earth);
-            }
+            if(gc.planet() == Planet.Earth && gc.team() == Team.Blue) {
+                if (gc.round() == 150 || gc.round() == 300 || gc.round() == 450 || gc.round() == 600 || gc.round() == 700) {
+                    buildRockets(earth);
+                }
 
-            if (gc.round() == 1 || gc.round() == 200 || gc.round() == 350) {
-                startNewTask(earth);
-            }
+                if (gc.round() == 1 || gc.round() == 200 || gc.round() == 350) {
+                    startNewTask(earth);
+                }
 
+            }
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
                 System.out.println("Round number: " + gc.round());
                 //printOutUnitList();
@@ -50,7 +54,7 @@ public class Player {
             // Debug statements
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
                 System.out.println("");
-            }*/
+            }
 
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
                 System.out.println("Round number: " + gc.round());
