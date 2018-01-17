@@ -86,7 +86,6 @@ public class Earth {
      * @return The MapLocation of the best place to build a structure or null if no locations exist or no avalible workers exist
      */
     private MapLocation pickStructureLocation() {
-
         ArrayList<MapLocation> clearLocations = new ArrayList<>();
         System.out.println("planned locs: "+planedStructureLocations);
         //iterate over all positions that could be surrounded by empty spaces
