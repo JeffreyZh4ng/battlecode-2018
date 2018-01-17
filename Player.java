@@ -1,5 +1,8 @@
 import bc.*;
 
+import java.util.HashMap;
+import java.util.HashSet;
+
 public class Player {
 
     public static final GameController gc = new GameController();
@@ -23,7 +26,7 @@ public class Player {
 
         while (true) {
 
-            if (gc.round() == 150 || gc.round() == 300 || gc.round() == 450 || gc.round() == 600 || gc.round() == 700) {
+            /*if (gc.round() == 150 || gc.round() == 300 || gc.round() == 450 || gc.round() == 600 || gc.round() == 700) {
                 buildRockets(earth);
             }
 
@@ -47,6 +50,22 @@ public class Player {
             // Debug statements
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
                 System.out.println("");
+            }*/
+
+            if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
+                System.out.println("Round number: " + gc.round());
+
+                MapLocation initialLocation = new MapLocation(Planet.Earth, 0,0);
+                MapLocation finalLocation = new MapLocation(Planet.Earth, 0,4);
+
+                HashMap<Integer, HashSet<MapLocation>> map = MoveTests.getDepthMap(initialLocation, finalLocation);
+                for (int key: map.keySet()) {
+                    System.out.println("Depth: " + key);
+                    for (MapLocation location: map.get(key)) {
+                        System.out.println(MoveTests.mapLocationToString(location));
+                    }
+                    System.out.println("");
+                }
             }
 
             gc.nextTurn();
@@ -87,6 +106,27 @@ public class Player {
             if (gc.units().get(i).team() == Team.Blue && gc.units().get(i).unitType() == UnitType.Worker) {
                 System.out.println("Unit no: " + gc.units().get(i).id());
             }
+        }
+    }
+
+    /**
+     * Simplified method of isOccupiable that will handle any exceptions that the gc.isOccupiable method will
+     * throw. Check if the location is on the map then checks if it can see the location. If the location can
+     * be seen then return the default isOccupiable method. If we cant see the location then return true because
+     * the worst that can happen is there is an enemy unit there which we can destroy.
+     * @param mapLocation The location you want to check
+     * @return If it is occupiable or not
+     */
+    public static boolean inOccupiable(MapLocation mapLocation) {
+        PlanetMap initialMap = Player.gc.startingMap(mapLocation.getPlanet());
+        if (initialMap.onMap(mapLocation)) {
+            if (Player.gc.canSenseLocation(mapLocation)) {
+                return gc.isOccupiable(mapLocation) > 0;
+            } else {
+                return true;
+            }
+        } else {
+            return false;
         }
     }
 }
