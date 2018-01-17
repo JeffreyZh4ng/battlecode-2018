@@ -1,3 +1,5 @@
+import bc.MapLocation;
+
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -52,5 +54,13 @@ public abstract class UnitInstance {
         } else {
             System.out.println("WTF IS HAPPENING?!?! Tried to remove task from an empty queue! Robot: " + this.id);
         }
+    }
+
+    public MapLocation getLocation() {
+        return Player.gc.unit(this.getId()).location().mapLocation();
+    }
+
+    public int getVisionRange() {
+        return (int)(Player.gc.unit(this.getId()).visionRange());
     }
 }

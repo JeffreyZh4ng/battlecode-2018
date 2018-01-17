@@ -81,18 +81,10 @@ public class Earth {
      */
     // TODO: Need to implement this method... Obviously
     private MapLocation pickStructureLocation() {
-
-//        for (int workerId: earthWorkerMap.keySet()) {
-//            MapLocation currentLocation = Player.gc.unit(workerId).location().mapLocation();
-//            VecMapLocation locations = Player.gc.allLocationsWithin(currentLocation, 50);
-//
-//            for (int i = 0; i < locations.size(); i++) {
-//                MapLocation location = locations.get(i);
-//                if (Player.gc.hasUnitAtLocation(location)) {
-//
-//                }
-//            }
-//        }
+        int x = (int)(Math.random()*12) + 2;
+        int y = (int)(Math.random()*12) + 2;
+        System.out.println("Coordinates: " + x + ", " + y);
+        return new MapLocation(Planet.Earth, x, y);
     }
 
     /**
