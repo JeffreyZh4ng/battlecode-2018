@@ -99,7 +99,9 @@ public class Worker extends Robot {
             case MOVE:
                 if (Player.gc.unit(this.getId()).movementHeat() < MOVEMENT_HEAT_LIMIT) {
                     System.out.println("Robot: " + this.getId() + " MOVING!");
+                    //System.out.println("dmap: "+getDepthMap(Player.gc.unit(this.getId()).location().mapLocation(), commandLocation));
                     return move(this.getId(), commandLocation);
+
                 } else {
                     return false;
                 }
