@@ -51,6 +51,7 @@ public class Earth {
         MapLocation globalTaskLocation;
 
         switch (command) {
+            //TODO: crashes if no location is found
             case CONSTRUCT_FACTORY:
                 globalTaskLocation = pickStructureLocation();
                 planedStructureLocations.add(globalTaskLocation.toString());
