@@ -24,7 +24,7 @@ public class Player {
         gc.queueResearch(UnitType.Knight);
 
         while (true) {
-
+            System.out.println("time left: " + gc.getTimeLeftMs());
             if(gc.planet() == Planet.Earth && gc.team() == Team.Blue) {
                 if (gc.round() == 150 || gc.round() == 300 || gc.round() == 450 || gc.round() == 600 || gc.round() == 700) {
                     buildRockets(earth);
@@ -65,11 +65,11 @@ public class Player {
     }
 
     private static void buildRockets(Earth earth) {
-        earth.createGlobalTask(Command.BLUEPRINT_ROCKET);
-        earth.createGlobalTask(Command.BLUEPRINT_ROCKET);
-        earth.createGlobalTask(Command.BLUEPRINT_ROCKET);
-        earth.createGlobalTask(Command.BLUEPRINT_ROCKET);
-        earth.createGlobalTask(Command.BLUEPRINT_ROCKET);
+        earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
+        earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
+        earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
+        earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
+        earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
     }
 
     /**

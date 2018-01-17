@@ -107,7 +107,7 @@ public class Worker extends Robot {
             case CLONE:
                 return cloneWorker(commandLocation);
             case BUILD:
-                return buildStructure(commandLocation, UnitType.Factory);
+                return buildStructure(commandLocation);
             case BLUEPRINT_FACTORY:
                 return blueprintStructure(commandLocation, UnitType.Factory);
             case BLUEPRINT_ROCKET:
@@ -137,6 +137,7 @@ public class Worker extends Robot {
                     int clonedWorkerId = Player.gc.senseUnitAtLocation(newLocation).id();
                     UnitInstance newWorker = new Worker(clonedWorkerId);
 
+                    System.out.println(this.getTopTask());
                     RobotTask buildTask = new RobotTask(this.getTopTask().getTaskId(), 3, Command.BUILD, commandLocation);
                     newWorker.addTask(buildTask);
 
@@ -156,23 +157,23 @@ public class Worker extends Robot {
     /**
      * Given a MapLocation of a blueprint, build it until it reaches full health and becomes a rocket/factory
      * @param commandLocation The location of the unfinished structure
-     * @param unitType The type of structure you are building
      * @return If the structure finished building
      */
-    private boolean buildStructure(MapLocation commandLocation, UnitType unitType) {
+    private boolean buildStructure(MapLocation commandLocation) {
         int structureId = Player.gc.senseUnitAtLocation(commandLocation).id();
 
         if (Player.gc.canBuild(this.getId(), structureId)) {
             Player.gc.build(this.getId(), structureId);
 
             if (Player.gc.unit(structureId).structureIsBuilt() > 0) {
+                UnitType unitType = Player.gc.unit(structureId).unitType();
                 if (unitType == UnitType.Factory) {
                     UnitInstance factory = Earth.earthFactoryMap.get(structureId);
                     UnitInstance builtFactory = new Factory(factory.getId(), true, commandLocation);
                     Earth.earthFactoryMap.put(factory.getId(), builtFactory);
                 } else {
-                    UnitInstance rocket = Earth.earthFactoryMap.get(structureId);
-                    UnitInstance builtRocket = new Factory(rocket.getId(), true, commandLocation);
+                    UnitInstance rocket = Earth.earthRocketMap.get(structureId);
+                    UnitInstance builtRocket = new Rocket(rocket.getId(), true, commandLocation);
                     Earth.earthFactoryMap.put(rocket.getId(), builtRocket);
                 }
 
