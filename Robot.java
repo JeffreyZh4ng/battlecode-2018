@@ -10,6 +10,8 @@ public abstract class Robot extends UnitInstance {
 
     private RobotTask emergencyTask = null;
 
+    public ArrayList<MapLocation> path = null;
+
     public Robot(int id) {
         super(id);
     }
@@ -263,7 +265,7 @@ public abstract class Robot extends UnitInstance {
 
         for (int i = 0; i < 8; i++) {
             MapLocation locationToCheck = currentLocation.add(Direction.swigToEnum(i));
-            if (Player.inOccupiable(locationToCheck)) {
+            if (Player.isOccupiable(locationToCheck)) {
                 availablePositions.add(locationToCheck);
             }
         }
@@ -336,7 +338,7 @@ public abstract class Robot extends UnitInstance {
     public boolean move(int robotId, MapLocation destinationLocation) {
         System.out.println("moving robot: " + robotId+"towards dest: " + destinationLocation + "from: ");
 
-        //if covering destination
+        //if this robot is covering destination
         if (Player.gc.unit(robotId).location().mapLocation().equals(destinationLocation)) {
             for (Direction direction : getMoveDirections()) {
                 if (Player.gc.canMove(robotId, direction)) {
@@ -348,28 +350,50 @@ public abstract class Robot extends UnitInstance {
             return false;
 
         }
-        //check if adjacent
+        //if adjacent to destination, done
         if (Player.gc.unit(robotId).location().mapLocation().isAdjacentTo(destinationLocation)) {
             return true;
         }
 
-        //get optimal location to move to
-        ArrayList<MapLocation> path = getNextForBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(),
-                destinationLocation, Player.gc.startingMap(Player.gc.planet()));
+        //TODO: logic from this point on is messy but seems to work, should be cleaned up
+
+        MapLocation locationToMoveTo;
+        Direction directionToMove = null;
+        if(path != null && path.size() > 0) {
+            locationToMoveTo = path.get(0);
+            directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
+        } else {
+            path = getNextForBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(), destinationLocation,
+                    Player.gc.startingMap(Player.gc.planet()));
+            if (path == null) {
+                System.out.println("cannot get within 1 square of destination or is already at destination/within 1 square");
+                return true;
+            }
+            locationToMoveTo = path.get(0);
+            directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
+
+        }
+
+        //if cannot move along path, recalculate
+        if (path != null && !Player.gc.canMove(robotId, directionToMove)) {
+            System.out.println("recalculating path");
+            path = getNextForBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(), destinationLocation,
+                    Player.gc.startingMap(Player.gc.planet()));
+        }
+
 
         //if no location to move to, return true
         if (path == null) {
             System.out.println("cannot get within 1 square of destination or is already at destination/within 1 square");
             return true;
         }
-        MapLocation locationToMoveTo = path.get(0);
-
-
+        locationToMoveTo = path.get(0);
+        directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
 
         //try to move to location
-        Direction directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
         if (Player.gc.canMove(robotId, directionToMove)) {
             Player.gc.moveRobot(robotId, directionToMove);
+            path.remove(0);
         }
 
         return false;
@@ -435,10 +459,14 @@ public abstract class Robot extends UnitInstance {
                 return null;
             }
         }
-
-
         return path;
     }
+
+
+    public static void attack() {
+
+    }
+
 
 
 

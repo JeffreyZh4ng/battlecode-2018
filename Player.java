@@ -27,7 +27,6 @@ public class Player {
      * @param mapLocation The location you want to check
      * @return If it is occupiable or not
      */
-
     public static boolean isOccupiable(MapLocation mapLocation) {
         PlanetMap initialMap = gc.startingMap(mapLocation.getPlanet());
         if (initialMap.onMap(mapLocation)) {
