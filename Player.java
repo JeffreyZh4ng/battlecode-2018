@@ -16,9 +16,9 @@ public class Player {
             addStartingWorkersToEarthMap();
         }
 
+        gc.queueResearch(UnitType.Rocket); // Can build rockets at round 100
         gc.queueResearch(UnitType.Worker);
         gc.queueResearch(UnitType.Ranger);
-        gc.queueResearch(UnitType.Rocket); // Can build rockets at round 150
         gc.queueResearch(UnitType.Ranger);
         gc.queueResearch(UnitType.Worker);
         gc.queueResearch(UnitType.Worker);
@@ -62,11 +62,11 @@ public class Player {
                 MapLocation initialLocation = new MapLocation(Planet.Earth, 0,0);
                 MapLocation finalLocation = new MapLocation(Planet.Earth, 0,4);
 
-                HashMap<Integer, HashSet<MapLocation>> map = MoveTests.getDepthMap(initialLocation, finalLocation);
+                HashMap<Integer, HashSet<MapLocation>> map = Robot.getDepthMap(initialLocation, finalLocation);
                 for (int key: map.keySet()) {
                     System.out.println("Depth: " + key);
                     for (MapLocation location: map.get(key)) {
-                        System.out.println(MoveTests.mapLocationToString(location));
+                        System.out.println(Robot.mapLocationToString(location));
                     }
                     System.out.println("");
                 }
@@ -101,15 +101,6 @@ public class Player {
             UnitInstance worker = new Worker(unitId);
 
             Earth.earthWorkerMap.put(unitId, worker);
-        }
-    }
-
-    private static void printOutUnitList() {
-        System.out.println("Printing from unit map!");
-        for (int i = 0; i < gc.units().size(); i++) {
-            if (gc.units().get(i).team() == Team.Blue && gc.units().get(i).unitType() == UnitType.Worker) {
-                System.out.println("Unit no: " + gc.units().get(i).id());
-            }
         }
     }
 
