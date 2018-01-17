@@ -9,98 +9,13 @@ public class Player {
 
     public static void main(String[] args) {
 
-        Earth earth = new Earth();
-        Mars mars = new Mars();
-
-        if(gc.planet() == Planet.Earth) {
-            addStartingWorkersToEarthMap();
-        }
-
-        gc.queueResearch(UnitType.Rocket); // Can build rockets at round 100
-        gc.queueResearch(UnitType.Worker);
-        gc.queueResearch(UnitType.Ranger);
-        gc.queueResearch(UnitType.Ranger);
-        gc.queueResearch(UnitType.Worker);
-        gc.queueResearch(UnitType.Worker);
-        gc.queueResearch(UnitType.Worker);
-        gc.queueResearch(UnitType.Knight);
-        gc.queueResearch(UnitType.Knight);
-
         while (true) {
-            System.out.println("time left: " + gc.getTimeLeftMs());
-            if(gc.planet() == Planet.Earth && gc.team() == Team.Blue) {
-                if (gc.round() == 150 || gc.round() == 300 || gc.round() == 450 || gc.round() == 600 || gc.round() == 700) {
-                    buildRockets(earth);
-                }
-
-                if (gc.round() == 1 || gc.round() == 200 || gc.round() == 350) {
-                    startNewTask(earth);
-                }
-
-            }
-            if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
-                System.out.println("Round number: " + gc.round());
-                //printOutUnitList();
-            }
-
-
-            if (gc.planet() == Planet.Earth && gc.round() < 750 && gc.team() == Team.Blue) {
-                earth.execute();
-            } else if (gc.planet() == Planet.Mars && gc.team() == Team.Blue) {
-                mars.execute();
-            }
-
-
-            // Debug statements
-            if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
-                System.out.println("");
-            }
 
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
                 System.out.println("Round number: " + gc.round());
-
-                MapLocation initialLocation = new MapLocation(Planet.Earth, 0,0);
-                MapLocation finalLocation = new MapLocation(Planet.Earth, 0,4);
-
-                HashMap<Integer, HashSet<MapLocation>> map = Robot.getDepthMap(initialLocation, finalLocation);
-                for (int key: map.keySet()) {
-                    System.out.println("Depth: " + key);
-                    for (MapLocation location: map.get(key)) {
-                        System.out.println(Robot.mapLocationToString(location));
-                    }
-                    System.out.println("");
-                }
             }
 
             gc.nextTurn();
-        }
-    }
-
-    private static void startNewTask(Earth earth) {
-        earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-        earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-        earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-        earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-    }
-
-    private static void buildRockets(Earth earth) {
-        earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
-        earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
-        earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
-        earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
-        earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
-    }
-
-    /**
-     * Method that will add all the workers on earth to the HashMap of workers at the beginning of the game
-     */
-    private static void addStartingWorkersToEarthMap() {
-        VecUnit units = gc.myUnits();
-        for (int i = 0; i < units.size(); i++) {
-            int unitId = units.get(i).id();
-            UnitInstance worker = new Worker(unitId);
-
-            Earth.earthWorkerMap.put(unitId, worker);
         }
     }
 
@@ -113,16 +28,60 @@ public class Player {
      * @return If it is occupiable or not
      */
     public static boolean inOccupiable(MapLocation mapLocation) {
-        PlanetMap initialMap = Player.gc.startingMap(mapLocation.getPlanet());
+        PlanetMap initialMap = gc.startingMap(mapLocation.getPlanet());
         if (initialMap.onMap(mapLocation)) {
             if (Player.gc.canSenseLocation(mapLocation)) {
                 return gc.isOccupiable(mapLocation) > 0;
             } else {
+                System.out.println("Cannot sense location, but it is on the map and passable");
                 return true;
             }
-        } else {
-            return false;
         }
+
+        System.out.println("LOCATION IS NOT ON THE MAP");
+        return false;
+    }
+
+    /**
+     * Simplified method of senseUnitAtLocation that will handle the exception of if the location is not visible.
+     * Catches all errors.
+     * @param mapLocation The location of the unit that you want to sense
+     * @return The unit at the location, null if
+     */
+    public static Unit senseUnitAtLocation(MapLocation mapLocation) {
+        PlanetMap initialMap = gc.startingMap(mapLocation.getPlanet());
+        if (initialMap.onMap(mapLocation)) {
+            if (gc.canSenseLocation(mapLocation)) {
+                return gc.senseUnitAtLocation(mapLocation);
+            } else {
+                System.out.println("LOCATION IS NOT IN VIEW RANGE");
+                return null;
+            }
+        }
+
+        System.out.println("LOCATION IS NOT ON THE MAP");
+        return null;
+    }
+
+    /**
+     * Will return the karbonite at a specific location. If the location is not on the map or the location is
+     * not in the range of a robot, return -1
+     * @param mapLocation The location you want to check the karbonite value of
+     * @return The value of karbonite at the location
+     */
+    public static int karboniteAt(MapLocation mapLocation) {
+        PlanetMap initialMap = gc.startingMap(mapLocation.getPlanet());
+        if (initialMap.onMap(mapLocation)) {
+            if (gc.canSenseLocation(mapLocation)) {
+                return (int)(gc.karboniteAt(mapLocation));
+            } else {
+                System.out.println("LOCATION IS NOT IN THE SENSE ZONE");
+                return -1;
+            }
+        }
+
+        System.out.println("LOCATION IS NOT ON THE MAP");
+        return -1;
     }
 }
 
