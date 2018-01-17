@@ -1,4 +1,7 @@
+import bc.Location;
 import bc.MapLocation;
+import bc.Planet;
+import bc.PlanetMap;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -63,4 +66,6 @@ public abstract class UnitInstance {
     public int getVisionRange() {
         return (int)(Player.gc.unit(this.getId()).visionRange());
     }
+
+
 }
