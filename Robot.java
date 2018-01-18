@@ -95,52 +95,6 @@ public abstract class Robot extends UnitInstance {
             System.out.println("cannot get to destination");
             return true;
         }
-
-
-
-
-
-
-//        MapLocation locationToMoveTo;
-//        Direction directionToMove = null;
-//        if(path != null && path.size() > 0) {
-//            locationToMoveTo = path.get(0);
-//            directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
-//        } else {
-//            path = getPathFromBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(), destinationLocation,
-//                    Player.gc.startingMap(Player.gc.planet()));
-//            if (path == null) {
-//                System.out.println("cannot get within 1 square of destination or already is");
-//                return true;
-//            }
-//            locationToMoveTo = path.get(0);
-//            directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
-//
-//        }
-//
-//        //if cannot move along path, recalculate
-//        if (path != null && !Player.gc.canMove(robotId, directionToMove)) {
-//            System.out.println("recalculating path");
-//            path = getPathFromBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(), destinationLocation,
-//                    Player.gc.startingMap(Player.gc.planet()));
-//        }
-//
-//
-//        //if no location to move to, return true
-//        if (path == null) {
-//            System.out.println("cannot get within 1 square of destination or is already at destination/within 1 square");
-//            return true;
-//        }
-//        locationToMoveTo = path.get(0);
-//        directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
-//
-//        //try to move to location
-//        if (Player.gc.canMove(robotId, directionToMove)) {
-//            Player.gc.moveRobot(robotId, directionToMove);
-//            path.remove(0);
-//        }
-//
-//        return false;
     }
 
     /**
@@ -152,6 +106,7 @@ public abstract class Robot extends UnitInstance {
      */
     public static ArrayList<MapLocation> getPathFromBreadthFirstSearch(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
 
+        // TODO: make stop searching once destination found
         Direction[] moveDirections = getMoveDirections();
 
         Queue<MapLocation> frontier = new LinkedList<>();
@@ -176,34 +131,34 @@ public abstract class Robot extends UnitInstance {
             }
         }
 
+        //find shortest of paths to adjacent locations and save shortest one
 
-        ArrayList<MapLocation> path = new ArrayList<>();
-        MapLocation currentLocation = destinationLocation;
-        //if could not path to check if already one away from destination else find adjacent destination
-        if (!cameFrom.containsKey(destinationLocation.toString())) {
-            if (startingLocation.isAdjacentTo(destinationLocation)) {
-                return null;
-            } else {
-                for (Direction moveDirection : moveDirections) {
-                    if (doesLocationAppearEmpty(map, destinationLocation.add(moveDirection))) {
-                        currentLocation = destinationLocation.add(moveDirection);
+        MapLocation shortestNeighborLocation = null;
+
+        ArrayList<MapLocation> shortestPath = new ArrayList<>();
+
+        //TODO: this probably should be optimized slightly, if neighbor location found while tracing back then should change neighborLocation to that one and delete part of path
+        for (Direction directionFromDestination : moveDirections) {
+            MapLocation neighborLocation = destinationLocation.add(directionFromDestination);
+            if (cameFrom.containsKey(neighborLocation.toString()) && doesLocationAppearEmpty(map, neighborLocation)) {
+                ArrayList<MapLocation> currentPath = new ArrayList<>();
+                MapLocation currentTraceLocation = neighborLocation;
+                //trace back path
+                while (!currentTraceLocation.equals(startingLocation)) {
+                    currentPath.add(0,currentTraceLocation);
+                    currentTraceLocation = cameFrom.get(currentTraceLocation.toString());
+                    if (currentTraceLocation == null) {
+                        break;
                     }
+                }
+
+                if (shortestNeighborLocation == null || currentPath.size() < shortestPath.size()) {
+                    shortestPath = currentPath;
+                    shortestNeighborLocation = neighborLocation;
                 }
             }
         }
-
-        //trace back from destination to start
-        if (currentLocation == null) {
-            return null;
-        }
-        while (!currentLocation.equals(startingLocation)) {
-            path.add(0,currentLocation);
-            currentLocation = cameFrom.get(currentLocation.toString());
-            if (currentLocation == null) {
-                return null;
-            }
-        }
-        return path;
+        return shortestPath;
     }
 
 
