@@ -182,6 +182,34 @@ public abstract class Robot extends UnitInstance {
         }
         return path;
     }
+
+
+
+    /**
+     * For when a robot has nothing to do, should move around so that it finds tasks or gain information this method
+     * finds a location to explore
+     * @return A random location that seems good to be explored
+     */
+    public static MapLocation getLocationToExplore() {
+        PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
+        MapLocation randomLocation = getRandomLocation(initialMap);
+
+        //give up after a certain number of tries
+        int tries = 0;
+        while (Player.gc.canSenseLocation(randomLocation) && !(initialMap.isPassableTerrainAt(randomLocation) > 0) && tries < 100) {
+            randomLocation = getRandomLocation(initialMap);
+        }
+        return randomLocation;
+    }
+
+    /**
+     * Randomly chooses a location
+     * @param map The map that the location should be on
+     * @return A random location on the map
+     */
+    private static MapLocation getRandomLocation(PlanetMap map) {
+        return new MapLocation(map.getPlanet(), (int)(Math.random()*map.getWidth()),(int)(Math.random()*map.getHeight()));
+    }
 }
 
 
