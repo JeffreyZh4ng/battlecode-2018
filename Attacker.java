@@ -32,7 +32,7 @@ public abstract class Attacker extends Robot {
             //TODO: wander, probably could be better
             if (Player.gc.isMoveReady(this.getId())) {
                 if(wanderLocation == null || move(this.getId(),this.wanderLocation)) {
-                    wanderLocation = Robot.getLocationToExplore();
+                    // wanderLocation = Robot.getLocationToExplore();
                 }
             }
             //TODO: not sure about range here, this also maybe should be done globally? since all attacker will end up going here?

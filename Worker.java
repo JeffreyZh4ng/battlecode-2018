@@ -34,36 +34,6 @@ public class Worker extends Robot {
         mineKarbonite();
     }
 
-//    /**
-//     * Method that manages what task the worker should be on and other nuances such as if it should set a
-//     * priority task based on different parameters
-//     */
-//    private void manageCurrentRobotTask() {
-//        GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
-//
-//        while (globalTask.isTaskComplete()) {
-//            this.removeTask();
-//            globalTask = Earth.earthTaskMap.get(this.getTopTask().getTaskId());
-//        }
-//
-//        int completionStage = this.getTopTask().getCompletionStage();
-//        while (completionStage < globalTask.getCompletionStage() && completionStage < 3) {
-//            this.removeTask();
-//            completionStage = this.getTopTask().getCompletionStage();
-//        }
-//
-//        // Need to reset the completion stage if tasks have been popped.
-//        completionStage = this.getTopTask().getCompletionStage();
-//
-//        // If the task is on the build stage and there are not more than 4 workers in the list, clone
-//        if (completionStage == 3 && globalTask.getWorkersOnTask().size() < MIN_WORKER_LIST_SIZE && this.getEmergencyTask() == null) {
-//            if (Player.gc.unit(this.getId()).abilityHeat() < 10) {
-//                RobotTask emergencyTask = new RobotTask(-1, -1, Command.CLONE, globalTask.getTaskLocation());
-//                this.setEmergencyTask(emergencyTask);
-//            }
-//        }
-//    }
-
     /**
      * Executes the task from the task queue
      *
