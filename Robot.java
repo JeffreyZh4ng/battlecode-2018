@@ -143,12 +143,12 @@ public abstract class Robot extends UnitInstance {
                 while (!currentTraceLocation.equals(startingLocation)) {
                     currentPath.add(0,currentTraceLocation);
                     currentTraceLocation = cameFrom.get(currentTraceLocation.toString());
+                    if (currentTraceLocation == null) {
+                        break;
+                    }
                     if (currentTraceLocation.isAdjacentTo(destinationLocation)) {
                         currentPath.clear();
                         currentPath.add(currentTraceLocation);
-                    }
-                    if (currentTraceLocation == null) {
-                        break;
                     }
                 }
 
@@ -174,6 +174,7 @@ public abstract class Robot extends UnitInstance {
         int tries = 0;
         while (Player.gc.canSenseLocation(randomLocation) && !(initialMap.isPassableTerrainAt(randomLocation) > 0) && tries < 100) {
             randomLocation = getRandomLocation(initialMap);
+            tries++;
         }
         return randomLocation;
     }
