@@ -181,8 +181,6 @@ public abstract class Robot extends UnitInstance {
         return path;
     }
 
-
-
     /**
      * For when a robot has nothing to do, should move around so that it finds tasks or gain information this method
      * finds a location to explore
