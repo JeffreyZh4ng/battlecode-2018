@@ -3,7 +3,7 @@ import bc.Team;
 import bc.VecUnit;
 import bc.Unit;
 
-public class Ranger extends Robot {
+public class Ranger extends Attacker {
 
     public Ranger(int id) {
         super(id);
@@ -11,23 +11,15 @@ public class Ranger extends Robot {
 
     public void run() {
 
-        senseNearbyEnemies();
+        runAttack();
 
-        System.out.println("Got to run method! Task queue size: " + this.getRobotTaskQueue().size());
-        if (this.getEmergencyTask() != null) {
-            if (executeTask(this.getEmergencyTask())) {
-                this.setEmergencyTask(null);
-            }
-            return;
-        }
-
-        if (this.getRobotTaskQueue().size() != 0) {
-            System.out.println("Successfully ran robot: " + this.getEmergencyTask() + "'s run() method!");
-            RobotTask currentTask = this.getRobotTaskQueue().peek();
-            if (executeTask(currentTask)) {
-                this.getRobotTaskQueue().poll();
-            }
-        }
+//        if (this.getRobotTaskQueue().size() != 0) {
+//            System.out.println("Successfully ran robot: " + this.getEmergencyTask() + "'s run() method!");
+//            RobotTask currentTask = this.getRobotTaskQueue().peek();
+//            if (executeTask(currentTask)) {
+//                this.getRobotTaskQueue().poll();
+//            }
+//        }
     }
 
     /**

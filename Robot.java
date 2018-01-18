@@ -463,8 +463,25 @@ public abstract class Robot extends UnitInstance {
     }
 
 
-    public static void attack() {
+    public boolean attack() {
+            // Attack the nearest enemy in attack range
 
+            // If any enemies are still in sight range
+                // Return false
+            // else
+                // Return true;
+
+
+
+
+
+
+
+        //if enemy in range attack
+        // else if global location is set, go to global location
+            //if nothing at globallocation set empty
+        //if globallocation empty, wander and set enemy location
+        return true;
     }
 
 
