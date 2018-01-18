@@ -101,8 +101,6 @@ public abstract class Robot extends UnitInstance {
      */
     public static ArrayList<MapLocation> getPathFromBreadthFirstSearch(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
 
-        // TODO: make stop searching once destination found
-            //
         ArrayList<Direction> moveDirections = getMoveDirections();
 
         Queue<MapLocation> frontier = new LinkedList<>();
@@ -130,7 +128,6 @@ public abstract class Robot extends UnitInstance {
         }
 
         //find shortest of paths to adjacent locations and save shortest one
-
         MapLocation shortestNeighborLocation = null;
 
         ArrayList<MapLocation> shortestPath = new ArrayList<>();
