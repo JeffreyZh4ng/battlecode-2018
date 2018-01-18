@@ -1,5 +1,4 @@
-import bc.MapLocation;
-import bc.Planet;
+import bc.*;
 
 public abstract class Attacker extends Robot {
     public Attacker(int id) {
@@ -9,31 +8,39 @@ public abstract class Attacker extends Robot {
 
     private boolean inCombat = false;
 
+    private MapLocation wanderLocation = null;
+
     public void runAttack() {
 
         //get correct attack target
-        MapLocation attackTarget = null;
-        if (Player.gc.planet() == Planet.Earth) {
-            attackTarget = Earth.attackTarget;
-        } else if (Player.gc.planet() == Planet.Mars) {
-            attackTarget = Mars.attackTarget;
-        } else {
-            System.out.println("ERROR not on planet");
-        }
 
-
-        if (attackTarget != null && !this.inCombat) {
-            move(this.getId(),attackTarget);
+        if (PlanetInstance.attackTarget != null && !this.inCombat) {
+            move(this.getId(),PlanetInstance.attackTarget);
 
         } else if(this.inCombat) {
-            if(attack()) {
+            if(attackClosestEnemyInRange()) {
                 this.inCombat = false;
-            }
-            if (attackTarget == null) {
+                // TODO: should consider more the range it should be in
+                if (this.getLocation().distanceSquaredTo(PlanetInstance.attackTarget) < this.getVisionRange()* 0.8) {
+                    return;
+                }
+            } else if (PlanetInstance.attackTarget == null) {
 
+                PlanetInstance.attackTarget = getClosestUnit(-1, getEnemyUnitsInRange(this.getVisionRange())).location().mapLocation();
             }
         } else {
-
+            //TODO: wander, probably could be better
+            if (Player.gc.isMoveReady(this.getId())) {
+                if(wanderLocation == null || move(this.getId(),this.wanderLocation)) {
+                    wanderLocation = Robot.getLocationToExplore();
+                }
+            }
+            //TODO: not sure about range here, this also maybe should be done globally? since all attacker will end up going here?
+            VecUnit enemyUnits = this.getEnemyUnitsInRange(this.getVisionRange());
+            if(enemyUnits != null) {
+                this.inCombat = false;
+                PlanetInstance.attackTarget = this.getClosestUnit(-1, enemyUnits).location().mapLocation();
+            }
         }
 
 //        if (global target && not in combat) {
@@ -58,29 +65,66 @@ public abstract class Attacker extends Robot {
 //            // wander?
 //            // If enemy is seen, set in combat to true and set global location to enemy location
 //        }
-
-        attack();
     }
 
 
-    public boolean attack() {
-        // Attack the nearest enemy in attack range
+//    //default attack, others may have to implement diffrently
+//    public boolean attack() {
+//
+//
+//        // Attack the nearest enemy in attack range
+//
+//        // If any enemies are still in sight range
+//        // Return false
+//        // else
+//        // Return true;
+//
+//
+//
+//
+//
+//
+//
+//        //if enemy in range attack
+//        // else if global location is set, go to global location
+//        //if nothing at globallocation set empty
+//        //if globallocation empty, wander and set enemy location
+//        return true;
+//    }
 
-        // If any enemies are still in sight range
-        // Return false
-        // else
-        // Return true;
+
+    /**
+     * Attacks the weakest enemy that it can
+     * @return true if nothing to attack false if attacked or has enemy in range
+     */
+    private boolean attackClosestEnemyInRange() {
 
 
+        VecUnit enemyUnits = this.getEnemyUnitsInRange(this.getVisionRange());
+
+        if (enemyUnits.size() == 0) {
+            return true;
+        }
+
+        if (Player.gc.isAttackReady(this.getId())) {
+            Unit closestUnit = getClosestUnit(-1, enemyUnits);
+
+            int closestDistanceToUnit = (int)this.getLocation().distanceSquaredTo(closestUnit.location().mapLocation());
 
 
+            if (closestDistanceToUnit > getAttackRange()) {
+                if (Player.gc.isMoveReady(this.getId())) {
+                    move(this.getId(), closestUnit.location().mapLocation());
+                }
+            }
 
+            if (Player.gc.canAttack(this.getId(), closestUnit.id())) {
+                Player.gc.attack(this.getId(), closestUnit.id());
+            }
+        }
 
-
-        //if enemy in range attack
-        // else if global location is set, go to global location
-        //if nothing at globallocation set empty
-        //if globallocation empty, wander and set enemy location
-        return true;
+        return false;
     }
+
+    public int getAttackRange() { return (int)(Player.gc.unit(this.getId()).attackRange()); }
 }
