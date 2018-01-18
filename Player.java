@@ -9,11 +9,21 @@ public class Player {
 
     public static void main(String[] args) {
 
+        addStartingWorkersToEarthMap();
         while (true) {
 
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
                 System.out.println("Round number: " + gc.round());
+
+                if (gc.round() == 1) {
+                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+                }
+                Earth.execute();
             }
+
 
             gc.nextTurn();
         }
@@ -29,11 +39,36 @@ public class Player {
      */
     public static boolean isOccupiable(MapLocation mapLocation) {
         PlanetMap initialMap = gc.startingMap(mapLocation.getPlanet());
-        if (initialMap.onMap(mapLocation)) {
-            if (Player.gc.canSenseLocation(mapLocation)) {
+        if (initialMap.onMap(mapLocation) && initialMap.isPassableTerrainAt(mapLocation) > 0) {
+            if (gc.canSenseLocation(mapLocation)) {
                 return gc.isOccupiable(mapLocation) > 0;
             } else {
-                System.out.println("Cannot sense location, but it is on the map and passable");
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+
+    /**
+     * Is occupiable for structures
+     * @param mapLocation The location you want to check
+     * @return If it is occupiable or not
+     */
+    public static boolean isOccupiableForStructure(MapLocation mapLocation) {
+        PlanetMap initialMap = gc.startingMap(mapLocation.getPlanet());
+        if (initialMap.onMap(mapLocation) && initialMap.isPassableTerrainAt(mapLocation) > 0) {
+            if (gc.canSenseLocation(mapLocation)) {
+                if (gc.hasUnitAtLocation(mapLocation)) {
+                    if (gc.senseUnitAtLocation(mapLocation).unitType() != UnitType.Factory ||
+                            gc.senseUnitAtLocation(mapLocation).unitType() != UnitType.Rocket) {
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            } else {
                 return true;
             }
 
@@ -50,7 +85,7 @@ public class Player {
      */
     public static boolean moveRobot(int id, MapLocation locationToMoveTo) {
         if(gc.isMoveReady(id)) {
-            PlanetMap startingMap = Player.gc.startingMap(gc.planet());
+            PlanetMap startingMap = gc.startingMap(gc.planet());
             Unit unit;
             try {
                 unit = gc.unit(id);
@@ -133,6 +168,19 @@ public class Player {
 
         System.out.println("LOCATION IS NOT ON THE MAP");
         return -1;
+    }
+
+    /**
+     * Method that will add all the workers on earth to the HashMap of workers at the beginning of the game
+     */
+    private static void addStartingWorkersToEarthMap() {
+        VecUnit units = gc.myUnits();
+        for (int i = 0; i < units.size(); i++) {
+            int unitId = units.get(i).id();
+            UnitInstance worker = new Worker(unitId);
+
+            Earth.earthWorkerMap.put(unitId, worker);
+        }
     }
 }
 

@@ -32,6 +32,10 @@ public class GlobalTask {
         return minimumWorkers;
     }
 
+    public Command getCommand() {
+        return command;
+    }
+
     public HashSet<Integer> getWorkersOnTask() {
         return workersOnTask;
     }
@@ -41,6 +45,7 @@ public class GlobalTask {
     }
 
     public void addWorkerToList(int workerId) {
+        workersOnTask.add(workerId);
         RobotTask moveTask = new RobotTask(taskId, Command.MOVE, taskLocation);
         Earth.earthWorkerMap.get(workerId).setCurrentTask(moveTask);
     }
@@ -61,9 +66,10 @@ public class GlobalTask {
             switch (command) {
 
                 case MOVE:
-                    if (hasBlueprinted) {
-                        RobotTask nextTask = new RobotTask(this.getTaskId(), Command.CONSTRUCT_FACTORY, this.getTaskLocation());
+                    if (!hasBlueprinted) {
+                        RobotTask nextTask = new RobotTask(this.getTaskId(), Command.BLUEPRINT_FACTORY, this.getTaskLocation());
                         Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
+                        System.out.println("Trying laying blueprint!");
 
                         // Taking a risk here. We assume that if a worker is given a blueprint to make, it will
                         // Make it 100% of the time
@@ -88,8 +94,8 @@ public class GlobalTask {
             switch (command) {
 
                 case MOVE:
-                    if (hasBlueprinted) {
-                        RobotTask nextTask = new RobotTask(this.getTaskId(), Command.CONSTRUCT_ROCKET, this.getTaskLocation());
+                    if (!hasBlueprinted) {
+                        RobotTask nextTask = new RobotTask(this.getTaskId(), Command.BLUEPRINT_ROCKET, this.getTaskLocation());
                         Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
 
                         // Taking a risk here. We assume that if a worker is given a blueprint to make, it will

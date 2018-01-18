@@ -14,10 +14,6 @@ public class Worker extends Robot {
     @Override
     public void run() {
 
-//        if (!this.isIdle()) {
-//            manageCurrentRobotTask();
-//        }
-
         if (emergencyTask != null) {
             if (executeTask(emergencyTask)) {
                 emergencyTask = null;
@@ -27,6 +23,8 @@ public class Worker extends Robot {
             if (executeTask(this.getCurrentTask())) {
                 GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
                 globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
+                System.out.println("Moved successfully!");
+                System.out.println("New task is: " + this.getCurrentTask().getCommand());
             }
 
         } else {
@@ -78,7 +76,8 @@ public class Worker extends Robot {
 
         switch (robotCommand) {
             case MOVE:
-                    return Player.moveRobot(this.getId(), commandLocation);
+                System.out.println("Trying to move to: !" + robotTask.getCommandLocation());
+                return Player.moveRobot(this.getId(), commandLocation);
             case CLONE:
                 return cloneWorker(commandLocation);
             case BUILD:
@@ -167,11 +166,16 @@ public class Worker extends Robot {
      * @return If the blueprint was built or not
      */
     private boolean blueprintStructure(MapLocation commandLocation, UnitType unitType) {
+        System.out.println(commandLocation);
         MapLocation robotCurrentLocation = Player.gc.unit(this.getId()).location().mapLocation();
         Direction directionToBlueprint = robotCurrentLocation.directionTo(commandLocation);
 
         if (Player.gc.canBlueprint(this.getId(), unitType, directionToBlueprint)) {
+            System.out.println(this.getId());
+            System.out.println(unitType);
+            System.out.println(directionToBlueprint);
             Player.gc.blueprint(this.getId(), unitType, directionToBlueprint);
+            System.out.println("Blueprinted!");
 
             int structureId = Player.gc.senseUnitAtLocation(commandLocation).id();
             UnitInstance newStructure;
