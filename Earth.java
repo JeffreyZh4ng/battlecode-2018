@@ -3,11 +3,9 @@ import bc.*;
 import java.util.*;
 
 public class Earth extends PlanetInstance {
-    public static HashMap<Integer, GlobalTask> earthTaskMap = new HashMap<>();
 
-    // TODO: Possibly change these two two to queues?
-    public static HashMap<Integer, AttackTarget> earthAttackTargetsMap = new HashMap<>();
-    // public static Queue<AttackTarget> earthProduceRobotMap = new LinkedList<>();
+    public static Queue<GlobalTask> earthTaskQueue = new LinkedList<>();
+    public static HashMap<Integer, GlobalTask> earthTaskMap = new HashMap<>();
 
     public static HashMap<Integer, UnitInstance> earthRocketMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthWorkerMap = new HashMap<>();
@@ -15,7 +13,6 @@ public class Earth extends PlanetInstance {
     public static HashMap<Integer, UnitInstance> earthFactoryMap = new HashMap<>();
 
     public static HashMap<Integer, GlobalTask> earthFinishedTasks = new HashMap<>();
-    public static Queue<AttackTarget> eliminatedTargets = new LinkedList<>();
 
     public static HashMap<Integer, UnitInstance> earthStagingWorkerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
@@ -27,6 +24,7 @@ public class Earth extends PlanetInstance {
 
         updateDeadUnits();
 
+        updateTaskQueue();
         updateTaskMap();
 
         runUnitMap(earthRocketMap);
@@ -44,105 +42,110 @@ public class Earth extends PlanetInstance {
     }
 
     /**
+     * Will update and assign tasks to workers if there are idle workers. Loops through a list of idle workers.
+     * If a sufficient number of workers have been assigned, pop off the task.
+     */
+    private void updateTaskQueue() {
+        for (int workerId: earthWorkerMap.keySet()) {
+            if (earthWorkerMap.get(workerId).isIdle()) {
+
+                GlobalTask globalTask = earthTaskQueue.peek();
+                int taskId = globalTask.getTaskId();
+                if (!earthTaskMap.containsKey(globalTask.getTaskId())) {
+                    earthTaskMap.put(taskId, globalTask);
+                } else {
+                    earthTaskMap.get(taskId);
+                    globalTask.addWorkerToList(workerId);
+                }
+
+                if (globalTask.getMinimumWorkers() == earthTaskMap.get(taskId).getWorkersOnTask().size()) {
+                    earthTaskQueue.poll();
+                }
+            }
+        }
+    }
+
+    /**
      * This method will be called when a factory or blueprint want to be constructed. This method will help
      * choose the location of the structure and add it to the global task list
      * @param command The command of the task that you want to be added to the global list
      */
     public void createGlobalTask(Command command) {
+        int minimumWorkers;
         MapLocation globalTaskLocation;
 
         switch (command) {
             //TODO: crashes if no location is found
             case CONSTRUCT_FACTORY:
+                minimumWorkers = 4;
                 globalTaskLocation = pickStructureLocation();
                 planedStructureLocations.add(globalTaskLocation.toString());
                 break;
             case CONSTRUCT_ROCKET:
+                minimumWorkers = 6;
                 globalTaskLocation = pickStructureLocation();
                 planedStructureLocations.add(globalTaskLocation.toString());
                 break;
             default:
+                minimumWorkers = 4;
                 globalTaskLocation = pickStructureLocation();
                 planedStructureLocations.add(globalTaskLocation.toString());
                 break;
         }
 
-        GlobalTask newGlobalTask = new GlobalTask(command, globalTaskLocation);
-        int globalTaskId = newGlobalTask.getTaskId();
-
-        earthTaskMap.put(globalTaskId, newGlobalTask);
-    }
-
-    /**
-     * When a robot sees a target, send a attackTarget to the attack target map.
-     * @param targetLocation The location of the target
-     * @param targetId The id of the target(if applicable)
-     */
-    public void createAttackTarget(MapLocation targetLocation, int targetId) {
-
+        earthTaskQueue.add(new GlobalTask(minimumWorkers, command, globalTaskLocation));
     }
 
     /**
      * Method that will pick the best MapLocation to build a structure
-     * @return The MapLocation of the best place to build a structure or null if no locations exist or no avalible workers exist
+     * @return The MapLocation of the best place to build a structure or null if no locations exist or no availble workers exist
      */
     private MapLocation pickStructureLocation() {
         ArrayList<MapLocation> clearLocations = new ArrayList<>();
-        System.out.println("planned locs: "+planedStructureLocations);
-        //iterate over all positions that could be surrounded by empty spaces
-        for (int x = 1; x < Player.gc.startingMap(Player.gc.planet()).getWidth()-1; x++) {
-            for (int y = 1; y < Player.gc.startingMap(Player.gc.planet()).getHeight()-1; y++) {
+
+        int xMax = (int)(Player.gc.startingMap(Player.gc.planet()).getWidth() - 1);
+        int yMax = (int)(Player.gc.startingMap(Player.gc.planet()).getHeight() - 1);
+        for (int x = 1; x < xMax; x++) {
+            for (int y = 1; y < yMax; y++) {
 
                 //location to test is the center location
                 MapLocation locationToTest = new MapLocation(Player.gc.planet(),x,y);
-                if (planedStructureLocations.contains(locationToTest.toString()));
                 Boolean isClear = true;
-                for(Direction direction : Direction.values()) {
 
-                    //is already a planed location or is not passable terrain
-                    if (planedStructureLocations.contains(locationToTest.add(direction).toString()) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
-                        isClear = false;
-                        break;
-                    }
-                    //if has structure
-                    if (Player.gc.canSenseLocation(locationToTest.add(direction)) && Player.gc.hasUnitAtLocation(locationToTest.add(direction)) && (Player.gc.senseUnitAtLocation(locationToTest.add(direction)).unitType() == UnitType.Factory || Player.gc.senseUnitAtLocation(locationToTest.add(direction)).unitType() == UnitType.Rocket)) {
+                for(Direction direction : Direction.values()) {
+                    if (!Player.isOccupiable(locationToTest.add(direction))) {
                         isClear = false;
                         break;
                     }
                 }
+
                 if (isClear) {
                     clearLocations.add(locationToTest);
                 }
             }
         }
-        System.out.println("clear loc count: " + clearLocations.size());
-        MapLocation closestLocation = null;
-        long shortestDistance = 1000; //the number this starts as should not matter
 
-        //choose best location from list
+        MapLocation closestLocation = null;
+        long shortestDistance = 1000;
+
         for (MapLocation location : clearLocations) {
             for (int workerId: earthWorkerMap.keySet()) {
 
-                MapLocation workerLocation = Player.gc.unit(workerId).location().mapLocation();
+                MapLocation workerLocation = Earth.earthWorkerMap.get(workerId).getLocation();
 
-                if (earthWorkerMap.get(workerId).getRobotTaskQueue().size() == 0) {
+                if (workerLocation.distanceSquaredTo(location) <= 32) {
+                    return location;
 
-                    if (workerLocation.distanceSquaredTo(location) <= 32) {
-                        return location;
+                } else if (closestLocation == null) {
+                    closestLocation = location;
+                    shortestDistance = location.distanceSquaredTo(workerLocation);
 
-                    } else if (closestLocation == null) {
-                        closestLocation = location;
-                        shortestDistance = location.distanceSquaredTo(workerLocation);
-
-                    } else if (closestLocation.distanceSquaredTo(workerLocation) < shortestDistance) {
-                        closestLocation = location;
-                        shortestDistance = location.distanceSquaredTo(workerLocation);
-                    }
+                } else if (closestLocation.distanceSquaredTo(workerLocation) < shortestDistance) {
+                    closestLocation = location;
+                    shortestDistance = location.distanceSquaredTo(workerLocation);
                 }
             }
-
         }
-        System.out.println("closesloc: " + closestLocation);
         return closestLocation;
     }
 
@@ -151,100 +154,101 @@ public class Earth extends PlanetInstance {
      */
     private void updateTaskMap() {
         for (int globalTaskId: earthTaskMap.keySet()) {
-            GlobalTask globalTask = earthTaskMap.get(globalTaskId);
-            Command taskCommand = earthTaskMap.get(globalTaskId).getCommand();
-
-            if (globalTask.getWorkersOnTask().size() == 0) {
-                sendTaskToClosestIdleWorker(globalTask);
-
-            } else {
-                switch (taskCommand) {
-                    case CONSTRUCT_FACTORY:
-                        manageConstruction(globalTask);
-                        break;
-                    case CONSTRUCT_ROCKET:
-                        manageConstruction(globalTask);
-                        break;
-                    case LOAD_ROCKET:
-                        break;
-                    case BUILD:
-                }
-            }
+//            GlobalTask globalTask = earthTaskMap.get(globalTaskId);
+//            Command taskCommand = earthTaskMap.get(globalTaskId).getCommand();
+//
+//            if (globalTask.getWorkersOnTask().size() == 0) {
+//                sendTaskToClosestIdleWorker(globalTask);
+//
+//            } else {
+//                switch (taskCommand) {
+//                    case CONSTRUCT_FACTORY:
+//                        manageConstruction(globalTask);
+//                        break;
+//                    case CONSTRUCT_ROCKET:
+//                        manageConstruction(globalTask);
+//                        break;
+//                    case LOAD_ROCKET:
+//                        break;
+//                    case BUILD:
+//                }
+//            }
+            // Add any workers directly adjacent to the taskmap.
         }
     }
 
-    /**
-     * Sends task to the nearest worker
-     * @param globalTask The task you want to send to the worker
-     */
-    private void sendTaskToClosestIdleWorker(GlobalTask globalTask) {
-        int workerId = findNearestIdleWorker();
-        if (workerId == -1) {
-            return;
-        }
+//    /**
+//     * Sends task to the nearest worker
+//     * @param globalTask The task you want to send to the worker
+//     */
+//    private void sendTaskToClosestIdleWorker(GlobalTask globalTask) {
+//        int workerId = findNearestIdleWorker();
+//        if (workerId == -1) {
+//            return;
+//        }
+//
+//        int taskId = globalTask.getTaskId();
+//        globalTask.addWorkerToList(workerId);
+//        MapLocation taskLocation = globalTask.getTaskLocation();
+//
+//        RobotTask moveTask = new RobotTask(taskId, 1, Command.MOVE, taskLocation);
+//        RobotTask blueprintTask;
+//        RobotTask buildTask = new RobotTask(taskId, 3, Command.BUILD, taskLocation);
+//
+//
+//        switch (globalTask.getCommand()) {
+//            case CONSTRUCT_FACTORY:
+//                earthWorkerMap.get(workerId).addTask(moveTask);
+//
+//                blueprintTask = new RobotTask(taskId, 2, Command.BLUEPRINT_FACTORY, taskLocation);
+//                earthWorkerMap.get(workerId).addTask(blueprintTask);
+//
+//                earthWorkerMap.get(workerId).addTask(buildTask);
+//                System.out.println("This should not run! Ran for worker " + workerId);
+//
+//                break;
+//            case CONSTRUCT_ROCKET:
+//                earthWorkerMap.get(workerId).addTask(moveTask);
+//
+//                blueprintTask = new RobotTask(taskId, 2, Command.BLUEPRINT_ROCKET, taskLocation);
+//                earthWorkerMap.get(workerId).addTask(blueprintTask);
+//
+//                earthWorkerMap.get(workerId).addTask(buildTask);
+//
+//                break;
+//            case LOAD_ROCKET:
+//                break;
+//        }
+//    }
+//
+//    /**
+//     * Finds the nearest worker
+//     * @return The nearest worker
+//     */
+//    private int findNearestIdleWorker() {
+//        for (int workerId: earthWorkerMap.keySet()) {
+//            if (earthWorkerMap.get(workerId).getRobotTaskQueue().size() == 0) {
+//                return workerId;
+//            }
+//        }
+//
+//        return -1;
+//    }
 
-        int taskId = globalTask.getTaskId();
-        globalTask.addWorkerToList(workerId);
-        MapLocation taskLocation = globalTask.getTaskLocation();
-
-        RobotTask moveTask = new RobotTask(taskId, 1, Command.MOVE, taskLocation);
-        RobotTask blueprintTask;
-        RobotTask buildTask = new RobotTask(taskId, 3, Command.BUILD, taskLocation);
-
-
-        switch (globalTask.getCommand()) {
-            case CONSTRUCT_FACTORY:
-                earthWorkerMap.get(workerId).addTask(moveTask);
-
-                blueprintTask = new RobotTask(taskId, 2, Command.BLUEPRINT_FACTORY, taskLocation);
-                earthWorkerMap.get(workerId).addTask(blueprintTask);
-
-                earthWorkerMap.get(workerId).addTask(buildTask);
-                System.out.println("This should not run! Ran for worker " + workerId);
-
-                break;
-            case CONSTRUCT_ROCKET:
-                earthWorkerMap.get(workerId).addTask(moveTask);
-
-                blueprintTask = new RobotTask(taskId, 2, Command.BLUEPRINT_ROCKET, taskLocation);
-                earthWorkerMap.get(workerId).addTask(blueprintTask);
-
-                earthWorkerMap.get(workerId).addTask(buildTask);
-
-                break;
-            case LOAD_ROCKET:
-                break;
-        }
-    }
-
-    /**
-     * Finds the nearest worker
-     * @return The nearest worker
-     */
-    private int findNearestIdleWorker() {
-        for (int workerId: earthWorkerMap.keySet()) {
-            if (earthWorkerMap.get(workerId).getRobotTaskQueue().size() == 0) {
-                return workerId;
-            }
-        }
-
-        return -1;
-    }
-
-    /**
-     * Method that is called every time the global task is updated. Workers will fulfill the priority task to
-     * clone themselves and put them next to the structure. At the beginning of each round, the global task
-     * will look for those new workers and add them to the list and send out robot commands.
-     * @param globalTask The task you want to add workers to
-     */
-    private void manageConstruction(GlobalTask globalTask) {
-        if (globalTask.getCompletionStage() == 4) {
-            globalTask.incrementCompletionStage();
-            System.out.println("Finished building! Waiting one turn to delete...");
-        } else if (globalTask.getCompletionStage() == 5) {
-            earthFinishedTasks.put(globalTask.getTaskId(), globalTask);
-
-        } else {
+//    /**
+//     * Method that is called every time the global task is updated. Workers will fulfill the priority task to
+//     * clone themselves and put them next to the structure. At the beginning of each round, the global task
+//     * will look for those new workers and add them to the list and send out robot commands.
+//            * @param globalTask The task you want to add workers to
+//     */
+//    private void manageConstruction(GlobalTask globalTask) {
+//        if (globalTask.getCompletionStage() == 4) {
+//            globalTask.incrementCompletionStage();
+//            System.out.println("Finished building! Waiting one turn to delete...");
+//        } else if (globalTask.getCompletionStage() == 5) {
+//            earthFinishedTasks.put(globalTask.getTaskId(), globalTask);
+//
+//        } else {
 //            VecUnit unitList = Player.gc.senseNearbyUnits(globalTask.getTaskLocation(), 2);
 //
 //            for (int i = 0; i < unitList.size(); i++) {
@@ -268,8 +272,8 @@ public class Earth extends PlanetInstance {
 //                    earthWorkerMap.get(unit.id()).addTask(buildTask);
 //                }
 //            }
-        }
-    }
+//        }
+//    }
 
     /**
      * That that will run the execute() command for all the units in the given HashMap
@@ -313,8 +317,8 @@ public class Earth extends PlanetInstance {
 
                 // If the unit is dead, we must update the HashSets of the tasks it was part of.
                 UnitInstance unit = searchMap.get(unitId);
-                for (int i = 0; i < unit.getRobotTaskQueue().size(); i++) {
-                    int globalTaskId = unit.pollTask().getTaskId();
+                if (unit.getCurrentTask() != null) {
+                    int globalTaskId = unit.getCurrentTask().getTaskId();
                     earthTaskMap.get(globalTaskId).removeWorkerFromList(unitId);
                 }
             }

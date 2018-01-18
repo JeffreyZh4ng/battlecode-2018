@@ -18,4 +18,5 @@ public enum Command {
     CLONE,
     SNIPE,
     MOVE,
+    STALL,
 }
