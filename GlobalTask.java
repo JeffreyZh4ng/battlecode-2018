@@ -69,7 +69,6 @@ public class GlobalTask {
                     if (!hasBlueprinted) {
                         RobotTask nextTask = new RobotTask(this.getTaskId(), Command.BLUEPRINT_FACTORY, this.getTaskLocation());
                         Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
-                        System.out.println("Trying laying blueprint!");
 
                         // Taking a risk here. We assume that if a worker is given a blueprint to make, it will
                         // Make it 100% of the time

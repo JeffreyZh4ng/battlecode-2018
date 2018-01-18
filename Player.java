@@ -19,9 +19,12 @@ public class Player {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+//                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                 }
+
                 Earth.execute();
+
+                System.out.println("");
             }
 
 
@@ -80,18 +83,18 @@ public class Player {
     /**
      * Should move robot in given direction,
      * checks that: unit exists, unit is correct team, unit is on this map, destination is on map, destination is empty
-     * @param id The id of the robot to move
+     * @param unitId The id of the robot to move
      * @return If move was successful
      */
-    public static boolean moveRobot(int id, MapLocation locationToMoveTo) {
-        if(gc.isMoveReady(id)) {
+    public static boolean canMove(int unitId, MapLocation locationToMoveTo) {
+        if(gc.isMoveReady(unitId)) {
             PlanetMap startingMap = gc.startingMap(gc.planet());
             Unit unit;
             try {
-                unit = gc.unit(id);
+                unit = gc.unit(unitId);
             } catch (Exception e) {
                 System.out.println(e);
-                System.out.println("UNIT WITH ID: " + id + " DOES NOT EXIST");
+                System.out.println("UNIT WITH ID: " + unitId + " DOES NOT EXIST");
                 return false;
             }
 
@@ -100,9 +103,8 @@ public class Player {
 
                     MapLocation unitMapLocation = unit.location().mapLocation();
 
-                    if (startingMap.onMap(unitMapLocation) && isOccupiable(locationToMoveTo) && gc.canMove(id, unitMapLocation.directionTo(locationToMoveTo))) {
+                    if (startingMap.onMap(unitMapLocation) && isOccupiable(locationToMoveTo) && gc.canMove(unitId, unitMapLocation.directionTo(locationToMoveTo))) {
                         try {
-                            gc.moveRobot(id, unitMapLocation.directionTo(locationToMoveTo));
                             return true;
                         } catch (Exception e) {
                             System.out.println(e);
@@ -127,6 +129,49 @@ public class Player {
             return false;
         }
     }
+
+//        Planet planet = locationToMoveTo.getPlanet();
+//        UnitType unitType;
+//        try {
+//            unitType = gc.unit(unitId).unitType();
+//        } catch (Exception e) {
+//            System.out.println(e);
+//            System.out.println("Unit with ID : " + unitId + " doesn't exist");
+//            return false;
+//        }
+//
+//        UnitInstance unitInstance;
+//        if (unitType == UnitType.Worker) {
+//            if (planet == Planet.Earth) {
+//                unitInstance = Earth.earthWorkerMap.get(unitId);
+//            } else {
+//                unitInstance = Mars.marsWorkerMap.get(unitId);
+//            }
+//        } else {
+//            if (planet == Planet.Earth) {
+//                unitInstance = Earth.earthAttackerMap.get(unitId);
+//            } else {
+//                unitInstance = Mars.marsAttackerMap.get(unitId);
+//            }
+//        }
+//
+//        if (gc.isMoveReady(unitId)) {
+//            if (planet == gc.planet()) {
+//                if (isOccupiable(locationToMoveTo)) {
+//                    try {
+//                        return true;
+//                    } catch (Exception e) {
+//                        System.out.println(e);
+//                        System.out.println();
+//                    }
+//                    System.out.println("The direction indicated is not occupiable");
+//                    return false;
+//                }
+//            }
+//            System.out.println("Unit: " + unitId + " is not on the planet: " + planet);
+//        }
+//
+//        return false;
 
     /**
      * Simplified method of senseUnitAtLocation that will handle the exception of if the location is not visible.

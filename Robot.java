@@ -56,7 +56,6 @@ public abstract class Robot extends UnitInstance {
      * @return if the robot has reached within on square of its destination or cannot get to destination at all
      */
     public boolean move(int robotId, MapLocation destinationLocation) {
-        System.out.println("moving robot: " + robotId+ "towards dest: " + destinationLocation + "from: ");
 
         // If this robot is covering destination
         if (Player.gc.unit(robotId).location().mapLocation().equals(destinationLocation)) {

@@ -150,7 +150,7 @@ public class Ranger extends Attacker {
 
             if (closestDistanceToUnit < MIN_ATTACK_RANGE) {
                 // TODO: try move back could be better then this
-                Player.moveRobot(this.getId(), this.getLocation().add(closestUnit.location().mapLocation().directionTo(this.getLocation())));
+                // Player.moveRobot(this.getId(), this.getLocation().add(closestUnit.location().mapLocation().directionTo(this.getLocation())));
                 closestUnit = getClosestUnit(-1, Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getAttackRange(), otherTeam));
             }
 

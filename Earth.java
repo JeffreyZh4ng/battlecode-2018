@@ -19,12 +19,11 @@ public class Earth extends PlanetInstance {
 
     public static HashSet<String> planedStructureLocations = new HashSet<>();
 
-
     public static void execute() {
 
         updateDeadUnits();
 
-        updateTaskMap();
+        // updateTaskMap();
         updateTaskQueue();
 
         runUnitMap(earthRocketMap);
@@ -46,11 +45,20 @@ public class Earth extends PlanetInstance {
      * If a sufficient number of workers have been assigned, pop off the task.
      */
     private static void updateTaskQueue() {
+        if (earthTaskQueue.size() == 0) {
+            return;
+        }
+
+        while (earthTaskQueue.peek().getWorkersOnTask().size() >= earthTaskQueue.peek().getMinimumWorkers()) {
+            earthTaskQueue.poll();
+        }
+
         for (int workerId: earthWorkerMap.keySet()) {
             if (earthWorkerMap.get(workerId).isIdle()) {
 
                 GlobalTask globalTask = earthTaskQueue.peek();
                 int taskId = globalTask.getTaskId();
+
                 if (!earthTaskMap.containsKey(globalTask.getTaskId())) {
                     globalTask.addWorkerToList(workerId);
 
@@ -60,10 +68,13 @@ public class Earth extends PlanetInstance {
                 } else {
                     earthTaskMap.get(taskId);
                     globalTask.addWorkerToList(workerId);
+                    System.out.println("Added worker: " + workerId + " to task: " + taskId);
+                    System.out.println("Current workers on task: " + globalTask.getWorkersOnTask().size());
                 }
 
                 if (globalTask.getMinimumWorkers() == earthTaskMap.get(taskId).getWorkersOnTask().size()) {
                     earthTaskQueue.poll();
+                    System.out.println("Task has enough workers! Polling: " + taskId);
                 }
             }
         }
@@ -163,29 +174,30 @@ public class Earth extends PlanetInstance {
     /**
      * Runs through the earthTaskMap and will update progress on each task
      */
-    private static void updateTaskMap() {
-        for (int globalTaskId: earthTaskMap.keySet()) {
-            GlobalTask globalTask = earthTaskMap.get(globalTaskId);
-            Command taskCommand = earthTaskMap.get(globalTaskId).getCommand();
-
-            if (globalTask.getWorkersOnTask().size() == 0) {
-                Earth.earthTaskQueue.add(globalTask);
-                Earth.earthFinishedTasks.add(globalTaskId);
-            }
-
-            switch (taskCommand) {
-                case CONSTRUCT_FACTORY:
-                    addAdjacentUnitsToList(globalTask);
-                    break;
-                case CONSTRUCT_ROCKET:
-                    addAdjacentUnitsToList(globalTask);
-                    break;
-                case LOAD_ROCKET:
-                    break;
-            }
-            // Add any workers directly adjacent to the taskmap.
-        }
-    }
+//    private static void updateTaskMap() {
+//        System.out.println("Earth global tasks size: " + earthTaskMap.keySet().size());
+//        for (int globalTaskId: earthTaskMap.keySet()) {
+//            GlobalTask globalTask = earthTaskMap.get(globalTaskId);
+//            Command taskCommand = earthTaskMap.get(globalTaskId).getCommand();
+//
+//            if (globalTask.getWorkersOnTask().size() == 0) {
+//                Earth.earthTaskQueue.add(globalTask);
+//                Earth.earthFinishedTasks.add(globalTaskId);
+//            }
+//
+//            switch (taskCommand) {
+//                case CONSTRUCT_FACTORY:
+//                    addAdjacentUnitsToList(globalTask);
+//                    break;
+//                case CONSTRUCT_ROCKET:
+//                    addAdjacentUnitsToList(globalTask);
+//                    break;
+//                case LOAD_ROCKET:
+//                    break;
+//            }
+//            // Add any workers directly adjacent to the taskmap.
+//        }
+//    }
 
     /**
      * Helper method for the update task map method that will add units adjacent workers to the tasks map
@@ -339,6 +351,7 @@ public class Earth extends PlanetInstance {
     private static HashMap<Integer, UnitInstance> addStagingUnitsToMap(HashMap<Integer, UnitInstance> unitMap, HashMap<Integer, UnitInstance> stagingMap) {
         for (int unitId: stagingMap.keySet()) {
             unitMap.put(unitId, stagingMap.get(unitId));
+            System.out.println("Added unit: " + unitId + " To the current list");
         }
 
         return unitMap;

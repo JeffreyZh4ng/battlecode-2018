@@ -16,18 +16,22 @@ public class Worker extends Robot {
 
         if (emergencyTask != null) {
             if (executeTask(emergencyTask)) {
+                System.out.println("Unit: " + this.getId() + "Finished emergency task!");
                 emergencyTask = null;
             }
 
         } else if (!this.isIdle()) {
             if (executeTask(this.getCurrentTask())) {
                 GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
+                System.out.println("Unit: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
                 globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
-                System.out.println("Moved successfully!");
-                System.out.println("New task is: " + this.getCurrentTask().getCommand());
+
+                // Perform run again?
+                run();
             }
 
         } else {
+            System.out.println("Unit: " + this.getId() + " wandering!");
             wander();
         }
 
@@ -43,11 +47,16 @@ public class Worker extends Robot {
     private boolean executeTask(RobotTask robotTask) {
         Command robotCommand = robotTask.getCommand();
         MapLocation commandLocation = robotTask.getCommandLocation();
+        System.out.println("Unit: " + this.getId() + " " + robotCommand);
 
         switch (robotCommand) {
             case MOVE:
-                System.out.println("Trying to move to: !" + robotTask.getCommandLocation());
-                return Player.moveRobot(this.getId(), commandLocation);
+                if (Player.gc.isMoveReady(this.getId())) {
+                    System.out.println("Unit: " + this.getId() + " MOVED!");
+                    return this.move(this.getId(), commandLocation);
+                } else {
+                    return false;
+                }
             case CLONE:
                 return cloneWorker(commandLocation);
             case BUILD:
@@ -86,7 +95,7 @@ public class Worker extends Robot {
 
                     Earth.earthStagingWorkerMap.put(clonedWorkerId, newWorker);
 
-                    System.out.println("Robot: " + this.getId() + " Cloned worker!");
+                    System.out.println("Unit: " + this.getId() + " Cloned worker!");
                     System.out.println("New worker has ID of: " + clonedWorkerId);
                     return true;
                 }
@@ -106,6 +115,7 @@ public class Worker extends Robot {
 
         if (Player.gc.canBuild(this.getId(), structureId)) {
             Player.gc.build(this.getId(), structureId);
+            System.out.println("Unit: " + this.getId() + " ran build()");
 
             if (Player.gc.unit(structureId).structureIsBuilt() > 0) {
 
@@ -120,7 +130,7 @@ public class Worker extends Robot {
                     Earth.earthFactoryMap.put(rocket.getId(), builtRocket);
                 }
 
-                System.out.println("Robot: " + this.getId() + " Built structure!");
+                System.out.println("Unit: " + this.getId() + " Built structure!");
                 return true;
             }
         }
@@ -136,16 +146,11 @@ public class Worker extends Robot {
      * @return If the blueprint was built or not
      */
     private boolean blueprintStructure(MapLocation commandLocation, UnitType unitType) {
-        System.out.println(commandLocation);
         MapLocation robotCurrentLocation = Player.gc.unit(this.getId()).location().mapLocation();
         Direction directionToBlueprint = robotCurrentLocation.directionTo(commandLocation);
 
         if (Player.gc.canBlueprint(this.getId(), unitType, directionToBlueprint)) {
-            System.out.println(this.getId());
-            System.out.println(unitType);
-            System.out.println(directionToBlueprint);
             Player.gc.blueprint(this.getId(), unitType, directionToBlueprint);
-            System.out.println("Blueprinted!");
 
             int structureId = Player.gc.senseUnitAtLocation(commandLocation).id();
             UnitInstance newStructure;
@@ -157,7 +162,7 @@ public class Worker extends Robot {
                 Earth.earthRocketMap.put(structureId, newStructure);
             }
 
-            System.out.println("Robot: " + this.getId() + " Blueprinted structure!");
+            System.out.println("Unit: " + this.getId() + " Blueprinted structure!");
             Earth.planedStructureLocations.remove(commandLocation.toString());
 
             return true;
