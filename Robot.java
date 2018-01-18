@@ -75,7 +75,7 @@ public abstract class Robot extends UnitInstance {
         if (Player.gc.unit(robotId).location().mapLocation().isAdjacentTo(destinationLocation)) {
             return true;
         }
-        
+
         // if path should be recalculated
         if (path == null || path.size() == 0 || !path.get(path.size()-1).equals(destinationLocation)
                 || !Player.gc.canMove(robotId, this.getLocation().directionTo(path.get(0)))) {
@@ -102,6 +102,7 @@ public abstract class Robot extends UnitInstance {
     public static ArrayList<MapLocation> getPathFromBreadthFirstSearch(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
 
         // TODO: make stop searching once destination found
+            //
         ArrayList<Direction> moveDirections = getMoveDirections();
 
         Queue<MapLocation> frontier = new LinkedList<>();
@@ -121,6 +122,9 @@ public abstract class Robot extends UnitInstance {
                 if (doesLocationAppearEmpty(map, nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
                     frontier.add(nextLocation);
                     cameFrom.put(nextLocation.toString(), currentLocation);
+                    if (currentLocation.isAdjacentTo(destinationLocation)) {
+                        frontier.clear();
+                    }
                 }
             }
         }
