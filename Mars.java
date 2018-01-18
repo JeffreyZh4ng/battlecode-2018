@@ -1,4 +1,4 @@
-public class Mars {
+public class Mars extends PlanetInstance {
     public void execute() {
 
     }

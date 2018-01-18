@@ -2,7 +2,8 @@ import bc.*;
 
 import java.util.*;
 
-public class Earth {
+public class Earth extends PlanetInstance {
+
     public static Queue<GlobalTask> earthTaskQueue = new LinkedList<>();
     public static HashMap<Integer, GlobalTask> earthTaskMap = new HashMap<>();
 
@@ -17,6 +18,7 @@ public class Earth {
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
 
     public static HashSet<String> planedStructureLocations = new HashSet<>();
+
 
     public void execute() {
 
