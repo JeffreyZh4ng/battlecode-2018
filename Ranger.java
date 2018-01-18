@@ -119,17 +119,9 @@ public class Ranger extends Attacker {
 //        return true;
 //    }
 
-    private void senseNearbyEnemies() {
-        Team otherTeam = Player.gc.team() == Team.Blue ? Team.Red : Team.Blue;
-        VecUnit enemyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), otherTeam);
-        if (enemyUnits.size() != 0) {
-            RobotTask newTask = new RobotTask(-1, -1, Command.IN_COMBAT, this.getLocation());
-            this.setEmergencyTask(newTask);
-        }
-    }
 
     /**
-     * attacks the weakest enemy that it can
+     * Attacks the weakest enemy that it can
      * @return true if nothing to attack false if attacked or has enemy in range
      */
     private boolean attackClosestEnemyInRange() {
@@ -140,9 +132,9 @@ public class Ranger extends Attacker {
             return true;
         }
 
-        if (Player.gc.unit(this.getId()).attackHeat() < 10) {
+        if (Player.gc.isAttackReady(this.getId())) {
             Unit enemyUnit = enemyUnits.get(0);
-            int closestDistanceToUnit = -1;
+            int closestDistanceToUnit = (int)(this.getLocation().distanceSquaredTo(enemyUnits.get(0).location().mapLocation()));;
             for (int i = 0; i < enemyUnits.size(); i++) {
                 int distanceToUnit = (int)(this.getLocation().distanceSquaredTo(enemyUnits.get(i).location().mapLocation()));
                 if (distanceToUnit < closestDistanceToUnit) {

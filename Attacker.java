@@ -1,3 +1,4 @@
+import bc.MapLocation;
 import bc.Planet;
 
 public abstract class Attacker extends Robot {
@@ -10,10 +11,30 @@ public abstract class Attacker extends Robot {
 
     public void runAttack() {
 
+        //get correct attack target
+        MapLocation attackTarget = null;
         if (Player.gc.planet() == Planet.Earth) {
+            attackTarget = Earth.attackTarget;
+        } else if (Player.gc.planet() == Planet.Mars) {
+            attackTarget = Mars.attackTarget;
+        } else {
+            System.out.println("ERROR not on planet");
+        }
+
+
+        if (attackTarget != null && !this.inCombat) {
+            move(this.getId(),attackTarget);
+
+        } else if(this.inCombat) {
+            if(attack()) {
+                this.inCombat = false;
+            }
+            if (attackTarget == null) {
+
+            }
+        } else {
 
         }
-        if (Earth.attackTarget == null)
 
 //        if (global target && not in combat) {
 //            // move towards global target
