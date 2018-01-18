@@ -13,7 +13,7 @@ import java.util.Queue;
 public abstract class UnitInstance {
 
     private int id;
-    private Queue<RobotTask> robotTaskQueue = new LinkedList<>();
+    private RobotTask currentTask;
 
     public UnitInstance(int id) {
         this.id = id;
@@ -29,34 +29,20 @@ public abstract class UnitInstance {
         return id;
     }
 
-    public Queue<RobotTask> getRobotTaskQueue() {
-        return robotTaskQueue;
+    public boolean isIdle() {
+        return currentTask == null;
     }
 
-    public RobotTask getTopTask() {
-        if (robotTaskQueue.size() > 0) {
-            return robotTaskQueue.peek();
-        } else {
-            return null;
-        }
+    public RobotTask getCurrentTask() {
+        return currentTask;
     }
 
-    public RobotTask pollTask() {
-        RobotTask task = this.getTopTask();
-        removeTask();
-        return task;
-    }
-
-    public void addTask(RobotTask robotTask) {
-        robotTaskQueue.add(robotTask);
+    public void setCurrentTask(RobotTask currentTask) {
+        this.currentTask = currentTask;
     }
 
     public void removeTask() {
-        if (robotTaskQueue.size() > 0) {
-            robotTaskQueue.poll();
-        } else {
-            System.out.println("WTF IS HAPPENING?!?! Tried to remove task from an empty queue! Robot: " + this.id);
-        }
+        currentTask = null;
     }
 
     public MapLocation getLocation() {

@@ -8,291 +8,251 @@ import java.util.LinkedList;
  */
 public abstract class Robot extends UnitInstance {
 
-    private RobotTask emergencyTask = null;
+    private boolean inCombat;
 
     public Robot(int id) {
         super(id);
     }
 
-    public RobotTask getEmergencyTask() {
-        return emergencyTask;
+    public boolean isInCombat() {
+        return this.inCombat;
     }
 
-    public void setEmergencyTask(RobotTask emergencyTask) {
-        this.emergencyTask = emergencyTask;
+    public void setInCombat(boolean inCombat) {
+        this.inCombat = inCombat;
     }
 
-    /**
-     * Method that will add an attack target to the queue if it is seen
-     * @param robotId The id of the robot sensing
-     * @param radius The radius of the sensing robot
-     */
-    public void senseArea(int robotId, int radius) {
-        MapLocation currentLocation = Player.gc.unit(robotId).location().mapLocation();
-        VecMapLocation locations = Player.gc.allLocationsWithin(currentLocation, radius);
-
-        for (int i = 0; i < locations.size(); i++) {
-            MapLocation location = locations.get(i);
-            if (Player.gc.hasUnitAtLocation(location)) {
-                if (Player.gc.senseUnitAtLocation(location).team() != Player.gc.team()) {
-                    Unit enemy = Player.gc.senseUnitAtLocation(location);
-                    AttackTarget newTarget = new AttackTarget(enemy.id(), location);
-                    Earth.earthAttackTargetsMap.put(enemy.id(), newTarget);
-                }
-            }
-        }
-    }
-
-    /**
-     * For when a robot has nothing to do, should move around so that it finds tasks or gain information this method
-     * finds a location to explore
-     * @return A random location that seems good to be explored
-     */
-    public static MapLocation getLocationToExplore() {
-        PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
-        MapLocation randomLocation = getRandomLocation(initialMap);
-
-        //give up after a certain number of tries
-        int tries = 0;
-        while (Player.gc.canSenseLocation(randomLocation) && !(initialMap.isPassableTerrainAt(randomLocation) > 0) && tries < 100) {
-            randomLocation = getRandomLocation(initialMap);
-        }
-        return randomLocation;
-    }
-
-    /**
-     * Randomly chooses a location
-     * @param map The map that the location should be on
-     * @return A random location on the map
-     */
-    private static MapLocation getRandomLocation(PlanetMap map) {
-        return new MapLocation(map.getPlanet(), (int)(Math.random()*map.getWidth()),(int)(Math.random()*map.getHeight()));
-    }
-
-    public boolean moveTowardsDestination(int robotId, MapLocation destinationLocation) {
-
-        System.out.println("moving robot: " + robotId);
-
-        //get optimal location to move to
-        HashSet<MapLocation> locationsToMoveTo = getNextLocationsFromDepthMap(Player.gc.unit(robotId).location().mapLocation(), destinationLocation);
-
-        //if no location to move to, return true
-        if (locationsToMoveTo.size() == 0) {
-            System.out.println("locations to moveto size is 0");
-            return true;
-        }
-
-        //try to move to location
-        Direction directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationsToMoveTo.iterator().next());
-        if (Player.gc.canMove(robotId, directionToMove)) {
-            Player.gc.moveRobot(robotId, directionToMove);
-        }
-
-        return false;
-    }
-
-    /**
-     * Gets the next locations to move to in order to get to finalLocation
-     * @param initialLocation The current location of the unit to be moved
-     * @param finalLocation The target destination
-     * @return The next optimal location options to move to
-     */
-    public HashSet<MapLocation> getNextLocationsFromDepthMap(MapLocation initialLocation, MapLocation finalLocation) {
-
-        //get the depth map
-        HashMap<Integer, HashSet<MapLocation>> depthMap = getDepthMap(initialLocation, finalLocation);
-        System.out.println("dmap: "+ depthMap.size()+"from: "+initialLocation+"to: "+finalLocation);
-        //trace back path
-        HashSet<MapLocation> locationsOnPath = new HashSet<>();
-        System.out.println(depthMap.size());
-        for (int i = 1; i <= depthMap.size(); i++) {
-
-            //find the integer value of the final location
-            if (depthMap.get(i).contains(finalLocation)) {
-                locationsOnPath.add(finalLocation);
-                System.out.println("i is:" + i);
-                while (i>=0) {
-                    i--;
-                    HashSet<MapLocation> nextLocationsOnPath = new HashSet<>();
-                    for (MapLocation location : locationsOnPath) {
-                        nextLocationsOnPath.addAll(getAdjacentLocationsFromHashSet(depthMap.get(i),location));
-                    }
-                    locationsOnPath = nextLocationsOnPath;
-                }
-            }
-        }
-        return locationsOnPath;
-    }
-
-
-
-    public HashSet<MapLocation> getAdjacentLocationsFromHashSet(HashSet<MapLocation> nextLocationSet, MapLocation destinationLocation) {
-        HashSet<MapLocation> adjacentLocations = new HashSet<>();
-        //return all adjacent locations in set
-        for (MapLocation location : nextLocationSet) {
-            if(location.isAdjacentTo(destinationLocation)) {
-                adjacentLocations.add(location);
-            }
-        }
-        return adjacentLocations;
-    }
-
-
-
-
-
-
-
-
-
-
-    /**
-     * A method that will convert the recognizable string back into a MapLocation
-     * @param location The MapLocation represented by the string
-     * @return A MapLocation that represents the string
-     */
-    private static MapLocation stringToMapLocation(String location) {
-        Planet mapPlanet;
-        if (location.charAt(0) == ' ') {
-            mapPlanet = Planet.Mars;
-            location = location.substring(1);
-        } else {
-            mapPlanet = Planet.Earth;
-        }
-
-        int spaceIndex = location.indexOf(' ');
-        int xLocation = Integer.parseInt(location.substring(0, spaceIndex));
-        location = location.substring(spaceIndex + 1);
-        int yLocation = Integer.parseInt(location);
-
-        return new MapLocation(mapPlanet, xLocation, yLocation);
-    }
-
-
-
-
-    /**
-     * This method will get a depth map of all the shortest paths from an initial MapLocation to a final MapLocation
-     * @param initialLocation The initial MapLocation
-     * @param finalLocation The final MapLocation
-     */
-    public static HashMap<Integer, HashSet<MapLocation>> getDepthMap(MapLocation initialLocation, MapLocation finalLocation)
-    {
-        HashMap<Integer, HashSet<MapLocation>> depthMap = new HashMap<>();
-
-        HashMap<String, Integer> allLocations = new HashMap<>();
-        allLocations.put(initialLocation.toString(), 0);
-
-        depthMap = searchForPath(initialLocation, finalLocation, 1, depthMap, allLocations);
-        depthMap.remove(-1);
-
-        return depthMap;
-    }
-
-    /**
-     * A recursive function that will compile all the shortest paths between a given initial and final MapLocation
-     * into a depth map. The map contains all points 'x' moves away from the initial position until the final position
-     * To find the shortest paths, trace the index of the final position and find adjacent locations with an index of n-1
-     * @param initialLocation The MapLocation that you are find a path to the finalLocation from
-     * @param finalLocation The final MapLocation of the move
-     * @param depthIndex An index that represents the number of moves you are away from the initial MapLocation
-     * @param depthMap A map that stores all the paths as moves away from the initial MapLocation
-     * @param allLocations A lookup map that keeps track of all the locations you have visited
-     * @return A depth map of all the shortest paths
-     */
-    public static HashMap<Integer, HashSet<MapLocation>> searchForPath(MapLocation initialLocation, MapLocation finalLocation,
-                                                                       int depthIndex, HashMap<Integer, HashSet<MapLocation>> depthMap,
-                                                                       HashMap<String, Integer> allLocations) {
-
-        ArrayList<MapLocation> nextLocations = getAvailablePositions(initialLocation);
-
-        // If you have reached the destination, remove all the depthMap paths with greater lengths than the current path
-        if (initialLocation.isAdjacentTo(finalLocation)) {
-            if (depthIndex < depthMap.size()) {
-                for (int i = depthIndex; i < depthMap.size(); i++) {
-                    depthMap.remove(i + 1);
-                }
-            }
-            allLocations.put(finalLocation.toString(), depthIndex);
-            depthMap.put(-1, new HashSet<>());
-            System.out.println("BOOP: " + depthIndex);
-            return depthMap;
-        }
-
-        // If the current depth index is greater than the size of the depthMap, (there exists in our map a
-        // path that takes less moves than our current path) return.
-        if (depthMap.get(-1) != null && depthIndex >= allLocations.get(finalLocation.toString())) {
-            System.out.println("BOP: " + depthIndex);
-            return depthMap;
-        }
-
-        ArrayList<MapLocation> runSearchForPath = new ArrayList<>();
-        HashSet<MapLocation> depthSet;
-        if (depthMap.get(depthIndex) == null) {
-            depthSet = new HashSet<>();
-        } else {
-            depthSet = depthMap.get(depthIndex);
-        }
-        for (MapLocation location: nextLocations) {
-            if (!allLocations.containsKey(location.toString()) || depthIndex < allLocations.get(location.toString())) {
-                System.out.println("Running for: " + mapLocationToString(location) + " Depth index: " + depthIndex);
-                allLocations.put(location.toString(), depthIndex);
-                runSearchForPath.add(location);
-                depthSet.add(location);
-            }
-        }
-        depthMap.put(depthIndex, depthSet);
-
-        for (MapLocation location: runSearchForPath) {
-            if (!allLocations.containsKey(location.toString()) || depthIndex <= allLocations.get(location.toString())) {
-                System.out.println("Running recur for : " + mapLocationToString(location));
-                depthMap = searchForPath(location, finalLocation, depthIndex + 1, depthMap, allLocations);
-            }
-        }
-
-        return depthMap;
-    }
-
-    /**
-     * Method that will give all open adjacent positions to a given MapLocation
-     * @param currentLocation The location you want to find adjacent location to
-     * @return A list of all available adjacent positions
-     */
-    public static ArrayList<MapLocation> getAvailablePositions(MapLocation currentLocation) {
-        ArrayList<MapLocation> availablePositions = new ArrayList<>();
-
-        for (int i = 0; i < 8; i++) {
-            MapLocation locationToCheck = currentLocation.add(Direction.swigToEnum(i));
-            if (Player.inOccupiable(locationToCheck)) {
-                availablePositions.add(locationToCheck);
-            }
-        }
-
-        return availablePositions;
-    }
-
-    /**
-     * Method that will convert a MapLocation into an easily recognizable string.
-     * @param mapLocation The MapLocation that you want to convert
-     * @return A string that represents the MapLocation
-     */
-    public static String mapLocationToString(MapLocation mapLocation) {
-        StringBuilder convertedLocation = new StringBuilder();
-
-        if (mapLocation.getPlanet() == Planet.Mars) {
-            convertedLocation.append(" ");
-        }
-        convertedLocation.append(mapLocation.getX());
-        convertedLocation.append(" ");
-        convertedLocation.append(mapLocation.getY());
-
-        return convertedLocation.toString();
-    }
-
-
-
-
-
+//    /**
+//     * For when a robot has nothing to do, should move around so that it finds tasks or gain information this method
+//     * finds a location to explore
+//     * @return A random location that seems good to be explored
+//     */
+//    public static MapLocation getLocationToExplore() {
+//        PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
+//        MapLocation randomLocation = getRandomLocation(initialMap);
+//
+//        //give up after a certain number of tries
+//        int tries = 0;
+//        while (Player.gc.canSenseLocation(randomLocation) && !(initialMap.isPassableTerrainAt(randomLocation) > 0) && tries < 100) {
+//            randomLocation = getRandomLocation(initialMap);
+//        }
+//        return randomLocation;
+//    }
+//
+//    /**
+//     * Randomly chooses a location
+//     * @param map The map that the location should be on
+//     * @return A random location on the map
+//     */
+//    private static MapLocation getRandomLocation(PlanetMap map) {
+//        return new MapLocation(map.getPlanet(), (int)(Math.random()*map.getWidth()),(int)(Math.random()*map.getHeight()));
+//    }
+//
+//    public boolean moveTowardsDestination(int robotId, MapLocation destinationLocation) {
+//
+//        System.out.println("moving robot: " + robotId);
+//
+//        //get optimal location to move to
+//        HashSet<MapLocation> locationsToMoveTo = getNextLocationsFromDepthMap(Player.gc.unit(robotId).location().mapLocation(), destinationLocation);
+//
+//        //if no location to move to, return true
+//        if (locationsToMoveTo.size() == 0) {
+//            System.out.println("locations to moveto size is 0");
+//            return true;
+//        }
+//
+//        //try to move to location
+//        Direction directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationsToMoveTo.iterator().next());
+//        if (Player.gc.canMove(robotId, directionToMove)) {
+//            Player.gc.moveRobot(robotId, directionToMove);
+//        }
+//
+//        return false;
+//    }
+//
+//    /**
+//     * Gets the next locations to move to in order to get to finalLocation
+//     * @param initialLocation The current location of the unit to be moved
+//     * @param finalLocation The target destination
+//     * @return The next optimal location options to move to
+//     */
+//    public HashSet<MapLocation> getNextLocationsFromDepthMap(MapLocation initialLocation, MapLocation finalLocation) {
+//
+//        //get the depth map
+//        HashMap<Integer, HashSet<MapLocation>> depthMap = getDepthMap(initialLocation, finalLocation);
+//        System.out.println("dmap: "+ depthMap.size()+"from: "+initialLocation+"to: "+finalLocation);
+//        //trace back path
+//        HashSet<MapLocation> locationsOnPath = new HashSet<>();
+//        System.out.println(depthMap.size());
+//        for (int i = 1; i <= depthMap.size(); i++) {
+//
+//            //find the integer value of the final location
+//            if (depthMap.get(i).contains(finalLocation)) {
+//                locationsOnPath.add(finalLocation);
+//                System.out.println("i is:" + i);
+//                while (i>=0) {
+//                    i--;
+//                    HashSet<MapLocation> nextLocationsOnPath = new HashSet<>();
+//                    for (MapLocation location : locationsOnPath) {
+//                        nextLocationsOnPath.addAll(getAdjacentLocationsFromHashSet(depthMap.get(i),location));
+//                    }
+//                    locationsOnPath = nextLocationsOnPath;
+//                }
+//            }
+//        }
+//        return locationsOnPath;
+//    }
+//
+//    public HashSet<MapLocation> getAdjacentLocationsFromHashSet(HashSet<MapLocation> nextLocationSet, MapLocation destinationLocation) {
+//        HashSet<MapLocation> adjacentLocations = new HashSet<>();
+//        //return all adjacent locations in set
+//        for (MapLocation location : nextLocationSet) {
+//            if(location.isAdjacentTo(destinationLocation)) {
+//                adjacentLocations.add(location);
+//            }
+//        }
+//        return adjacentLocations;
+//    }
+//
+//    /**
+//     * This method will get a depth map of all the shortest paths from an initial MapLocation to a final MapLocation
+//     * @param initialLocation The initial MapLocation
+//     * @param finalLocation The final MapLocation
+//     */
+//    public static HashMap<Integer, HashSet<MapLocation>> getDepthMap(MapLocation initialLocation, MapLocation finalLocation)
+//    {
+//        HashMap<Integer, HashSet<MapLocation>> depthMap = new HashMap<>();
+//
+//        HashMap<String, Integer> allLocations = new HashMap<>();
+//        allLocations.put(initialLocation.toString(), 0);
+//
+//        depthMap = searchForPath(initialLocation, finalLocation, 1, depthMap, allLocations);
+//        depthMap.remove(-1);
+//
+//        return depthMap;
+//    }
+//
+//    /**
+//     * A recursive function that will compile all the shortest paths between a given initial and final MapLocation
+//     * into a depth map. The map contains all points 'x' moves away from the initial position until the final position
+//     * To find the shortest paths, trace the index of the final position and find adjacent locations with an index of n-1
+//     * @param initialLocation The MapLocation that you are find a path to the finalLocation from
+//     * @param finalLocation The final MapLocation of the move
+//     * @param depthIndex An index that represents the number of moves you are away from the initial MapLocation
+//     * @param depthMap A map that stores all the paths as moves away from the initial MapLocation
+//     * @param allLocations A lookup map that keeps track of all the locations you have visited
+//     * @return A depth map of all the shortest paths
+//     */
+//    public static HashMap<Integer, HashSet<MapLocation>> searchForPath(MapLocation initialLocation, MapLocation finalLocation,
+//                                                                       int depthIndex, HashMap<Integer, HashSet<MapLocation>> depthMap,
+//                                                                       HashMap<String, Integer> allLocations) {
+//
+//        ArrayList<MapLocation> nextLocations = getAvailablePositions(initialLocation);
+//
+//        // If you have reached the destination, remove all the depthMap paths with greater lengths than the current path
+//        if (initialLocation.isAdjacentTo(finalLocation)) {
+//            if (depthIndex < depthMap.size()) {
+//                for (int i = depthIndex; i < depthMap.size(); i++) {
+//                    depthMap.remove(i + 1);
+//                }
+//            }
+//            allLocations.put(finalLocation.toString(), depthIndex);
+//            depthMap.put(-1, new HashSet<>());
+//            System.out.println("BOOP: " + depthIndex);
+//            return depthMap;
+//        }
+//
+//        // If the current depth index is greater than the size of the depthMap, (there exists in our map a
+//        // path that takes less moves than our current path) return.
+//        if (depthMap.get(-1) != null && depthIndex >= allLocations.get(finalLocation.toString())) {
+//            System.out.println("BOP: " + depthIndex);
+//            return depthMap;
+//        }
+//
+//        ArrayList<MapLocation> runSearchForPath = new ArrayList<>();
+//        HashSet<MapLocation> depthSet;
+//        if (depthMap.get(depthIndex) == null) {
+//            depthSet = new HashSet<>();
+//        } else {
+//            depthSet = depthMap.get(depthIndex);
+//        }
+//        for (MapLocation location: nextLocations) {
+//            if (!allLocations.containsKey(location.toString()) || depthIndex < allLocations.get(location.toString())) {
+//                System.out.println("Running for: " + mapLocationToString(location) + " Depth index: " + depthIndex);
+//                allLocations.put(location.toString(), depthIndex);
+//                runSearchForPath.add(location);
+//                depthSet.add(location);
+//            }
+//        }
+//        depthMap.put(depthIndex, depthSet);
+//
+//        for (MapLocation location: runSearchForPath) {
+//            if (!allLocations.containsKey(location.toString()) || depthIndex <= allLocations.get(location.toString())) {
+//                System.out.println("Running recur for : " + mapLocationToString(location));
+//                depthMap = searchForPath(location, finalLocation, depthIndex + 1, depthMap, allLocations);
+//            }
+//        }
+//
+//        return depthMap;
+//    }
+//
+//    /**
+//     * Method that will give all open adjacent positions to a given MapLocation
+//     * @param currentLocation The location you want to find adjacent location to
+//     * @return A list of all available adjacent positions
+//     */
+//    public static ArrayList<MapLocation> getAvailablePositions(MapLocation currentLocation) {
+//        ArrayList<MapLocation> availablePositions = new ArrayList<>();
+//
+//        for (int i = 0; i < 8; i++) {
+//            MapLocation locationToCheck = currentLocation.add(Direction.swigToEnum(i));
+//            if (Player.inOccupiable(locationToCheck)) {
+//                availablePositions.add(locationToCheck);
+//            }
+//        }
+//
+//        return availablePositions;
+//    }
+//
+//    /**
+//     * Method that will convert a MapLocation into an easily recognizable string.
+//     * @param mapLocation The MapLocation that you want to convert
+//     * @return A string that represents the MapLocation
+//     */
+//    public static String mapLocationToString(MapLocation mapLocation) {
+//        StringBuilder convertedLocation = new StringBuilder();
+//
+//        if (mapLocation.getPlanet() == Planet.Mars) {
+//            convertedLocation.append(" ");
+//        }
+//        convertedLocation.append(mapLocation.getX());
+//        convertedLocation.append(" ");
+//        convertedLocation.append(mapLocation.getY());
+//
+//        return convertedLocation.toString();
+//    }
+//
+//    /**
+//     * A method that will convert the recognizable string back into a MapLocation
+//     * @param location The MapLocation represented by the string
+//     * @return A MapLocation that represents the string
+//     */
+//    private static MapLocation stringToMapLocation(String location) {
+//        Planet mapPlanet;
+//        if (location.charAt(0) == ' ') {
+//            mapPlanet = Planet.Mars;
+//            location = location.substring(1);
+//        } else {
+//            mapPlanet = Planet.Earth;
+//        }
+//
+//        int spaceIndex = location.indexOf(' ');
+//        int xLocation = Integer.parseInt(location.substring(0, spaceIndex));
+//        location = location.substring(spaceIndex + 1);
+//        int yLocation = Integer.parseInt(location);
+//
+//        return new MapLocation(mapPlanet, xLocation, yLocation);
+//    }
 
 //    /**
 //     * Abstract method that needs to be implemented for each unit that is a Robot. Workers will add tasks to
