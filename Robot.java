@@ -75,11 +75,7 @@ public abstract class Robot extends UnitInstance {
         if (Player.gc.unit(robotId).location().mapLocation().isAdjacentTo(destinationLocation)) {
             return true;
         }
-
-        // TODO: logic from this point on is messy but seems to work, should be cleaned up
-
-
-        //TODO: does it get the path if destination is covered????
+        
         // if path should be recalculated
         if (path == null || path.size() == 0 || !path.get(path.size()-1).equals(destinationLocation)
                 || !Player.gc.canMove(robotId, this.getLocation().directionTo(path.get(0)))) {
@@ -134,7 +130,7 @@ public abstract class Robot extends UnitInstance {
         MapLocation shortestNeighborLocation = null;
 
         ArrayList<MapLocation> shortestPath = new ArrayList<>();
-        
+
         for (Direction directionFromDestination : moveDirections) {
 
             MapLocation neighborLocation = destinationLocation.add(directionFromDestination);
