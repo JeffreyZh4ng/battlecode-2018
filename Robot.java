@@ -134,17 +134,23 @@ public abstract class Robot extends UnitInstance {
         MapLocation shortestNeighborLocation = null;
 
         ArrayList<MapLocation> shortestPath = new ArrayList<>();
-
-        //TODO: this probably should be optimized slightly, if neighbor location found while tracing back then should change neighborLocation to that one and delete part of path
+        
         for (Direction directionFromDestination : moveDirections) {
+
             MapLocation neighborLocation = destinationLocation.add(directionFromDestination);
             if (cameFrom.containsKey(neighborLocation.toString()) && doesLocationAppearEmpty(map, neighborLocation)) {
+
                 ArrayList<MapLocation> currentPath = new ArrayList<>();
                 MapLocation currentTraceLocation = neighborLocation;
+
                 //trace back path
                 while (!currentTraceLocation.equals(startingLocation)) {
                     currentPath.add(0,currentTraceLocation);
                     currentTraceLocation = cameFrom.get(currentTraceLocation.toString());
+                    if (currentTraceLocation.isAdjacentTo(destinationLocation)) {
+                        currentPath.clear();
+                        currentPath.add(currentTraceLocation);
+                    }
                     if (currentTraceLocation == null) {
                         break;
                     }
