@@ -25,7 +25,7 @@ public abstract class Attacker extends Robot {
                 this.inCombat = false;
                 // TODO: should consider more the range it should be in need to test
                 if (this.getLocation().distanceSquaredTo(PlanetInstance.attackTarget) < this.getVisionRange()* 0.8) {
-                    return;
+                    PlanetInstance.attackTarget = null;
                 }
             } else if (PlanetInstance.attackTarget == null) {
                 PlanetInstance.attackTarget = getClosestUnit(-1, getEnemyUnitsInRange(this.getVisionRange())).location().mapLocation();

@@ -52,7 +52,7 @@ public abstract class Robot extends UnitInstance {
     /**
      * Move a robot
      * @param robotId robot to move
-     * @param destinationLocation
+     * @param destinationLocation the location trying to get to
      * @return if the robot has reached within on square of its destination or cannot get to destination at all
      */
     public boolean move(int robotId, MapLocation destinationLocation) {
@@ -144,12 +144,12 @@ public abstract class Robot extends UnitInstance {
                 while (!currentTraceLocation.equals(startingLocation)) {
                     currentPath.add(0,currentTraceLocation);
                     currentTraceLocation = cameFrom.get(currentTraceLocation.toString());
+                    if (currentTraceLocation == null) {
+                        break;
+                    }
                     if (currentTraceLocation.isAdjacentTo(destinationLocation)) {
                         currentPath.clear();
                         currentPath.add(currentTraceLocation);
-                    }
-                    if (currentTraceLocation == null) {
-                        break;
                     }
                 }
 
@@ -177,6 +177,7 @@ public abstract class Robot extends UnitInstance {
         int tries = 0;
         while (Player.gc.canSenseLocation(randomLocation) && !(initialMap.isPassableTerrainAt(randomLocation) > 0) && tries < 100) {
             randomLocation = getRandomLocation(initialMap);
+            tries++;
         }
         return randomLocation;
     }
