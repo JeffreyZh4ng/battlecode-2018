@@ -42,6 +42,11 @@ public abstract class UnitInstance {
         currentTask = null;
     }
 
+    public VecUnit getEnemyUnitsInRange(int range) {
+        Team otherTeam = Player.gc.team() == Team.Blue ? Team.Red : Team.Blue;
+        return Player.gc.senseNearbyUnitsByTeam(this.getLocation(), range, otherTeam);
+    }
+
     /**
      * Finds the closest unit from units outside of given range
      * @param minSquaredRadius the radius to check outside of -1 if want to consider all
