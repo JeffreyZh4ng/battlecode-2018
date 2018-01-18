@@ -42,7 +42,7 @@ public abstract class Robot extends UnitInstance {
      * @return All the directions except for the center
      */
     public static ArrayList<Direction> getMoveDirections() {
-        ArrayList<Direction> directions = new ArrayList<>();
+        ArrayList<Direction> directions = new ArrayList<>(8);
         for (int i = 0; i < 8; i++) {
             directions.add( Direction.swigToEnum(i));
         }
@@ -65,8 +65,9 @@ public abstract class Robot extends UnitInstance {
                     Player.gc.moveRobot(robotId, direction);
                     return true;
                 }
-                System.out.println("IM Stuck!");
             }
+            System.out.println("IM Stuck!");
+            //TODO: maybe should return true here not sure
             return false;
 
         }
@@ -75,48 +76,20 @@ public abstract class Robot extends UnitInstance {
             return true;
         }
 
-        // TODO: logic from this point on is messy but seems to work, should be cleaned up
+        // if path should be recalculated
+        if (path == null || path.size() == 0 || !path.get(path.size()-1).equals(destinationLocation)
+                || !Player.gc.canMove(robotId, this.getLocation().directionTo(path.get(0)))) {
+            path = getPathFromBreadthFirstSearch(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
+        }
 
-        MapLocation locationToMoveTo;
-        Direction directionToMove = null;
-        if(path != null && path.size() > 0) {
-            locationToMoveTo = path.get(0);
-            directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
+        if (path != null && path.size() >0 && Player.gc.canMove(robotId, this.getLocation().directionTo(path.get(0)))) {
+            Player.gc.moveRobot(robotId, this.getLocation().directionTo(path.get(0)));
+            path.remove(0);
+            return false;
         } else {
-            path = getNextForBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(), destinationLocation,
-                    Player.gc.startingMap(Player.gc.planet()));
-            if (path == null) {
-                System.out.println("cannot get within 1 square of destination or is already at destination/within 1 square");
-                return true;
-            }
-            locationToMoveTo = path.get(0);
-            directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
-
-        }
-
-        // If cannot move along path, recalculate
-        if (path != null && !Player.gc.canMove(robotId, directionToMove)) {
-            System.out.println("recalculating path");
-            path = getNextForBreadthFirstSearch(Player.gc.unit(robotId).location().mapLocation(), destinationLocation,
-                    Player.gc.startingMap(Player.gc.planet()));
-        }
-
-
-        // If no location to move to, return true
-        if (path == null) {
-            System.out.println("cannot get within 1 square of destination or is already at destination/within 1 square");
+            System.out.println("cannot get to destination");
             return true;
         }
-        locationToMoveTo = path.get(0);
-        directionToMove = Player.gc.unit(robotId).location().mapLocation().directionTo(locationToMoveTo);
-
-        // Try to move to location
-        if (Player.gc.canMove(robotId, directionToMove)) {
-            Player.gc.moveRobot(robotId, directionToMove);
-            path.remove(0);
-        }
-
-        return false;
     }
 
     /**
@@ -126,7 +99,7 @@ public abstract class Robot extends UnitInstance {
      * @param map The map of earth or mars
      * @return The next place to step
      */
-    public static ArrayList<MapLocation> getNextForBreadthFirstSearch(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
+    public static ArrayList<MapLocation> getPathFromBreadthFirstSearch(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
 
         ArrayList<Direction> moveDirections = getMoveDirections();
 
@@ -147,38 +120,46 @@ public abstract class Robot extends UnitInstance {
                 if (doesLocationAppearEmpty(map, nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
                     frontier.add(nextLocation);
                     cameFrom.put(nextLocation.toString(), currentLocation);
-                }
-            }
-        }
-
-
-        ArrayList<MapLocation> path = new ArrayList<>();
-        MapLocation currentLocation = destinationLocation;
-        // If could not path to check if already one away from destination else find adjacent destination
-        if (!cameFrom.containsKey(destinationLocation.toString())) {
-            if (startingLocation.isAdjacentTo(destinationLocation)) {
-                return null;
-            } else {
-                for (Direction moveDirection : moveDirections) {
-                    if (doesLocationAppearEmpty(map, destinationLocation.add(moveDirection))) {
-                        currentLocation = destinationLocation.add(moveDirection);
+                    if (currentLocation.isAdjacentTo(destinationLocation)) {
+                        frontier.clear();
                     }
                 }
             }
         }
 
-        // Trace back from destination to start
-        if (currentLocation == null) {
-            return null;
-        }
-        while (!currentLocation.equals(startingLocation)) {
-            path.add(0, currentLocation);
-            currentLocation = cameFrom.get(currentLocation.toString());
-            if (currentLocation == null) {
-                return null;
+        //find shortest of paths to adjacent locations and save shortest one
+        MapLocation shortestNeighborLocation = null;
+
+        ArrayList<MapLocation> shortestPath = new ArrayList<>();
+
+        for (Direction directionFromDestination : moveDirections) {
+
+            MapLocation neighborLocation = destinationLocation.add(directionFromDestination);
+            if (cameFrom.containsKey(neighborLocation.toString()) && doesLocationAppearEmpty(map, neighborLocation)) {
+
+                ArrayList<MapLocation> currentPath = new ArrayList<>();
+                MapLocation currentTraceLocation = neighborLocation;
+
+                //trace back path
+                while (!currentTraceLocation.equals(startingLocation)) {
+                    currentPath.add(0,currentTraceLocation);
+                    currentTraceLocation = cameFrom.get(currentTraceLocation.toString());
+                    if (currentTraceLocation.isAdjacentTo(destinationLocation)) {
+                        currentPath.clear();
+                        currentPath.add(currentTraceLocation);
+                    }
+                    if (currentTraceLocation == null) {
+                        break;
+                    }
+                }
+
+                if (shortestNeighborLocation == null || currentPath.size() < shortestPath.size()) {
+                    shortestPath = currentPath;
+                    shortestNeighborLocation = neighborLocation;
+                }
             }
         }
-        return path;
+        return shortestPath;
     }
 
     /**

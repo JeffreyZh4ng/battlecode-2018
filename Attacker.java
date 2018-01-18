@@ -10,31 +10,35 @@ public abstract class Attacker extends Robot {
 
     private MapLocation wanderLocation = null;
 
+    /**
+     * if not in combat moves to and attacks the global attackTarget otherwise attacks closest enemy in range
+     */
     public void runAttack() {
 
         //get correct attack target
-
         if (PlanetInstance.attackTarget != null && !this.inCombat) {
             move(this.getId(),PlanetInstance.attackTarget);
 
         } else if(this.inCombat) {
             if(attackClosestEnemyInRange()) {
+
                 this.inCombat = false;
-                // TODO: should consider more the range it should be in
+                // TODO: should consider more the range it should be in need to test
                 if (this.getLocation().distanceSquaredTo(PlanetInstance.attackTarget) < this.getVisionRange()* 0.8) {
                     return;
                 }
             } else if (PlanetInstance.attackTarget == null) {
-
                 PlanetInstance.attackTarget = getClosestUnit(-1, getEnemyUnitsInRange(this.getVisionRange())).location().mapLocation();
             }
         } else {
+
             //TODO: wander, probably could be better
             if (Player.gc.isMoveReady(this.getId())) {
                 if(wanderLocation == null || move(this.getId(),this.wanderLocation)) {
-                    // wanderLocation = Robot.getLocationToExplore();
+                    wanderLocation = Robot.getLocationToExplore();
                 }
             }
+
             //TODO: not sure about range here, this also maybe should be done globally? since all attacker will end up going here?
             VecUnit enemyUnits = this.getEnemyUnitsInRange(this.getVisionRange());
             if(enemyUnits != null) {
@@ -42,59 +46,12 @@ public abstract class Attacker extends Robot {
                 PlanetInstance.attackTarget = this.getClosestUnit(-1, enemyUnits).location().mapLocation();
             }
         }
-
-//        if (global target && not in combat) {
-//            // move towards global target
-//            // Sense if there are enemies again
-//            // If there are, set in combat to true
-//        }
-//
-//        else if (this.inCombat) {
-//            if (attack()) {
-//                this.setInCombat(false);
-//                // if global location is also in sight set to clear
-//                return;
-//            }
-//
-//            if (global target is also empty){
-//                // set nearest enemy location to global target
-//            }
-//        }
-//
-//        else {
-//            // wander?
-//            // If enemy is seen, set in combat to true and set global location to enemy location
-//        }
     }
 
 
-//    //default attack, others may have to implement diffrently
-//    public boolean attack() {
-//
-//
-//        // Attack the nearest enemy in attack range
-//
-//        // If any enemies are still in sight range
-//        // Return false
-//        // else
-//        // Return true;
-//
-//
-//
-//
-//
-//
-//
-//        //if enemy in range attack
-//        // else if global location is set, go to global location
-//        //if nothing at globallocation set empty
-//        //if globallocation empty, wander and set enemy location
-//        return true;
-//    }
-
 
     /**
-     * Attacks the weakest enemy that it can
+     * Attacks the weakest enemy that it can, will move towards if unreachable
      * @return true if nothing to attack false if attacked or has enemy in range
      */
     private boolean attackClosestEnemyInRange() {
