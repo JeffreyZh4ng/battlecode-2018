@@ -1,7 +1,4 @@
-import bc.Location;
-import bc.MapLocation;
-import bc.Planet;
-import bc.PlanetMap;
+import bc.*;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -57,6 +54,30 @@ public abstract class UnitInstance {
         } else {
             System.out.println("WTF IS HAPPENING?!?! Tried to remove task from an empty queue! Robot: " + this.id);
         }
+    }
+
+    /**
+     * Finds the closest unit from units outside of given range
+     * @param minSquaredRadius the radius to check outside of -1 if want to consider all
+     * @param units the units to check
+     * @return the closest unit, null if no units outside of radius
+     */
+    public Unit getClosestUnit(int minSquaredRadius, VecUnit units) {
+        if (units.size() == 0) {
+            System.out.println("unit list was empty");
+            return null;
+        }
+        Unit minDistanceUnit = null;
+        int closestDistanceToUnit = -1;
+        for (int i = 0; i < units.size(); i++) {
+            int distanceToUnit = (int)(this.getLocation().distanceSquaredTo(units.get(i).location().mapLocation()));
+            if ((minDistanceUnit == null && minSquaredRadius < distanceToUnit) ||
+                    (minDistanceUnit != null && distanceToUnit < closestDistanceToUnit)) {
+                closestDistanceToUnit = distanceToUnit;
+                minDistanceUnit = units.get(i);
+            }
+        }
+        return minDistanceUnit;
     }
 
     public MapLocation getLocation() {

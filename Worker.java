@@ -97,7 +97,7 @@ public class Worker extends Robot {
 
         switch (robotCommand) {
             case MOVE:
-                if (Player.gc.unit(this.getId()).movementHeat() < MOVEMENT_HEAT_LIMIT) {
+                if (Player.gc.isMoveReady(this.getId())) {
                     System.out.println("Robot: " + this.getId() + " MOVING!");
                     //System.out.println("dmap: "+getDepthMap(Player.gc.unit(this.getId()).location().mapLocation(), commandLocation));
                     return move(this.getId(), commandLocation);

@@ -9,6 +9,8 @@ public class Ranger extends Attacker {
         super(id);
     }
 
+    public static int MIN_ATTACK_RANGE = 10;
+
     public void run() {
 
         runAttack();
@@ -120,6 +122,7 @@ public class Ranger extends Attacker {
 //    }
 
 
+
     /**
      * Attacks the weakest enemy that it can
      * @return true if nothing to attack false if attacked or has enemy in range
@@ -128,23 +131,31 @@ public class Ranger extends Attacker {
 
         Team otherTeam = Player.gc.team() == Team.Blue ? Team.Red : Team.Blue;
         VecUnit enemyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), otherTeam);
+
         if (enemyUnits.size() == 0) {
             return true;
         }
 
         if (Player.gc.isAttackReady(this.getId())) {
-            Unit enemyUnit = enemyUnits.get(0);
-            int closestDistanceToUnit = (int)(this.getLocation().distanceSquaredTo(enemyUnits.get(0).location().mapLocation()));;
-            for (int i = 0; i < enemyUnits.size(); i++) {
-                int distanceToUnit = (int)(this.getLocation().distanceSquaredTo(enemyUnits.get(i).location().mapLocation()));
-                if (distanceToUnit < closestDistanceToUnit) {
-                    closestDistanceToUnit = distanceToUnit;
-                    enemyUnit = enemyUnits.get(i);
+            Unit closestUnit = getClosestUnit(-1, enemyUnits);
+
+            int closestDistanceToUnit = (int)this.getLocation().distanceSquaredTo(closestUnit.location().mapLocation());
+
+
+            if (closestDistanceToUnit > getAttackRange()) {
+                if (Player.gc.isMoveReady(this.getId())) {
+                    move(this.getId(), closestUnit.location().mapLocation());
                 }
             }
 
-            if (Player.gc.canAttack(this.getId(), enemyUnit.id())) {
-                Player.gc.attack(this.getId(), enemyUnit.id());
+            if(closestDistanceToUnit < MIN_ATTACK_RANGE) {
+                // TODO: try move back could be better then this
+                Player.moveRobot(this.getId(), this.getLocation().add(closestUnit.location().mapLocation().directionTo(this.getLocation())));
+                closestUnit = getClosestUnit(-1, Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getAttackRange(), otherTeam));
+            }
+
+            if (Player.gc.canAttack(this.getId(), closestUnit.id())) {
+                Player.gc.attack(this.getId(), closestUnit.id());
             }
         }
 

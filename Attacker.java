@@ -1,5 +1,4 @@
-import bc.MapLocation;
-import bc.Planet;
+import bc.*;
 
 public abstract class Attacker extends Robot {
     public Attacker(int id) {
@@ -63,7 +62,10 @@ public abstract class Attacker extends Robot {
     }
 
 
+    //default attack, others may have to implement diffrently
     public boolean attack() {
+
+
         // Attack the nearest enemy in attack range
 
         // If any enemies are still in sight range
@@ -83,4 +85,40 @@ public abstract class Attacker extends Robot {
         //if globallocation empty, wander and set enemy location
         return true;
     }
+
+
+    /**
+     * Attacks the weakest enemy that it can
+     * @return true if nothing to attack false if attacked or has enemy in range
+     */
+    private boolean attackClosestEnemyInRange() {
+
+        Team otherTeam = Player.gc.team() == Team.Blue ? Team.Red : Team.Blue;
+        VecUnit enemyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), otherTeam);
+
+        if (enemyUnits.size() == 0) {
+            return true;
+        }
+
+        if (Player.gc.isAttackReady(this.getId())) {
+            Unit closestUnit = getClosestUnit(-1, enemyUnits);
+
+            int closestDistanceToUnit = (int)this.getLocation().distanceSquaredTo(closestUnit.location().mapLocation());
+
+
+            if (closestDistanceToUnit > getAttackRange()) {
+                if (Player.gc.isMoveReady(this.getId())) {
+                    move(this.getId(), closestUnit.location().mapLocation());
+                }
+            }
+
+            if (Player.gc.canAttack(this.getId(), closestUnit.id())) {
+                Player.gc.attack(this.getId(), closestUnit.id());
+            }
+        }
+
+        return false;
+    }
+
+    public int getAttackRange() { return (int)(Player.gc.unit(this.getId()).attackRange()); }
 }
