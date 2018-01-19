@@ -137,12 +137,12 @@ public class Earth extends PlanetInstance {
      * @return the initially available structure locations
      */
     private static ArrayList<MapLocation> findInitialStructureLocations() {
-        
+
         HashSet<String> chosenLocations = new HashSet<>();
         ArrayList<MapLocation> clearLocations = new ArrayList<>();
 
-        for (int x = 1; x < Player.gc.startingMap(Player.gc.planet()).getWidth() - 1; x++) {
-            for (int y = 1; y < Player.gc.startingMap(Player.gc.planet()).getHeight() - 1; y++) {
+        for (int x = 0; x < Player.gc.startingMap(Player.gc.planet()).getWidth(); x++) {
+            for (int y = 0; y < Player.gc.startingMap(Player.gc.planet()).getHeight(); y++) {
 
                 //location to test is the center location
                 MapLocation locationToTest = new MapLocation(Player.gc.planet(), x, y);
@@ -154,7 +154,7 @@ public class Earth extends PlanetInstance {
                         break;
                     }
                     //is not passable terrain
-                    if (Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
+                    if (Player.gc.startingMap(Player.gc.planet()).onMap(locationToTest.add(direction)) && Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
                         nonPassableCount++;
                         if (nonPassableCount > 5) {
                             clear = false;
