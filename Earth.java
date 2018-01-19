@@ -145,7 +145,7 @@ public class Earth extends PlanetInstance {
         }
 
         MapLocation closestLocation = null;
-        long shortestDistance = 1000;
+        long shortestDistance = 100000;
 
         //choose best location from list
         for (MapLocation location : clearLocations) {
@@ -153,14 +153,11 @@ public class Earth extends PlanetInstance {
 
                 MapLocation workerLocation = Player.gc.unit(workerId).location().mapLocation();
 
-                if (workerLocation.distanceSquaredTo(location) <= 32) {
-                    return location;
-
-                } else if (closestLocation == null) {
+                if (closestLocation == null) {
                     closestLocation = location;
                     shortestDistance = location.distanceSquaredTo(workerLocation);
 
-                } else if (closestLocation.distanceSquaredTo(workerLocation) < shortestDistance) {
+                } else if (location.distanceSquaredTo(workerLocation) < shortestDistance) {
                     closestLocation = location;
                     shortestDistance = location.distanceSquaredTo(workerLocation);
                 }
