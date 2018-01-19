@@ -127,8 +127,9 @@ public class Ranger extends Attacker {
      * Attacks the weakest enemy that it can, will move towards if unreachable
      * @return true if nothing to attack false if attacked or has enemy in range
      */
-    private boolean attackClosestEnemyInRange() {
+    public boolean attackClosestEnemyInRange() {
 
+        System.out.println("ranger Attack Closest 45671");
         Team otherTeam = Player.gc.team() == Team.Blue ? Team.Red : Team.Blue;
         VecUnit enemyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), otherTeam);
 
@@ -141,8 +142,9 @@ public class Ranger extends Attacker {
 
             int closestDistanceToUnit = (int)this.getLocation().distanceSquaredTo(closestUnit.location().mapLocation());
 
+            System.out.println("closeDist: " + closestDistanceToUnit + "attackRange: " + this.getAttackRange());
 
-            if (closestDistanceToUnit > getAttackRange()) {
+            if (closestDistanceToUnit > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {
                     move(this.getId(), closestUnit.location().mapLocation());
                 }
@@ -150,7 +152,7 @@ public class Ranger extends Attacker {
 
             if (closestDistanceToUnit < MIN_ATTACK_RANGE) {
                 // TODO: try move back could be better then this
-                // Player.moveRobot(this.getId(), this.getLocation().add(closestUnit.location().mapLocation().directionTo(this.getLocation())));
+                //Player.gc.moveRobot(this.getId(), closestUnit.location().mapLocation().directionTo(this.getLocation()));
                 closestUnit = getClosestUnit(-1, Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getAttackRange(), otherTeam));
             }
 

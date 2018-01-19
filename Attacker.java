@@ -18,17 +18,23 @@ public abstract class Attacker extends Robot {
         //get correct attack target
         if (PlanetInstance.attackTarget != null && !this.inCombat) {
             move(this.getId(),PlanetInstance.attackTarget);
-
-        } else if(this.inCombat) {
-            if(attackClosestEnemyInRange()) {
+            if (getEnemyUnitsInRange(this.getVisionRange()).size()>0) {
+                this.inCombat=true;
+            }
+        }
+        if(this.inCombat) {
+            if(this.attackClosestEnemyInRange()) {
 
                 this.inCombat = false;
                 // TODO: should consider more the range it should be in need to test
                 if (this.getLocation().distanceSquaredTo(PlanetInstance.attackTarget) < this.getVisionRange()* 0.8) {
                     PlanetInstance.attackTarget = null;
                 }
-            } else if (PlanetInstance.attackTarget == null) {
-                PlanetInstance.attackTarget = getClosestUnit(-1, getEnemyUnitsInRange(this.getVisionRange())).location().mapLocation();
+            } else {
+                this.inCombat = true;
+                if (PlanetInstance.attackTarget == null) {
+                    PlanetInstance.attackTarget = getClosestUnit(-1, getEnemyUnitsInRange(this.getVisionRange())).location().mapLocation();
+                }
             }
         } else {
 
@@ -41,7 +47,7 @@ public abstract class Attacker extends Robot {
 
             //TODO: not sure about range here, this also maybe should be done globally? since all attacker will end up going here?
             VecUnit enemyUnits = this.getEnemyUnitsInRange(this.getVisionRange());
-            if(enemyUnits != null) {
+            if(enemyUnits != null && enemyUnits.size() > 0) {
                 this.inCombat = false;
                 PlanetInstance.attackTarget = this.getClosestUnit(-1, enemyUnits).location().mapLocation();
             }
@@ -50,11 +56,12 @@ public abstract class Attacker extends Robot {
 
 
 
+
     /**
      * Attacks the weakest enemy that it can, will move towards if unreachable
      * @return true if nothing to attack false if attacked or has enemy in range
      */
-    private boolean attackClosestEnemyInRange() {
+    public boolean attackClosestEnemyInRange() {
 
 
         VecUnit enemyUnits = this.getEnemyUnitsInRange(this.getVisionRange());
