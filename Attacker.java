@@ -70,9 +70,7 @@ public abstract class Attacker extends Robot {
 
 
             if (closestDistanceToUnit > getAttackRange()) {
-                if (Player.gc.isMoveReady(this.getId())) {
-                    move(this.getId(), closestUnit.location().mapLocation());
-                }
+                move(this.getId(), closestUnit.location().mapLocation());
             }
 
             if (Player.gc.canAttack(this.getId(), closestUnit.id())) {

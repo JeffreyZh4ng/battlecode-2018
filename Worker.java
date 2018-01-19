@@ -51,12 +51,7 @@ public class Worker extends Robot {
 
         switch (robotCommand) {
             case MOVE:
-                if (Player.gc.isMoveReady(this.getId())) {
-                    System.out.println("Unit: " + this.getId() + " MOVED!");
-                    return this.move(this.getId(), commandLocation);
-                } else {
-                    return false;
-                }
+                return this.move(this.getId(), commandLocation);
             case CLONE:
                 return cloneWorker(commandLocation);
             case BUILD:

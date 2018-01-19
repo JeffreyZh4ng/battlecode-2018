@@ -80,55 +80,6 @@ public class Player {
         return false;
     }
 
-    /**
-     * Should move robot in given direction,
-     * checks that: unit exists, unit is correct team, unit is on this map, destination is on map, destination is empty
-     * @param unitId The id of the robot to move
-     * @return If move was successful
-     */
-    public static boolean canMove(int unitId, MapLocation locationToMoveTo) {
-        if(gc.isMoveReady(unitId)) {
-            PlanetMap startingMap = gc.startingMap(gc.planet());
-            Unit unit;
-            try {
-                unit = gc.unit(unitId);
-            } catch (Exception e) {
-                System.out.println(e);
-                System.out.println("UNIT WITH ID: " + unitId + " DOES NOT EXIST");
-                return false;
-            }
-
-            if (unit.team() == gc.team()) {
-                if (unit.location().mapLocation().getPlanet() == gc.planet()) {
-
-                    MapLocation unitMapLocation = unit.location().mapLocation();
-
-                    if (startingMap.onMap(unitMapLocation) && isOccupiable(locationToMoveTo) && gc.canMove(unitId, unitMapLocation.directionTo(locationToMoveTo))) {
-                        try {
-                            return true;
-                        } catch (Exception e) {
-                            System.out.println(e);
-                            System.out.println("ERROR MOVE ROBOT STILL FAILED TO STOP ERROR AFTER MANY TESTS unit: " + unit);
-                            return false;
-                        }
-                    } else {
-                        System.out.println("ERROR LOCATION TO MOVE TO INVALID locationtomoveto: " + locationToMoveTo + "from unit at: " + unitMapLocation);
-                        return false;
-                    }
-                } else {
-                    System.out.println("ERROR ROBOT NOT ON THIS PLANET location: " + unit.location().mapLocation());
-                    return false;
-                }
-            } else {
-                System.out.println("ERROR UNIT TO MOVE TEAM INVALID, unit: " + unit);
-                return false;
-
-            }
-        } else {
-            System.out.println("ERROR movement heat not ready");
-            return false;
-        }
-    }
 
 //        Planet planet = locationToMoveTo.getPlanet();
 //        UnitType unitType;
