@@ -69,15 +69,13 @@ public class GlobalTask {
                     if (!hasBlueprinted) {
                         RobotTask nextTask = new RobotTask(this.getTaskId(), Command.BLUEPRINT_FACTORY, this.getTaskLocation());
                         Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
-
-                        // Taking a risk here. We assume that if a worker is given a blueprint to make, it will
-                        // Make it 100% of the time
-                        hasBlueprinted = true;
                     } else {
                         buildOrCloneHelper(unitId);
                     }
                     break;
                 case BLUEPRINT_FACTORY:
+                    hasBlueprinted = true;
+                    removeDuplicateTasks();
                     buildOrCloneHelper(unitId);
                     break;
                 case CLONE:
@@ -96,15 +94,13 @@ public class GlobalTask {
                     if (!hasBlueprinted) {
                         RobotTask nextTask = new RobotTask(this.getTaskId(), Command.BLUEPRINT_ROCKET, this.getTaskLocation());
                         Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
-
-                        // Taking a risk here. We assume that if a worker is given a blueprint to make, it will
-                        // Make it 100% of the time
-                        hasBlueprinted = true;
                     } else {
                         buildOrCloneHelper(unitId);
                     }
                     break;
                 case BLUEPRINT_ROCKET:
+                    hasBlueprinted = true;
+                    removeDuplicateTasks();
                     buildOrCloneHelper(unitId);
                     break;
                 case CLONE:
@@ -141,7 +137,7 @@ public class GlobalTask {
      */
     private void buildOrCloneHelper(int unitId) {
         RobotTask nextTask;
-        if (Earth.earthWorkerMap.size() < 40) {
+        if (Earth.earthWorkerMap.size() < 15) {
             nextTask = new RobotTask(this.getTaskId(), Command.CLONE, this.getTaskLocation());
         } else {
             nextTask = new RobotTask(this.getTaskId(), Command.BUILD, this.getTaskLocation());
@@ -158,6 +154,20 @@ public class GlobalTask {
                 Earth.earthWorkerMap.get(unitId).removeTask();
             } else {
                 Earth.earthAttackerMap.get(unitId).removeTask();
+            }
+        }
+    }
+
+    /**
+     * Helper method that will ensure that once the blueprint is created that any duplicate blueprint tasks
+     * are removed and the robots are given a new task
+     */
+    private void removeDuplicateTasks() {
+        for (int unitId: workersOnTask) {
+            UnitInstance unit = Earth.earthWorkerMap.get(unitId);
+            if (unit.getCurrentTask().getCommand() == Command.BLUEPRINT_FACTORY ||
+                    unit.getCurrentTask().getCommand() == Command.BLUEPRINT_ROCKET) {
+                buildOrCloneHelper(unitId);
             }
         }
     }

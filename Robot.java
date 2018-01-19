@@ -67,8 +67,6 @@ public abstract class Robot extends UnitInstance {
                     return true;
                 }
             }
-            System.out.println("IM Stuck!");
-            //TODO: maybe should return true here not sure
             return false;
 
         }
@@ -89,7 +87,7 @@ public abstract class Robot extends UnitInstance {
             return false;
         } else {
             System.out.println("cannot get to destination");
-            return true;
+            return false;
         }
     }
 
