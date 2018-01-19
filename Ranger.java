@@ -129,7 +129,6 @@ public class Ranger extends Attacker {
      */
     public boolean attackClosestEnemyInRange() {
 
-        System.out.println("ranger Attack Closest 45671");
         Team otherTeam = Player.gc.team() == Team.Blue ? Team.Red : Team.Blue;
         VecUnit enemyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), otherTeam);
 
