@@ -128,12 +128,17 @@ public class Earth extends PlanetInstance {
     // 1, 2, and 3 apply to pickStructureLocation
     // 4 and 5 apply to findInitialStructureLocations
 
+    // 5 consecutive open passable location and
+    // no other surounding planned location
+    // i guess first can be arbitrary
+
     /**
      * Finds structure locations based on initial map locations.
      * @return the initially available structure locations
      */
     private static ArrayList<MapLocation> findInitialStructureLocations() {
-        // TODO: this does not work properly
+        
+        HashSet<String> chosenLocations = new HashSet<>();
         ArrayList<MapLocation> clearLocations = new ArrayList<>();
 
         for (int x = 1; x < Player.gc.startingMap(Player.gc.planet()).getWidth() - 1; x++) {
@@ -141,14 +146,26 @@ public class Earth extends PlanetInstance {
 
                 //location to test is the center location
                 MapLocation locationToTest = new MapLocation(Player.gc.planet(), x, y);
+                int nonPassableCount = 0;
+                boolean clear = true;
                 for (Direction direction : Direction.values()) {
-
-                    //is not passable terrain
-                    if (Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
+                    if (chosenLocations.contains(locationToTest.add(direction).toString())) {
+                        clear = false;
                         break;
                     }
+                    //is not passable terrain
+                    if (Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
+                        nonPassableCount++;
+                        if (nonPassableCount > 5) {
+                            clear = false;
+                            break;
+                        }
+                    }
                 }
-                clearLocations.add(locationToTest);
+                if (clear) {
+                    clearLocations.add(locationToTest);
+                    chosenLocations.add(locationToTest.toString());
+                }
             }
         }
         return clearLocations;
