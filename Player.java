@@ -10,6 +10,7 @@ public class Player {
     public static void main(String[] args) {
 
         addStartingWorkersToEarthMap();
+        Earth.initialize();
         while (true) {
 
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {

@@ -158,8 +158,6 @@ public class Worker extends Robot {
             }
 
             System.out.println("Unit: " + this.getId() + " Blueprinted structure!");
-            Earth.planedStructureLocations.remove(commandLocation.toString());
-
             return true;
         }
 
