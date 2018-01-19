@@ -114,8 +114,15 @@ public class Earth extends PlanetInstance {
 
 
 
-    //initial structure locations
-    // available structure locations
+    //what is a good structure location?
+    // 1. far from enemy
+    // 2. can be built quickly: near workers
+    // 3. has enough space to unload
+    // 4. leaves space for other structures
+    // 5. does not restrict motion of units
+
+    // 1, 2, and 3 apply to pickStructureLocation
+    // 4 and 5 apply to findInitialStructureLocations
 
     /**
      * Finds structure locations based on initial map locations.
