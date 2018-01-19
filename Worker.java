@@ -102,6 +102,39 @@ public class Worker extends Robot {
     }
 
     /**
+     * Given the map location of a blueprint you want to build, check if you can build it and add
+     * a new blueprint instance to the blueprint map
+     * @param commandLocation The MapLocation of the blueprint you want to build
+     * @param unitType Either a factory or rocket blueprint
+     * @return If the blueprint was built or not
+     */
+    private boolean blueprintStructure(MapLocation commandLocation, UnitType unitType) {
+        MapLocation robotCurrentLocation = Player.gc.unit(this.getId()).location().mapLocation();
+        Direction directionToBlueprint = robotCurrentLocation.directionTo(commandLocation);
+        System.out.println(this.getLocation());
+        System.out.println(commandLocation.toString());
+
+        if (Player.gc.canBlueprint(this.getId(), unitType, directionToBlueprint)) {
+            Player.gc.blueprint(this.getId(), unitType, directionToBlueprint);
+            System.out.println(commandLocation.toString());
+
+            int structureId = Player.gc.senseUnitAtLocation(commandLocation).id();
+            UnitInstance newStructure;
+            if (unitType == UnitType.Factory) {
+                newStructure = new Factory(structureId, false, commandLocation);
+                Earth.earthFactoryMap.put(structureId, newStructure);
+            } else {
+                newStructure = new Rocket(structureId, false, commandLocation);
+                Earth.earthRocketMap.put(structureId, newStructure);
+            }
+            System.out.println("Unit: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Given a MapLocation of a blueprint, build it until it reaches full health and becomes a rocket/factory
      * @param commandLocation The location of the unfinished structure
      * @return If the structure finished building
@@ -135,40 +168,6 @@ public class Worker extends Robot {
     }
 
     /**
-     * Given the map location of a blueprint you want to build, check if you can build it and add
-     * a new blueprint instance to the blueprint map
-     * @param commandLocation The MapLocation of the blueprint you want to build
-     * @param unitType Either a factory or rocket blueprint
-     * @return If the blueprint was built or not
-     */
-    private boolean blueprintStructure(MapLocation commandLocation, UnitType unitType) {
-        MapLocation robotCurrentLocation = Player.gc.unit(this.getId()).location().mapLocation();
-        Direction directionToBlueprint = robotCurrentLocation.directionTo(commandLocation);
-        System.out.println(this.getLocation());
-        System.out.println(commandLocation.toString());
-
-        if (Player.gc.canBlueprint(this.getId(), unitType, directionToBlueprint)) {
-            Player.gc.blueprint(this.getId(), unitType, directionToBlueprint);
-            System.out.println(commandLocation.toString());
-
-            int structureId = Player.gc.senseUnitAtLocation(commandLocation).id();
-            UnitInstance newStructure;
-            if (unitType == UnitType.Factory) {
-                newStructure = new Factory(structureId, false, commandLocation);
-                Earth.earthFactoryMap.put(structureId, newStructure);
-            } else {
-                newStructure = new Rocket(structureId, false, commandLocation);
-                Earth.earthRocketMap.put(structureId, newStructure);
-            }
-
-            System.out.println("Unit: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Make worker wander to a random location within its vision radius
      */
     private void wander() {
@@ -178,6 +177,21 @@ public class Worker extends Robot {
 
         MapLocation wanderLocation = locations.get(randomLocation);
         emergencyTask = new RobotTask(-1, Command.MOVE, wanderLocation);
+    }
+
+    /**
+     * Method that will check if a worker can mine karbonite. If it has not performed an action this turn and
+     * there is a karbonite pocket in adjacent squares, it will mine it
+     */
+    private void mineKarbonite() {
+        for (int i = 0; i < DIRECTION_MAX_VAL + 1; i++) {
+            Direction direction = Direction.swigToEnum(i);
+            MapLocation newLocation = Player.gc.unit(this.getId()).location().mapLocation().add(direction);
+            if (Player.gc.canHarvest(this.getId(), direction) && Player.karboniteAt(newLocation) > 0) {
+                Player.gc.harvest(this.getId(), direction);
+                break;
+            }
+        }
     }
 
 //    /**
@@ -221,20 +235,5 @@ public class Worker extends Robot {
 //        }
 //        return nearestLocation;
 //    }
-
-    /**
-     * Method that will check if a worker can mine karbonite. If it has not performed an action this turn and
-     * there is a karbonite pocket in adjacent squares, it will mine it
-     */
-    private void mineKarbonite() {
-        for (int i = 0; i < DIRECTION_MAX_VAL + 1; i++) {
-            Direction direction = Direction.swigToEnum(i);
-            MapLocation newLocation = Player.gc.unit(this.getId()).location().mapLocation().add(direction);
-            if (Player.gc.canHarvest(this.getId(), direction) && Player.karboniteAt(newLocation) > 0) {
-                Player.gc.harvest(this.getId(), direction);
-                break;
-            }
-        }
-    }
 }
 

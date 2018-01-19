@@ -4,18 +4,22 @@ import java.util.*;
 
 public class Earth extends PlanetInstance {
 
-    public static HashMap<Integer, GlobalTask> earthTaskMap = new HashMap<>();
+    public static int knightCount = 0;
+    public static int rangerCount = 0;
+    public static int mageCount = 0;
+    public static int healerCount = 0;
+
     public static Queue<GlobalTask> earthTaskQueue = new LinkedList<>();
+    public static HashMap<Integer, GlobalTask> earthTaskMap = new HashMap<>();
 
     public static HashMap<Integer, UnitInstance> earthRocketMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthWorkerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthAttackerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthFactoryMap = new HashMap<>();
 
-    public static HashSet<Integer> earthFinishedTasks = new HashSet<>();
-
     public static HashMap<Integer, UnitInstance> earthStagingWorkerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
+    public static HashSet<Integer> earthFinishedTasks = new HashSet<>();
 
     private static ArrayList<MapLocation> availableStructureLocations = findInitialStructureLocations();
 
@@ -39,9 +43,6 @@ public class Earth extends PlanetInstance {
         earthStagingAttackerMap = new HashMap<>();
     }
 
-    public static void initialize() {
-
-    }
 
     /**
      * Will update and assign tasks to workers if there are idle workers. Loops through a list of idle workers.
@@ -237,6 +238,7 @@ public class Earth extends PlanetInstance {
         earthWorkerMap = findDeadUnits(unitSet, earthWorkerMap);
         earthFactoryMap = findDeadUnits(unitSet, earthFactoryMap);
         earthAttackerMap = findDeadUnits(unitSet, earthAttackerMap);
+        decrementAttackCounts(unitSet);
     }
 
     /**
@@ -268,6 +270,28 @@ public class Earth extends PlanetInstance {
         }
 
         return searchMap;
+    }
+
+    /**
+     * Helper method for the updateDeadUnits method that will decrement all the values of the current attacking units
+     * @param unitSet The set of units returned by the Game Controller
+     */
+    private static void decrementAttackCounts(HashSet<Integer> unitSet) {
+        for (int unitId: earthAttackerMap.keySet()) {
+            if (!unitSet.contains(unitId)) {
+
+                switch (Player.gc.unit(unitId).unitType()) {
+                    case Knight:
+                        knightCount--;
+                    case Ranger:
+                        rangerCount--;
+                    case Mage:
+                        mageCount--;
+                    case Healer:
+                        healerCount--;
+                }
+            }
+        }
     }
 
     /**
