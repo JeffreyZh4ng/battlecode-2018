@@ -23,7 +23,6 @@ public class Earth extends PlanetInstance {
 
         updateDeadUnits();
 
-        // updateTaskMap();
         updateTaskQueue();
 
         runUnitMap(earthRocketMap);
@@ -46,6 +45,7 @@ public class Earth extends PlanetInstance {
      */
     private static void updateTaskQueue() {
         if (earthTaskQueue.size() == 0) {
+            System.out.println("Queue size is zero!");
             return;
         }
 
@@ -62,7 +62,7 @@ public class Earth extends PlanetInstance {
                 if (!earthTaskMap.containsKey(globalTask.getTaskId())) {
                     globalTask.addWorkerToList(workerId);
 
-                    System.out.println("Workers on task: " + globalTask.getWorkersOnTask().size());
+                    System.out.println("Workers on task: " + globalTask.getTaskId() + " is " + globalTask.getWorkersOnTask().size());
 
                     earthTaskMap.put(taskId, globalTask);
                 } else {
@@ -75,6 +75,9 @@ public class Earth extends PlanetInstance {
                 if (globalTask.getMinimumWorkers() == earthTaskMap.get(taskId).getWorkersOnTask().size()) {
                     earthTaskQueue.poll();
                     System.out.println("Task has enough workers! Polling: " + taskId);
+                    if (earthTaskQueue.size() == 0) {
+                        return;
+                    }
                 }
             }
         }
@@ -166,107 +169,6 @@ public class Earth extends PlanetInstance {
         }
         return closestLocation;
     }
-
-
-    /**
-     * Runs through the earthTaskMap and will update progress on each task
-     */
-//    private static void updateTaskMap() {
-//        System.out.println("Earth global tasks size: " + earthTaskMap.keySet().size());
-//        for (int globalTaskId: earthTaskMap.keySet()) {
-//            GlobalTask globalTask = earthTaskMap.get(globalTaskId);
-//            Command taskCommand = earthTaskMap.get(globalTaskId).getCommand();
-//
-//            if (globalTask.getWorkersOnTask().size() == 0) {
-//                Earth.earthTaskQueue.add(globalTask);
-//                Earth.earthFinishedTasks.add(globalTaskId);
-//            }
-//
-//            switch (taskCommand) {
-//                case CONSTRUCT_FACTORY:
-//                    addAdjacentUnitsToList(globalTask);
-//                    break;
-//                case CONSTRUCT_ROCKET:
-//                    addAdjacentUnitsToList(globalTask);
-//                    break;
-//                case LOAD_ROCKET:
-//                    break;
-//            }
-//            // Add any workers directly adjacent to the taskmap.
-//        }
-//    }
-
-    /**
-     * Helper method for the update task map method that will add units adjacent workers to the tasks map
-     * @param globalTask The task that you are updating
-     */
-    private static void addAdjacentUnitsToList(GlobalTask globalTask) {
-        MapLocation taskLocation = globalTask.getTaskLocation();
-        VecUnit nearbyUnits = Player.gc.senseNearbyUnits(taskLocation, 2);
-
-        for (int i = 0; i < nearbyUnits.size(); i++) {
-            Unit nearbyUnit = nearbyUnits.get(i);
-            if (!globalTask.getWorkersOnTask().contains(nearbyUnit.id())) {
-                if (nearbyUnits.get(i).unitType() == UnitType.Worker) {
-                    globalTask.addWorkerToList(nearbyUnit.id());
-                }
-            }
-        }
-    }
-//
-//    /**
-//     * Finds the nearest worker
-//     * @return The nearest worker
-//     */
-//    private int findNearestIdleWorker() {
-//        for (int workerId: earthWorkerMap.keySet()) {
-//            if (earthWorkerMap.get(workerId).getRobotTaskQueue().size() == 0) {
-//                return workerId;
-//            }
-//        }
-//
-//        return -1;
-//    }
-
-//    /**
-//     * Method that is called every time the global task is updated. Workers will fulfill the priority task to
-//     * clone themselves and put them next to the structure. At the beginning of each round, the global task
-//     * will look for those new workers and add them to the list and send out robot commands.
-//            * @param globalTask The task you want to add workers to
-//     */
-//    private void manageConstruction(GlobalTask globalTask) {
-//        if (globalTask.getCompletionStage() == 4) {
-//            globalTask.incrementCompletionStage();
-//            System.out.println("Finished building! Waiting one turn to delete...");
-//        } else if (globalTask.getCompletionStage() == 5) {
-//            earthFinishedTasks.put(globalTask.getTaskId(), globalTask);
-//
-//        } else {
-//            VecUnit unitList = Player.gc.senseNearbyUnits(globalTask.getTaskLocation(), 2);
-//
-//            for (int i = 0; i < unitList.size(); i++) {
-//                Unit unit = unitList.get(i);
-//
-//                // If the unit is on your team, a worker, and not already in the list
-//                if (unit.team() == Player.gc.team() && unit.unitType() == UnitType.Worker && !globalTask.getWorkersOnTask().contains(unit.id())) {
-//                    globalTask.addWorkerToList(unit.id());
-//                    System.out.println("ADDED ROBOT: " + unit.id() + " TO LIST!");
-//
-//                    RobotTask blueprintTask;
-//                    if (globalTask.getCommand() == Command.CONSTRUCT_FACTORY) {
-//                        blueprintTask = new RobotTask(globalTask.getTaskId(), 2, Command.BLUEPRINT_FACTORY, globalTask.getTaskLocation());
-//                    } else {
-//                        blueprintTask = new RobotTask(globalTask.getTaskId(), 2, Command.BLUEPRINT_ROCKET, globalTask.getTaskLocation());
-//
-//                    }
-//                    earthWorkerMap.get(unit.id()).addTask(blueprintTask);
-//
-//                    RobotTask buildTask = new RobotTask(globalTask.getTaskId(), 3, Command.BUILD, globalTask.getTaskLocation());
-//                    earthWorkerMap.get(unit.id()).addTask(buildTask);
-//                }
-//            }
-//        }
-//    }
 
     /**
      * That that will run the execute() command for all the units in the given HashMap

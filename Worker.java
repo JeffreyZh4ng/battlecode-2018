@@ -16,7 +16,7 @@ public class Worker extends Robot {
 
         if (emergencyTask != null) {
             if (executeTask(emergencyTask)) {
-                System.out.println("Unit: " + this.getId() + "Finished emergency task!");
+                System.out.println("Unit: " + this.getId() + " Finished emergency task!");
                 emergencyTask = null;
             }
 
@@ -82,6 +82,7 @@ public class Worker extends Robot {
             if (commandLocation.isAdjacentTo(newLocation)) {
 
                 Direction directionToClone = robotCurrentLocation.directionTo(newLocation);
+
                 if (Player.gc.canReplicate(this.getId(), directionToClone)) {
                     Player.gc.replicate(this.getId(), directionToClone);
 
@@ -125,7 +126,7 @@ public class Worker extends Robot {
                     Earth.earthFactoryMap.put(rocket.getId(), builtRocket);
                 }
 
-                System.out.println("Unit: " + this.getId() + " Built structure!");
+                System.out.println("Unit: " + this.getId() + " Built structure");
                 return true;
             }
         }
@@ -143,9 +144,12 @@ public class Worker extends Robot {
     private boolean blueprintStructure(MapLocation commandLocation, UnitType unitType) {
         MapLocation robotCurrentLocation = Player.gc.unit(this.getId()).location().mapLocation();
         Direction directionToBlueprint = robotCurrentLocation.directionTo(commandLocation);
+        System.out.println(this.getLocation());
+        System.out.println(commandLocation.toString());
 
         if (Player.gc.canBlueprint(this.getId(), unitType, directionToBlueprint)) {
             Player.gc.blueprint(this.getId(), unitType, directionToBlueprint);
+            System.out.println(commandLocation.toString());
 
             int structureId = Player.gc.senseUnitAtLocation(commandLocation).id();
             UnitInstance newStructure;
@@ -157,8 +161,7 @@ public class Worker extends Robot {
                 Earth.earthRocketMap.put(structureId, newStructure);
             }
 
-            System.out.println("Unit: " + this.getId() + " Blueprinted structure!");
-            Earth.planedStructureLocations.remove(commandLocation.toString());
+            System.out.println("Unit: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
 
             return true;
         }
