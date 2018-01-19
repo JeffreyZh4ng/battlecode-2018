@@ -162,7 +162,6 @@ public class Worker extends Robot {
             }
 
             System.out.println("Unit: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
-
             return true;
         }
 

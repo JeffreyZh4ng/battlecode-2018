@@ -17,7 +17,7 @@ public class Earth extends PlanetInstance {
     public static HashMap<Integer, UnitInstance> earthStagingWorkerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
 
-    public static HashSet<String> planedStructureLocations = new HashSet<>();
+    private static ArrayList<MapLocation> availableStructureLocations = findInitialStructureLocations();
 
     public static void execute() {
 
@@ -37,6 +37,10 @@ public class Earth extends PlanetInstance {
         earthStagingWorkerMap = new HashMap<>();
         earthAttackerMap = addStagingUnitsToMap(earthAttackerMap, earthStagingAttackerMap);
         earthStagingAttackerMap = new HashMap<>();
+    }
+
+    public static void initialize() {
+
     }
 
     /**
@@ -97,28 +101,31 @@ public class Earth extends PlanetInstance {
             case CONSTRUCT_FACTORY:
                 minimumWorkers = 4;
                 globalTaskLocation = pickStructureLocation();
-                planedStructureLocations.add(globalTaskLocation.toString());
                 break;
             case CONSTRUCT_ROCKET:
                 minimumWorkers = 6;
                 globalTaskLocation = pickStructureLocation();
-                planedStructureLocations.add(globalTaskLocation.toString());
                 break;
             default:
                 minimumWorkers = 4;
                 globalTaskLocation = pickStructureLocation();
-                planedStructureLocations.add(globalTaskLocation.toString());
                 break;
         }
 
         earthTaskQueue.add(new GlobalTask(minimumWorkers, command, globalTaskLocation));
     }
 
+
+
+    //initial structure locations
+    // available structure locations
+
     /**
-     * Method that will pick the best MapLocation to build a structure
-     * @return The MapLocation of the best place to build a structure or null if no locations exist or no availble workers exist
+     * Finds structure locations based on initial map locations.
+     * @return the initially available structure locations
      */
-    private static MapLocation pickStructureLocation() {
+    private static ArrayList<MapLocation> findInitialStructureLocations() {
+        // TODO: this does not work properly
         ArrayList<MapLocation> clearLocations = new ArrayList<>();
 
         for (int x = 1; x < Player.gc.startingMap(Player.gc.planet()).getWidth() - 1; x++) {
@@ -126,36 +133,72 @@ public class Earth extends PlanetInstance {
 
                 //location to test is the center location
                 MapLocation locationToTest = new MapLocation(Player.gc.planet(), x, y);
-                if (planedStructureLocations.contains(locationToTest.toString())) ;
-                Boolean isClear = true;
                 for (Direction direction : Direction.values()) {
 
-                    //is already a planed location or is not passable terrain
-                    if (planedStructureLocations.contains(locationToTest.add(direction).toString()) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
-                        isClear = false;
-                        break;
-                    }
-                    //if has structure
-                    if (Player.gc.canSenseLocation(locationToTest.add(direction)) && Player.gc.hasUnitAtLocation(locationToTest.add(direction)) && (Player.gc.senseUnitAtLocation(locationToTest.add(direction)).unitType() == UnitType.Factory || Player.gc.senseUnitAtLocation(locationToTest.add(direction)).unitType() == UnitType.Rocket)) {
-                        isClear = false;
+                    //is not passable terrain
+                    if (Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
                         break;
                     }
                 }
-                if (isClear) {
-                    clearLocations.add(locationToTest);
-                }
+                clearLocations.add(locationToTest);
             }
         }
+        return clearLocations;
+    }
 
+    /**
+     * finds the nearest structure location to given location
+     * @param locationNearTo location to search near too
+     * @return the closest available location
+     */
+    private static MapLocation getNearestAvailableStructureLocation(MapLocation locationNearTo) {
         MapLocation closestLocation = null;
         long shortestDistance = 100000;
 
         //choose best location from list
-        for (MapLocation location : clearLocations) {
+        for (MapLocation location : availableStructureLocations) {
+            if (closestLocation == null) {
+                closestLocation = location;
+                shortestDistance = location.distanceSquaredTo(locationNearTo);
+
+            } else if (location.distanceSquaredTo(locationNearTo) < shortestDistance) {
+                closestLocation = location;
+                shortestDistance = location.distanceSquaredTo(locationNearTo);
+            }
+        }
+        makeStructureLocationUnavailable(closestLocation);
+        return closestLocation;
+    }
+
+    /**
+     * Makes the given location unavailable.
+     * @param plannedLocation the location to make unavailable
+     */
+    private static void makeStructureLocationUnavailable(MapLocation plannedLocation) {
+        availableStructureLocations.remove(plannedLocation);
+    }
+
+    /**
+     * Makes the given location available.
+     * @param removedLocation the location to make available
+     */
+    private static void makeStructureLocationAvailable(MapLocation removedLocation) {
+        availableStructureLocations.add(removedLocation);
+    }
+
+
+    /**
+     * Method that will pick the best MapLocation to build a structure
+     * @return The MapLocation of the best place to build a structure or null if no locations exist or no available workers exist
+     */
+    private static MapLocation pickStructureLocation() {
+        MapLocation closestLocation = null;
+        long shortestDistance = 100000;
+
+        //choose best location from list
+        for (MapLocation location : availableStructureLocations) {
             for (int workerId : earthWorkerMap.keySet()) {
-
                 MapLocation workerLocation = Player.gc.unit(workerId).location().mapLocation();
-
                 if (closestLocation == null) {
                     closestLocation = location;
                     shortestDistance = location.distanceSquaredTo(workerLocation);
@@ -165,8 +208,8 @@ public class Earth extends PlanetInstance {
                     shortestDistance = location.distanceSquaredTo(workerLocation);
                 }
             }
-
         }
+        makeStructureLocationUnavailable(closestLocation);
         return closestLocation;
     }
 
