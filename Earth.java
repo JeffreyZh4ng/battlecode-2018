@@ -2,12 +2,14 @@ import bc.*;
 
 import java.util.*;
 
-public class Earth extends PlanetInstance {
+public class Earth {
 
     public static int knightCount = 0;
     public static int rangerCount = 0;
     public static int mageCount = 0;
     public static int healerCount = 0;
+
+    public static MapLocation earthAttackTarget = null;
 
     public static Queue<GlobalTask> earthTaskQueue = new LinkedList<>();
     public static HashMap<Integer, GlobalTask> earthTaskMap = new HashMap<>();
@@ -113,6 +115,7 @@ public class Earth extends PlanetInstance {
                 break;
         }
 
+        System.out.println("Picked location: " + globalTaskLocation.toString());
         earthTaskQueue.add(new GlobalTask(minimumWorkers, command, globalTaskLocation));
     }
 
@@ -186,7 +189,6 @@ public class Earth extends PlanetInstance {
     private static void makeStructureLocationAvailable(MapLocation removedLocation) {
         availableStructureLocations.add(removedLocation);
     }
-
 
     /**
      * Method that will pick the best MapLocation to build a structure

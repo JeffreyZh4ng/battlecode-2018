@@ -1,4 +1,3 @@
-import bc.Direction;
 import bc.MapLocation;
 import bc.UnitType;
 

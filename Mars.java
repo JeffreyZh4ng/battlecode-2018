@@ -3,7 +3,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class Mars extends PlanetInstance {
+public class Mars {
 
     public static HashMap<Integer, GlobalTask> marsTaskMap = new HashMap<>();
     public static Queue<GlobalTask> marsTaskQueue = new LinkedList<>();

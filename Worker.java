@@ -4,9 +4,6 @@ import java.util.Map;
 
 public class Worker extends Robot {
 
-    private static final int DIRECTION_MAX_VAL = 8;
-    private RobotTask emergencyTask = null;
-
     public Worker(int id) {
         super(id);
     }
@@ -14,10 +11,10 @@ public class Worker extends Robot {
     @Override
     public void run() {
 
-        if (emergencyTask != null) {
-            if (executeTask(emergencyTask)) {
+        if (this.getEmergencyTask() != null) {
+            if (executeTask(this.getEmergencyTask())) {
                 System.out.println("Unit: " + this.getId() + " Finished emergency task!");
-                emergencyTask = null;
+                this.setEmergencyTask(null);
             }
 
         } else if (!this.isIdle()) {
@@ -32,7 +29,7 @@ public class Worker extends Robot {
 
         } else {
             System.out.println("Unit: " + this.getId() + " wandering!");
-            wander();
+            this.wander();
         }
 
         mineKarbonite();
@@ -61,7 +58,7 @@ public class Worker extends Robot {
             case BLUEPRINT_ROCKET:
                 return blueprintStructure(commandLocation, UnitType.Rocket);
             default:
-                System.out.println("This should never happen unless I forgot something so returning true");
+                System.out.println("Critical error occurred in unit: " + this.getId());
                 return true;
         }
     }
@@ -75,7 +72,7 @@ public class Worker extends Robot {
     private boolean cloneWorker(MapLocation commandLocation) {
         MapLocation robotCurrentLocation = Player.gc.unit(this.getId()).location().mapLocation();
 
-        for (int i = 0; i < DIRECTION_MAX_VAL; i++) {
+        for (int i = 0; i < 8; i++) {
             Direction direction = Direction.swigToEnum(i);
             MapLocation newLocation = robotCurrentLocation.add(direction);
 
@@ -112,11 +109,9 @@ public class Worker extends Robot {
         MapLocation robotCurrentLocation = Player.gc.unit(this.getId()).location().mapLocation();
         Direction directionToBlueprint = robotCurrentLocation.directionTo(commandLocation);
         System.out.println(this.getLocation());
-        System.out.println(commandLocation.toString());
 
         if (Player.gc.canBlueprint(this.getId(), unitType, directionToBlueprint)) {
             Player.gc.blueprint(this.getId(), unitType, directionToBlueprint);
-            System.out.println(commandLocation.toString());
 
             int structureId = Player.gc.senseUnitAtLocation(commandLocation).id();
             UnitInstance newStructure;
@@ -168,23 +163,11 @@ public class Worker extends Robot {
     }
 
     /**
-     * Make worker wander to a random location within its vision radius
-     */
-    private void wander() {
-        MapLocation currentLocation = Player.gc.unit(this.getId()).location().mapLocation();
-        VecMapLocation locations = Player.gc.allLocationsWithin(currentLocation, 50);
-        int randomLocation = (int) (Math.random() * locations.size());
-
-        MapLocation wanderLocation = locations.get(randomLocation);
-        emergencyTask = new RobotTask(-1, Command.MOVE, wanderLocation);
-    }
-
-    /**
      * Method that will check if a worker can mine karbonite. If it has not performed an action this turn and
      * there is a karbonite pocket in adjacent squares, it will mine it
      */
     private void mineKarbonite() {
-        for (int i = 0; i < DIRECTION_MAX_VAL + 1; i++) {
+        for (int i = 0; i < 8 + 1; i++) {
             Direction direction = Direction.swigToEnum(i);
             MapLocation newLocation = Player.gc.unit(this.getId()).location().mapLocation().add(direction);
             if (Player.gc.canHarvest(this.getId(), direction) && Player.karboniteAt(newLocation) > 0) {

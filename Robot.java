@@ -8,20 +8,32 @@ import java.util.LinkedList;
  */
 public abstract class Robot extends UnitInstance {
 
-    private boolean inCombat;
-
     public ArrayList<MapLocation> path = null;
+    private RobotTask emergencyTask = null;
 
     public Robot(int id) {
         super(id);
     }
 
-    public boolean isInCombat() {
-        return this.inCombat;
+    public RobotTask getEmergencyTask() {
+        return emergencyTask;
     }
 
-    public void setInCombat(boolean inCombat) {
-        this.inCombat = inCombat;
+    public void setEmergencyTask(RobotTask emergencyTask) {
+        this.emergencyTask = emergencyTask;
+    }
+
+    /**
+     * Make worker wander to a random location within its vision radius
+     */
+    public void wander() {
+        MapLocation currentLocation = Player.gc.unit(this.getId()).location().mapLocation();
+        int sightRadius = (int)(Player.gc.unit(this.getId()).visionRange());
+        VecMapLocation locations = Player.gc.allLocationsWithin(currentLocation, sightRadius);
+        int randomLocation = (int) (Math.random() * locations.size());
+
+        MapLocation wanderLocation = locations.get(randomLocation);
+        emergencyTask = new RobotTask(-1, Command.MOVE, wanderLocation);
     }
 
     /**
@@ -30,7 +42,7 @@ public abstract class Robot extends UnitInstance {
      * @param location The location to check
      * @return If the location appears empty
      */
-    public static boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
+    public boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
 
         // Returns if location is onMap, passableTerrain, and if it appears unoccupied by a Unit
         return map.onMap(location) && map.isPassableTerrainAt(location) > 0 &&
@@ -41,6 +53,7 @@ public abstract class Robot extends UnitInstance {
      * Helper method that will return all the directions around the robot except fo the center
      * @return All the directions except for the center
      */
+    // TODO: If you want to make this static, put it in the Player class
     public static ArrayList<Direction> getMoveDirections() {
         ArrayList<Direction> directions = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
@@ -98,7 +111,7 @@ public abstract class Robot extends UnitInstance {
      * @param map The map of earth or mars
      * @return The next place to step
      */
-    public static ArrayList<MapLocation> getPathFromBreadthFirstSearch(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
+    public ArrayList<MapLocation> getPathFromBreadthFirstSearch(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
 
         ArrayList<Direction> moveDirections = getMoveDirections();
 
@@ -166,7 +179,7 @@ public abstract class Robot extends UnitInstance {
      * finds a location to explore
      * @return A random location that seems good to be explored
      */
-    public static MapLocation getLocationToExplore() {
+    public MapLocation getLocationToExplore() {
         PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
         MapLocation randomLocation = getRandomLocation(initialMap);
 
