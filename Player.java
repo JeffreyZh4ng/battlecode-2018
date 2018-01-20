@@ -1,5 +1,6 @@
 import bc.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -10,6 +11,9 @@ public class Player {
     public static void main(String[] args) {
 
         addStartingWorkersToEarthMap();
+        for (MapLocation location: enemyLocations()) {
+            System.out.println(location.toString());
+        }
 
         while (true) {
 
@@ -21,11 +25,6 @@ public class Player {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-//                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-//                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-//                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-//                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                 }
                 Earth.execute();
 
@@ -35,6 +34,35 @@ public class Player {
 
             gc.nextTurn();
         }
+    }
+
+    /**
+     * Method that will get the starting locations of all the enemy workers created when the game has started
+     * @return An array of enemy locations
+     */
+    public static ArrayList<MapLocation> enemyLocations() {
+        int mapCenterX = (int)((gc.startingMap(Planet.Earth).getWidth()) / 2);
+        int mapCenterY = (int)((gc.startingMap(Planet.Earth).getHeight()) / 2);
+
+        ArrayList<MapLocation> enemyLocations = new ArrayList<>();
+        for (int workerId: Earth.earthWorkerMap.keySet()) {
+            MapLocation mapLocation = Earth.earthWorkerMap.get(workerId).getLocation();
+            int xDistance = mapCenterX - mapLocation.getX();
+            int yDistance = mapCenterY - mapLocation.getY();
+
+            if (mapCenterX % 2 == 0) {
+                mapCenterX--;
+            }
+            if (mapCenterY % 2 == 0) {
+                mapCenterY--;
+            }
+
+            enemyLocations.add(new MapLocation(Planet.Earth, mapCenterX + xDistance, mapCenterY + yDistance));
+            mapCenterX = (int)((gc.startingMap(Planet.Earth).getWidth()) / 2);
+            mapCenterY = (int)((gc.startingMap(Planet.Earth).getHeight()) / 2);
+        }
+
+        return enemyLocations;
     }
 
     /**
@@ -84,50 +112,6 @@ public class Player {
 
         return false;
     }
-
-
-//        Planet planet = locationToMoveTo.getPlanet();
-//        UnitType unitType;
-//        try {
-//            unitType = gc.unit(unitId).unitType();
-//        } catch (Exception e) {
-//            System.out.println(e);
-//            System.out.println("Unit with ID : " + unitId + " doesn't exist");
-//            return false;
-//        }
-//
-//        UnitInstance unitInstance;
-//        if (unitType == UnitType.Worker) {
-//            if (planet == Planet.Earth) {
-//                unitInstance = Earth.earthWorkerMap.get(unitId);
-//            } else {
-//                unitInstance = Mars.marsWorkerMap.get(unitId);
-//            }
-//        } else {
-//            if (planet == Planet.Earth) {
-//                unitInstance = Earth.earthAttackerMap.get(unitId);
-//            } else {
-//                unitInstance = Mars.marsAttackerMap.get(unitId);
-//            }
-//        }
-//
-//        if (gc.isMoveReady(unitId)) {
-//            if (planet == gc.planet()) {
-//                if (isOccupiable(locationToMoveTo)) {
-//                    try {
-//                        return true;
-//                    } catch (Exception e) {
-//                        System.out.println(e);
-//                        System.out.println();
-//                    }
-//                    System.out.println("The direction indicated is not occupiable");
-//                    return false;
-//                }
-//            }
-//            System.out.println("Unit: " + unitId + " is not on the planet: " + planet);
-//        }
-//
-//        return false;
 
     /**
      * Simplified method of senseUnitAtLocation that will handle the exception of if the location is not visible.

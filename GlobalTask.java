@@ -137,7 +137,7 @@ public class GlobalTask {
      */
     private void buildOrCloneHelper(int unitId) {
         RobotTask nextTask;
-        if (Earth.earthWorkerMap.size() < 10) {
+        if (Earth.earthWorkerMap.size() < 1) {
             nextTask = new RobotTask(this.getTaskId(), Command.CLONE, this.getTaskLocation());
         } else {
             nextTask = new RobotTask(this.getTaskId(), Command.BUILD, this.getTaskLocation());
@@ -146,7 +146,8 @@ public class GlobalTask {
     }
 
     /**
-     * When the last command in the string of tasks is finished. Remove the task of all the rest of the units
+     * When the last command in the string of tasks is finished. Remove the task of all the rest of the units.
+     * If the task is still the top task of the task queue, remove it
      */
     private void finishedTask() {
         for (int unitId: workersOnTask) {
@@ -155,6 +156,10 @@ public class GlobalTask {
             } else {
                 Earth.earthAttackerMap.get(unitId).removeTask();
             }
+        }
+
+        if (Earth.earthTaskQueue.peek().getTaskId() == this.getTaskId()) {
+            Earth.earthTaskQueue.poll();
         }
     }
 
