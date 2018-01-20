@@ -34,7 +34,7 @@ public class Ranger extends Attacker {
             Unit closestUnit = getClosestUnit(-1, enemyUnits);
             int closestDistanceToUnit = (int)this.getLocation().distanceSquaredTo(closestUnit.location().mapLocation());
 
-            // System.out.println("closest distance: " + closestDistanceToUnit + " attackRange: " + this.getAttackRange());
+            System.out.println("closest distance: " + closestDistanceToUnit + " attackRange: " + this.getAttackRange());
 
             if (closestDistanceToUnit > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {

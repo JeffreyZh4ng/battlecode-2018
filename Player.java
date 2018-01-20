@@ -22,10 +22,10 @@ public class Player {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+//                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+//                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+//                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+//                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                 }
                 Earth.execute();
 

@@ -47,7 +47,7 @@ public abstract class Attacker extends Robot {
 
         if (this.getEmergencyTask() != null) {
             if (executeTask(this.getEmergencyTask())) {
-                // System.out.println("Unit: " + this.getId() + " Finished emergency task!");
+                System.out.println("Unit: " + this.getId() + " Finished emergency task!");
                 this.setEmergencyTask(null);
             }
 
@@ -57,15 +57,15 @@ public abstract class Attacker extends Robot {
                     hasAttackLocationBeenChecked();
                 }
                 this.setCurrentTask(null);
-                // // System.out.println("Unit: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
-                // // System.out.println("Removing global attack target! Setting to null");
+                System.out.println("Unit: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+                System.out.println("Removing global attack target! Setting to null");
 
                 // Perform run again?
                 run();
             }
 
         } else {
-            // System.out.println("Unit: " + this.getId() + " wandering!");
+            System.out.println("Unit: " + this.getId() + " wandering!");
             this.wander();
         }
     }
@@ -78,7 +78,7 @@ public abstract class Attacker extends Robot {
     private boolean executeTask(RobotTask robotTask) {
         Command robotCommand = robotTask.getCommand();
         MapLocation commandLocation = robotTask.getCommandLocation();
-        // // System.out.println("Unit: " + this.getId() + " " + robotCommand);
+        // System.out.println("Unit: " + this.getId() + " " + robotCommand);
 
         switch (robotCommand) {
             case MOVE:
@@ -88,7 +88,7 @@ public abstract class Attacker extends Robot {
             case LOAD_ROCKET:
                 return loadRocket(commandLocation);
             default:
-                // System.out.println("Critical error occurred in unit: " + this.getId());
+                System.out.println("Critical error occurred in unit: " + this.getId());
                 return true;
         }
     }
@@ -98,7 +98,7 @@ public abstract class Attacker extends Robot {
      * task to move to the attack location
      */
     private void updateTask() {
-        if (this.getCurrentTask() == null && getAttackTarget() != null) {
+        if (getAttackTarget() != null) {
             this.setCurrentTask(new RobotTask(-1, Command.MOVE, getAttackTarget()));
         }
     }
@@ -114,7 +114,7 @@ public abstract class Attacker extends Robot {
             if (getAttackTarget() == null) {
                 Unit enemyUnit = getClosestUnit(-1, enemyUnits);
                 setAttackTarget(enemyUnit.location().mapLocation());
-                // System.out.println("Unit: " + this.getId() + " Setting global attack target to: " + enemyUnit.location().mapLocation().toString());
+                System.out.println("Unit: " + this.getId() + " Setting global attack target to: " + enemyUnit.location().mapLocation().toString());
             }
 
             setEmergencyTask(new RobotTask(-1, Command.IN_COMBAT, this.getLocation()));
@@ -132,7 +132,7 @@ public abstract class Attacker extends Robot {
             int distanceToAttackLocation = (int)(currentLocation.distanceSquaredTo(getAttackTarget()));
             if (distanceToAttackLocation < this.getAttackRange()) {
                 removeAttackTarget();
-                // System.out.println("Global target has been removed!");
+                System.out.println("Global target has been removed!");
             }
 
         }

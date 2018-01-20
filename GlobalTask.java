@@ -137,7 +137,7 @@ public class GlobalTask {
      */
     private void buildOrCloneHelper(int unitId) {
         RobotTask nextTask;
-        if (Earth.earthWorkerMap.size() < 15) {
+        if (Earth.earthWorkerMap.size() < 10) {
             nextTask = new RobotTask(this.getTaskId(), Command.CLONE, this.getTaskLocation());
         } else {
             nextTask = new RobotTask(this.getTaskId(), Command.BUILD, this.getTaskLocation());
