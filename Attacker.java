@@ -59,6 +59,7 @@ public abstract class Attacker extends Robot {
         }
     }
 
+
     /**
      * Attacks the weakest enemy that it can, will move towards if unreachable
      * @return true if nothing to attack false if attacked or has enemy in range

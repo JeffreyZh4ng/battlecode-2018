@@ -34,7 +34,9 @@ public class Ranger extends Attacker {
             Unit closestUnit = getClosestUnit(-1, enemyUnits);
             int closestDistanceToUnit = (int)this.getLocation().distanceSquaredTo(closestUnit.location().mapLocation());
 
-            if (closestDistanceToUnit > getAttackRange()) {
+            System.out.println("closeDist: " + closestDistanceToUnit + "attackRange: " + this.getAttackRange());
+
+            if (closestDistanceToUnit > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {
                     move(this.getId(), closestUnit.location().mapLocation());
                 }
@@ -42,7 +44,7 @@ public class Ranger extends Attacker {
 
             if (closestDistanceToUnit < MIN_ATTACK_RANGE) {
                 // TODO: try move back could be better then this
-                // Player.moveRobot(this.getId(), this.getLocation().add(closestUnit.location().mapLocation().directionTo(this.getLocation())));
+                //Player.gc.moveRobot(this.getId(), closestUnit.location().mapLocation().directionTo(this.getLocation()));
                 closestUnit = getClosestUnit(-1, Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getAttackRange(), otherTeam));
             }
 
