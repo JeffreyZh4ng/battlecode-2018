@@ -1,3 +1,5 @@
+import bc.MapLocation;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -7,6 +9,8 @@ public class Mars {
 
     public static HashMap<Integer, GlobalTask> marsTaskMap = new HashMap<>();
     public static Queue<GlobalTask> marsTaskQueue = new LinkedList<>();
+
+    public static MapLocation marsAttackTarget = null;
 
     public static HashMap<Integer, UnitInstance> marsRocketMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> marsWorkerMap = new HashMap<>();

@@ -15,6 +15,7 @@ public class Player {
 
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
                 System.out.println("Round number: " + gc.round());
+                System.out.println("Time left: " + Player.gc.getTimeLeftMs());
 
                 if (gc.round() == 1) {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
@@ -138,7 +139,7 @@ public class Player {
         PlanetMap initialMap = gc.startingMap(mapLocation.getPlanet());
         if (initialMap.onMap(mapLocation)) {
             if (gc.canSenseLocation(mapLocation)) {
-                System.out.println("Map Location: " + mapLocation.toString());
+                // System.out.println("Map Location: " + mapLocation.toString());
                 return gc.senseUnitAtLocation(mapLocation);
             } else {
                 System.out.println("LOCATION IS NOT IN VIEW RANGE");
