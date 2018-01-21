@@ -1,6 +1,6 @@
 import bc.*;
 
-import java.util.Map;
+import java.util.*;
 
 public class Worker extends Robot {
 
@@ -36,6 +36,8 @@ public class Worker extends Robot {
         } else {
             System.out.println("Worker: " + this.getId() + " doing nothing!");
 //            this.wander();
+//            System.out.println("Unit: " + this.getId() + " wandering!");
+//            this.wanderToMine();
         }
 
         mineKarbonite();
@@ -164,7 +166,6 @@ public class Worker extends Robot {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -181,6 +182,77 @@ public class Worker extends Robot {
                 break;
             }
         }
+    }
+
+    private void wanderToMine() {
+        MapLocation karboniteLocation = getPathToKarbonite(this.getLocation(), Player.gc.startingMap(Player.gc.planet()));
+
+        if (this.getMovePathStack() != null) {
+            this.setCurrentTask(new RobotTask(-1, Command.MOVE, karboniteLocation));
+            System.out.println("Setting the current task to go mine karbonite");
+        }
+        System.out.println("no wander Location");
+    }
+
+    /**
+     * Method that will get the path to the nearest karbonite deposit.
+     * @param startingLocation The starting location of the robot
+     * @param map The map the robot is on
+     * @return The stack of path values to the karbonite deposit
+     */
+    // TODO: Change this to return the map location of the karbonite pocket.
+    public MapLocation getPathToKarbonite(MapLocation startingLocation, PlanetMap map) {
+
+        ArrayList<Direction> moveDirections = Player.getMoveDirections();
+
+        //shuffle directions so that wandering doesn't gravitate towards a specific direction
+        MapLocation destinationLocation = null;
+
+        Queue<MapLocation> frontier = new LinkedList<>();
+        frontier.add(startingLocation);
+
+        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
+        checkedLocations.put(startingLocation.toString(), startingLocation);
+
+        while (!frontier.isEmpty()) {
+
+            // Get next direction to check around
+            MapLocation currentLocation = frontier.poll();
+            Collections.shuffle(moveDirections, new Random());
+
+            // Check if locations around frontier location have already been added to came from and if they are empty
+            for (Direction nextDirection : moveDirections) {
+                MapLocation nextLocation = currentLocation.add(nextDirection);
+
+                if (Player.doesLocationAppearEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
+                    frontier.add(nextLocation);
+                    checkedLocations.put(nextLocation.toString(), currentLocation);
+                    if (Earth.earthKarboniteMap.containsKey(currentLocation.toString())) {
+                        frontier.clear();
+                        destinationLocation = currentLocation;
+                    }
+                }
+            }
+        }
+
+        if (destinationLocation == null) {
+            return null;
+        }
+        Stack<MapLocation> newPath = new Stack<>();
+        MapLocation currentTraceLocation = destinationLocation;
+
+        // trace back path
+        while (!currentTraceLocation.equals(startingLocation)) {
+            newPath.push(currentTraceLocation);
+            currentTraceLocation = checkedLocations.get(currentTraceLocation.toString());
+            if (currentTraceLocation == null) {
+                break;
+            }
+        }
+
+        this.setMovePathStack(newPath);
+
+        return newPath;
     }
 
 //    /**

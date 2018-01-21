@@ -17,7 +17,7 @@ public class Player {
                 System.runFinalization();
                 System.gc();
             }
-            if (gc.planet() == Planet.Earth && gc.team() == Team.Blue) {
+            if (gc.planet() == Planet.Earth) {
                 System.out.println("Round number: " + gc.round());
                 System.out.println("Time left: " + Player.gc.getTimeLeftMs());
 
@@ -129,8 +129,13 @@ public class Player {
         PlanetMap initialMap = gc.startingMap(mapLocation.getPlanet());
         if (initialMap.onMap(mapLocation)) {
             if (gc.canSenseLocation(mapLocation)) {
-                // System.out.println("Map Location: " + mapLocation.toString());
-                return gc.senseUnitAtLocation(mapLocation);
+                if (gc.hasUnitAtLocation(mapLocation)) {
+                    // System.out.println("Map Location: " + mapLocation.toString());
+                    return gc.senseUnitAtLocation(mapLocation);
+                } else {
+                    System.out.println("NO UNIT AT LOCATION");
+                    return null;
+                }
             } else {
                 System.out.println("LOCATION IS NOT IN VIEW RANGE");
                 return null;
@@ -185,6 +190,69 @@ public class Player {
             directions.add( Direction.swigToEnum(i));
         }
         return directions;
+    }
+
+    /**
+     * Method that will check if a location appears empty. Checks if the location is onMap, passableTerrain,
+     * and if it is not occupied by a factory or rocket. Return true if there is a robot there
+     * @param map The map to check
+     * @param location The location to check
+     * @return If the location appears empty
+     */
+    public static boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
+        if (map.onMap(location) && map.isPassableTerrainAt(location) > 0) {
+            if (Player.gc.hasUnitAtLocation(location)) {
+
+                UnitType unit = Player.gc.senseUnitAtLocation(location).unitType();
+                if (unit == UnitType.Factory || unit == UnitType.Rocket) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Method that will convert a MapLocation into an easily recognizable string.
+     * @param mapLocation The MapLocation that you want to convert
+     * @return A string that represents the MapLocation
+     */
+    public static String mapLocationToString(MapLocation mapLocation) {
+        StringBuilder convertedLocation = new StringBuilder();
+
+        if (mapLocation.getPlanet() == Planet.Mars) {
+            convertedLocation.append(" ");
+        }
+        convertedLocation.append(mapLocation.getX());
+        convertedLocation.append(" ");
+        convertedLocation.append(mapLocation.getY());
+
+        return convertedLocation.toString();
+    }
+
+    /**
+     * A method that will convert the recognizable string back into a MapLocation
+     * @param location The MapLocation represented by the string
+     * @return A MapLocation that represents the string
+     */
+    public static MapLocation stringToMapLocation(String location) {
+        Planet mapPlanet;
+        if (location.charAt(0) == ' ') {
+            mapPlanet = Planet.Mars;
+            location = location.substring(1);
+        } else {
+            mapPlanet = Planet.Earth;
+        }
+
+        int spaceIndex = location.indexOf(' ');
+        int xLocation = Integer.parseInt(location.substring(0, spaceIndex));
+        location = location.substring(spaceIndex + 1);
+        int yLocation = Integer.parseInt(location);
+
+        return new MapLocation(mapPlanet, xLocation, yLocation);
     }
 }
 

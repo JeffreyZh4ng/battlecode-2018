@@ -26,11 +26,14 @@ public class Earth {
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
     public static HashSet<Integer> earthFinishedTasks = new HashSet<>();
 
-    private static ArrayList<MapLocation> availableStructureLocations = findInitialStructureLocations();
+    public static HashMap<String, Integer> earthKarboniteMap = initializeKarboniteMap();
+
+    private static ArrayList<MapLocation> availableStructureLocations = findAllStructureLocations();
 
     public static void execute() {
-
+        updateKarboniteMap();
         updateDeadUnits();
+
         System.out.println("Current number of rangers: " + rangerCount);
         updateTaskQueue();
 
@@ -44,7 +47,6 @@ public class Earth {
 
         addStagingUnitsToMap();
     }
-
 
     /**
      * Will update and assign tasks to workers if there are idle workers. Loops through a list of idle workers.
@@ -137,25 +139,71 @@ public class Earth {
         earthTaskQueue.add(new GlobalTask(minimumUnits, command, globalTaskLocation));
     }
 
-    //what is a good structure location?
-    // 1. far from enemy
-    // 2. can be built quickly: near workers
-    // 3. has enough space to unload
-    // 4. leaves space for other structures
-    // 5. does not restrict motion of units
+    /**
+     * finds all initial karbonite locations
+     * @return a HashMap of locations with karbonite initially
+     */
+    // TODO: Change this to use the map location to string method in the Player class
+    private static HashMap<String, Integer> initializeKarboniteMap() {
+        PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
+        HashMap<String, Integer> initialKarboniteValues = new HashMap<>();
+        for (int x = 0; x < initialMap.getWidth(); x++) {
+            for (int y = 0; y < initialMap.getHeight(); y++) {
+                MapLocation location = new MapLocation(Player.gc.planet(), x, y);
+                if (initialMap.initialKarboniteAt(location)>0) {
+                    initialKarboniteValues.put(location.toString(),
+                            new Pair<MapLocation, Integer>(location, (int)initialMap.initialKarboniteAt(location)));
+                }
+            }
+        }
+        return initialKarboniteValues;
+    }
 
-    // 1, 2, and 3 apply to pickStructureLocation
-    // 4 and 5 apply to findInitialStructureLocations
+    /**
+     * Method that will update the karbonite values on the map at the beginning of each round.
+     */
+    // TODO: Update this to change from map location to string in the Player class as well
+    private static void updateKarboniteMap() {
 
-    // 5 consecutive open passable location and
-    // no other surounding planned location
-    // i guess first can be arbitrary
+        ArrayList<String> toRemove = new ArrayList<>();
+        for (Map.Entry<String, Pair<MapLocation, Integer>> locationEntry : earthKarboniteCounts.entrySet()) {
+            Pair<MapLocation, Integer> locationCountPair = locationEntry.getValue();
+
+            if (Player.gc.canSenseLocation(locationCountPair.getKey())) {
+
+                int karboniteAt = (int)Player.gc.karboniteAt(locationCountPair.getKey());
+                if (karboniteAt == 0) {
+                    toRemove.add(locationEntry.getKey());
+                } else if (karboniteAt != locationCountPair.getValue()) {
+                    earthKarboniteCounts.put(locationEntry.getKey(), new Pair<MapLocation, Integer>(locationCountPair.getKey(), karboniteAt));
+                }
+
+            }
+        }
+        for (String location : toRemove) {
+            earthKarboniteCounts.remove(location);
+        }
+    }
+
+    /**
+     * Finds all the possible structure locations with certain specifications
+     * @return A list of all the possible locations
+     */
+    private static ArrayList<MapLocation> findAllStructureLocations() {
+        int maxNonPassable = 3;
+        ArrayList<MapLocation> structureLocations = findStructureLocations(maxNonPassable);
+        while (structureLocations.size()<10) {
+            maxNonPassable--;
+            findStructureLocations(maxNonPassable);
+        }
+        return structureLocations;
+    }
 
     /**
      * Finds structure locations based on initial map locations.
      * @return the initially available structure locations
      */
-    private static ArrayList<MapLocation> findInitialStructureLocations() {
+    private static ArrayList<MapLocation> findStructureLocations(int maxNonPassable) {
 
         HashSet<String> chosenLocations = new HashSet<>();
         ArrayList<MapLocation> clearLocations = new ArrayList<>();
@@ -171,6 +219,9 @@ public class Earth {
                     clear = false;
                 }
                 for (Direction direction : Direction.values()) {
+                    if (!clear) {
+                        break;
+                    }
                     if (chosenLocations.contains(locationToTest.add(direction).toString())) {
                         clear = false;
                         break;
@@ -178,7 +229,7 @@ public class Earth {
                     //is not passable terrain
                     if (!Player.gc.startingMap(Player.gc.planet()).onMap(locationToTest.add(direction)) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
                         nonPassableCount++;
-                        if (nonPassableCount > 3) {
+                        if (nonPassableCount > maxNonPassable) {
                             clear = false;
                             break;
                         }

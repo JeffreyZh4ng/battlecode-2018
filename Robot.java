@@ -14,18 +14,19 @@ public abstract class Robot extends UnitInstance {
         super(id);
     }
 
-//    /**
-//     * Make worker wander to a random location within its vision radius
-//     */
-//    public void wander() {
-//        ArrayList<MapLocation> wanderPath = getWanderPath(Player.gc.unit(this.getId()).location().mapLocation(),Player.gc.startingMap(Player.gc.planet()));
-//        if (wanderPath != null) {
-//            path = wanderPath;
-//            this.setCurrentTask(new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1)));
-//        }
-//        System.out.println("no wander Location");
-//    }
+    public Stack<MapLocation> getMovePathStack() {
+        return movePathStack;
+    }
 
+    public void setMovePathStack(Stack<MapLocation> movePathStack) {
+        this.movePathStack = movePathStack;
+    }
+
+    /**
+     * A move method manager that will analyze the path of other robots to see when this one should move
+     * @param destinationLocation The destination location of this robot
+     * @return If the robot has completed the task or not
+     */
     public boolean pathManager(MapLocation destinationLocation) {
         if (move(this.getId(), destinationLocation)) {
             if (movePathStack == null) {
@@ -37,60 +38,6 @@ public abstract class Robot extends UnitInstance {
         }
 
         return false;
-    }
-
-    public ArrayList<MapLocation> getWanderPath(MapLocation startingLocation, PlanetMap map) {
-
-        ArrayList<Direction> moveDirections = Player.getMoveDirections();
-
-        //shuffle directions so that wandering doesn't gravitate towards a specific direction
-
-
-        MapLocation destinationLocation = null;
-        Queue<MapLocation> frontier = new LinkedList<>();
-        frontier.add(startingLocation);
-        HashMap<String, MapLocation> cameFrom = new HashMap<>();
-        cameFrom.put(startingLocation.toString(), startingLocation);
-
-        while (!frontier.isEmpty()) {
-
-            // Get next direction to check around
-            MapLocation currentLocation = frontier.poll();
-            Collections.shuffle(moveDirections, new Random());
-            // Check if locations around frontier location have already been added to came from and if they are empty
-            for (Direction nextDirection : moveDirections) {
-                MapLocation nextLocation = currentLocation.add(nextDirection);
-
-                if (doesLocationAppearEmpty(map, nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
-                    frontier.add(nextLocation);
-                    cameFrom.put(nextLocation.toString(), currentLocation);
-                    if (!Player.gc.canSenseLocation(currentLocation)) {
-                        frontier.clear();
-                        destinationLocation = currentLocation;
-                    }
-                }
-            }
-        }
-
-
-        if (destinationLocation == null) {
-            return null;
-        }
-        ArrayList<MapLocation> newPath = new ArrayList<>();
-
-        ArrayList<MapLocation> currentPath = new ArrayList<>();
-        MapLocation currentTraceLocation = destinationLocation;
-
-        //trace back path
-        while (!currentTraceLocation.equals(startingLocation)) {
-            newPath.add(0, currentTraceLocation);
-            currentTraceLocation = cameFrom.get(currentTraceLocation.toString());
-            if (currentTraceLocation == null) {
-                break;
-            }
-        }
-
-        return newPath;
     }
 
     /**
@@ -168,7 +115,7 @@ public abstract class Robot extends UnitInstance {
             for (Direction nextDirection : Player.getMoveDirections()) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if (doesLocationAppearEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
+                if (Player.doesLocationAppearEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
                     frontier.add(nextLocation);
                     checkedLocations.put(nextLocation.toString(), currentLocation);
 
@@ -186,7 +133,7 @@ public abstract class Robot extends UnitInstance {
         for (Direction directionFromDestination : Player.getMoveDirections()) {
 
             MapLocation neighborLocation = destinationLocation.add(directionFromDestination);
-            if (checkedLocations.containsKey(neighborLocation.toString()) && doesLocationAppearEmpty(map, neighborLocation)) {
+            if (checkedLocations.containsKey(neighborLocation.toString()) && Player.doesLocationAppearEmpty(map, neighborLocation)) {
 
                 Stack<MapLocation> currentPath = new Stack<>();
                 MapLocation currentTraceLocation = neighborLocation;
@@ -215,29 +162,17 @@ public abstract class Robot extends UnitInstance {
         return shortestPath;
     }
 
-    /**
-     * Method that will check if a location appears empty. Checks if the location is onMap, passableTerrain,
-     * and if it is not occupied by a factory or rocket. Return true if there is a robot there
-     * @param map The map to check
-     * @param location The location to check
-     * @return If the location appears empty
-     */
-    private boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
-        if (map.onMap(location) && map.isPassableTerrainAt(location) > 0) {
-            if (Player.gc.hasUnitAtLocation(location)) {
-
-                UnitType unit = Player.gc.senseUnitAtLocation(location).unitType();
-                if (unit == UnitType.Factory || unit == UnitType.Rocket) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
+//    /**
+//     * Sets emergency task to move robot to explore invisible territory
+//     */
+//    public void explore() {
+//        ArrayList<MapLocation> wanderPath = getExplorePath(Player.gc.unit(this.getId()).location().mapLocation(),Player.gc.startingMap(Player.gc.planet()));
+//        if (wanderPath != null) {
+//            movePathStack = wanderPath;
+//            this.setEmergencyTask(new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1)));
+//        }
+//    }
+//
 //    /**
 //     * For when a robot has nothing to do, should move around so that it finds tasks or gain information this method
 //     * finds a location to explore
@@ -263,6 +198,78 @@ public abstract class Robot extends UnitInstance {
 //     */
 //    private static MapLocation getRandomLocation(PlanetMap map) {
 //        return new MapLocation(map.getPlanet(), (int)(Math.random()*map.getWidth()),(int)(Math.random()*map.getHeight()));
+//    }
+//
+//    /**
+//     * Fill this out john
+//     * @param startingLocation
+//     * @param map
+//     * @return
+//     */
+//    public ArrayList<MapLocation> getExplorePath(MapLocation startingLocation, PlanetMap map) {
+//
+//        ArrayList<Direction> moveDirections = Player.getMoveDirections();
+//
+//        //shuffle directions so that wandering doesn't gravitate towards a specific direction
+//
+//
+//        MapLocation destinationLocation = null;
+//        Queue<MapLocation> frontier = new LinkedList<>();
+//        frontier.add(startingLocation);
+//        HashMap<String, MapLocation> cameFrom = new HashMap<>();
+//        cameFrom.put(startingLocation.toString(), startingLocation);
+//
+//        while (!frontier.isEmpty()) {
+//
+//            // Get next direction to check around
+//            MapLocation currentLocation = frontier.poll();
+//            Collections.shuffle(moveDirections, new Random());
+//            // Check if locations around frontier location have already been added to came from and if they are empty
+//            for (Direction nextDirection : moveDirections) {
+//                MapLocation nextLocation = currentLocation.add(nextDirection);
+//
+//                if (doesLocationAppearEmpty(map, nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
+//                    frontier.add(nextLocation);
+//                    cameFrom.put(nextLocation.toString(), currentLocation);
+//                    if (!Player.gc.canSenseLocation(currentLocation)) {
+//                        frontier.clear();
+//                        destinationLocation = currentLocation;
+//                    }
+//                }
+//            }
+//        }
+//
+//
+//        if (destinationLocation == null) {
+//            return null;
+//        }
+//        ArrayList<MapLocation> newPath = new ArrayList<>();
+//
+//        ArrayList<MapLocation> currentPath = new ArrayList<>();
+//        MapLocation currentTraceLocation = destinationLocation;
+//
+//        //trace back path
+//        while (!currentTraceLocation.equals(startingLocation)) {
+//            newPath.add(0, currentTraceLocation);
+//            currentTraceLocation = cameFrom.get(currentTraceLocation.toString());
+//            if (currentTraceLocation == null) {
+//                break;
+//            }
+//        }
+//
+//        return newPath;
+//    }
+//
+//    /**
+//     * Make worker wander to a random location within its vision radius
+//     */
+//    public void wander() {
+//        ArrayList<MapLocation> wanderPath = getWanderPath(Player.gc.unit(this.getId()).location().mapLocation(),Player.gc.startingMap(Player.gc.planet()));
+//        if (wanderPath != null) {
+//            path = wanderPath;
+//            this.setCurrentTask(new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1)));
+//        }
+//        System.out.println("no wander Location");
 //    }
 }
 

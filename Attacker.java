@@ -52,6 +52,7 @@ public abstract class Attacker extends Robot {
                 if (this.getCurrentTask() != null && this.getEmergencyTask().getCommand() == Command.STALL) {
                     GlobalTask globalTask = Earth.earthTaskMap.get(this.getEmergencyTask().getTaskId());
                     globalTask.finishedTask(this.getId(), this.getEmergencyTask().getCommand());
+
                     return;
                 }
                 this.setEmergencyTask(null);
@@ -74,7 +75,9 @@ public abstract class Attacker extends Robot {
 
         } else {
             System.out.println("Attacker: " + this.getId() + " doing nothing!");
-            // this.wander();
+//            this.wander();
+//            System.out.println("Unit: " + this.getId() + " wandering!");
+//            this.explore();
         }
     }
 
