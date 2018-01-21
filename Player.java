@@ -17,7 +17,7 @@ public class Player {
                 System.runFinalization();
                 System.gc();
             }
-            if (gc.planet() == Planet.Earth) {
+            if (gc.planet() == Planet.Earth && gc.team() == Team.Blue) {
                 System.out.println("Round number: " + gc.round());
                 System.out.println("Time left: " + Player.gc.getTimeLeftMs());
 
@@ -26,7 +26,7 @@ public class Player {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                 }
-                if (Earth.earthAttackerMap.size() > 15 && Earth.earthAttackTarget == null) {
+                if (Earth.earthAttackerMap.size() > 10 && Earth.earthAttackTarget == null) {
                     System.out.println("Setting attack target!");
                     Earth.earthAttackTarget = enemyPositions.peek();
                     if (enemyPositions.size() != 0) {
@@ -173,6 +173,18 @@ public class Player {
 
             Earth.earthWorkerMap.put(unitId, worker);
         }
+    }
+
+    /**
+     * Helper method that will return all the directions around the robot except fo the center
+     * @return All the directions except for the center
+     */
+    public static ArrayList<Direction> getMoveDirections() {
+        ArrayList<Direction> directions = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            directions.add( Direction.swigToEnum(i));
+        }
+        return directions;
     }
 }
 

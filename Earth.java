@@ -31,7 +31,7 @@ public class Earth {
     public static void execute() {
 
         updateDeadUnits();
-
+        System.out.println("Current number of rangers: " + rangerCount);
         updateTaskQueue();
 
         runRocketMap();
@@ -225,7 +225,7 @@ public class Earth {
      */
     private static void runUnitMap(HashMap<Integer, UnitInstance> searchMap) {
         for (int unitId: searchMap.keySet()) {
-//            if (searchMap.get(unitId).getCurrentTask().getCommand() == Command.MOVE) {
+//            if (searchMap.get(unitId).getCurrentTask().getCommand() == Command.MOVE && Player.gc.isMoveReady(unitId)) {
 //                earthMovingUnits.put(unitId, searchMap.get(unitId));
 //            } else {
                 searchMap.get(unitId).run();
@@ -269,10 +269,10 @@ public class Earth {
             unitSet.add(units.get(i).id());
         }
 
+        decrementAttackCounts(unitSet);
         earthWorkerMap = findDeadUnits(unitSet, earthWorkerMap);
         earthFactoryMap = findDeadUnits(unitSet, earthFactoryMap);
         earthAttackerMap = findDeadUnits(unitSet, earthAttackerMap);
-        decrementAttackCounts(unitSet);
     }
 
     /**
@@ -293,7 +293,7 @@ public class Earth {
                 UnitInstance unit = searchMap.get(unitId);
                 if (unit.getCurrentTask() != null && unit.getCurrentTask().getTaskId() != -1) {
                     int globalTaskId = unit.getCurrentTask().getTaskId();
-                    System.out.println("taskid: " + globalTaskId);
+                    System.out.println("Removing unit from task: " + globalTaskId);
                     earthTaskMap.get(globalTaskId).removeWorkerFromList(unitId);
                 }
             }
@@ -330,7 +330,7 @@ public class Earth {
         for (int unitId: earthAttackerMap.keySet()) {
             if (!unitSet.contains(unitId)) {
 
-                switch (Player.gc.unit(unitId).unitType()) {
+                switch (earthAttackerMap.get(unitId).getUnitType()) {
                     case Knight:
                         knightCount--;
                     case Ranger:

@@ -8,27 +8,40 @@ import java.util.LinkedList;
  */
 public abstract class Robot extends UnitInstance {
 
-    public ArrayList<MapLocation> path = null;
+    public Stack<MapLocation> movePathStack = null;
 
     public Robot(int id) {
         super(id);
     }
 
-    /**
-     * Make worker wander to a random location within its vision radius
-     */
-    public void wander() {
-        ArrayList<MapLocation> wanderPath = getWanderPath(Player.gc.unit(this.getId()).location().mapLocation(),Player.gc.startingMap(Player.gc.planet()));
-        if (wanderPath != null) {
-            path = wanderPath;
-            this.setEmergencyTask(new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1)));
+//    /**
+//     * Make worker wander to a random location within its vision radius
+//     */
+//    public void wander() {
+//        ArrayList<MapLocation> wanderPath = getWanderPath(Player.gc.unit(this.getId()).location().mapLocation(),Player.gc.startingMap(Player.gc.planet()));
+//        if (wanderPath != null) {
+//            path = wanderPath;
+//            this.setCurrentTask(new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1)));
+//        }
+//        System.out.println("no wander Location");
+//    }
+
+    public boolean pathManager(MapLocation destinationLocation) {
+        if (move(this.getId(), destinationLocation)) {
+            if (movePathStack == null) {
+                System.out.println("Attacker: " + this.getId() + " Could not find a path to destination!");
+                return true;
+            } else {
+                movePathStack.pop();
+            }
         }
-        System.out.println("no wander Location");
+
+        return false;
     }
 
     public ArrayList<MapLocation> getWanderPath(MapLocation startingLocation, PlanetMap map) {
 
-        ArrayList<Direction> moveDirections = getMoveDirections();
+        ArrayList<Direction> moveDirections = Player.getMoveDirections();
 
         //shuffle directions so that wandering doesn't gravitate towards a specific direction
 
@@ -81,32 +94,6 @@ public abstract class Robot extends UnitInstance {
     }
 
     /**
-     * Checks if location both passable and appears not to have robots in it
-     * @param map The map to check
-     * @param location The location to check
-     * @return If the location appears empty
-     */
-    public boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
-
-        // Returns if location is onMap, passableTerrain, and if it appears unoccupied by a Unit
-        return map.onMap(location) && map.isPassableTerrainAt(location) > 0 &&
-                (!Player.gc.canSenseLocation(location) || !Player.gc.hasUnitAtLocation(location));
-    }
-
-    /**
-     * Helper method that will return all the directions around the robot except fo the center
-     * @return All the directions except for the center
-     */
-    // TODO: If you want to make this static, put it in the Player class
-    public static ArrayList<Direction> getMoveDirections() {
-        ArrayList<Direction> directions = new ArrayList<>();
-        for (int i = 0; i < 8; i++) {
-            directions.add( Direction.swigToEnum(i));
-        }
-        return directions;
-    }
-
-    /**
      * Move a robot
      * @param robotId robot to move
      * @param destinationLocation The destination location a unit
@@ -116,34 +103,43 @@ public abstract class Robot extends UnitInstance {
         if (!Player.gc.isMoveReady(this.getId())) {
             return false;
         }
-        // If this robot is covering destination
+
+        // If this robot is covering destination, try to move it to an adjacent square. If it moves it is done moving
         if (Player.gc.unit(robotId).location().mapLocation().equals(destinationLocation)) {
-            for (Direction direction : getMoveDirections()) {
+
+            for (Direction direction : Player.getMoveDirections()) {
                 if (Player.gc.canMove(robotId, direction)) {
                     Player.gc.moveRobot(robotId, direction);
+                    movePathStack = null;
                     return true;
                 }
             }
-            return false;
 
+            return false;
         }
-        // If adjacent to destination, done
+
+        // If adjacent to destination, the robot has finished moving
+        // TODO: Check?
         if (Player.gc.unit(robotId).location().mapLocation().isAdjacentTo(destinationLocation)) {
+            movePathStack = null;
             return true;
         }
 
         // if path should be recalculated
-        if (path == null || path.size() == 0 || !path.get(path.size()-1).equals(destinationLocation)
-                || !Player.gc.canMove(robotId, this.getLocation().directionTo(path.get(0)))) {
-            path = getPathFromBreadthFirstSearch(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
+        if (movePathStack == null) {
+            movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
+            if (movePathStack == null) {
+                System.out.println("Cannot get to location: " + destinationLocation.toString());
+                return true;
+            }
         }
 
-        if (path != null && path.size() > 0 && Player.gc.canMove(robotId, this.getLocation().directionTo(path.get(0)))) {
-            Player.gc.moveRobot(robotId, this.getLocation().directionTo(path.get(0)));
-            path.remove(0);
-            return false;
+        if (Player.gc.canMove(robotId, this.getLocation().directionTo(movePathStack.peek()))) {
+            Player.gc.moveRobot(robotId, this.getLocation().directionTo(movePathStack.peek()));
+            System.out.println("Attacker: " + this.getId() + " Moved!");
+            return true;
         } else {
-            System.out.println("cannot get to destination");
+            System.out.println("Waiting");
             return false;
         }
     }
@@ -155,14 +151,13 @@ public abstract class Robot extends UnitInstance {
      * @param map The map of earth or mars
      * @return The next place to step
      */
-    public ArrayList<MapLocation> getPathFromBreadthFirstSearch(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
-
-        ArrayList<Direction> moveDirections = getMoveDirections();
+    public Stack<MapLocation> getPathFromBFS(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
 
         Queue<MapLocation> frontier = new LinkedList<>();
         frontier.add(startingLocation);
-        HashMap<String, MapLocation> cameFrom = new HashMap<>();
-        cameFrom.put(startingLocation.toString(), startingLocation);
+
+        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
+        checkedLocations.put(startingLocation.toString(), startingLocation);
 
         while (!frontier.isEmpty()) {
 
@@ -170,12 +165,13 @@ public abstract class Robot extends UnitInstance {
             MapLocation currentLocation = frontier.poll();
 
             // Check if locations around frontier location have already been added to came from and if they are empty
-            for (Direction nextDirection : moveDirections) {
+            for (Direction nextDirection : Player.getMoveDirections()) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if (doesLocationAppearEmpty(map, nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
+                if (doesLocationAppearEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
                     frontier.add(nextLocation);
-                    cameFrom.put(nextLocation.toString(), currentLocation);
+                    checkedLocations.put(nextLocation.toString(), currentLocation);
+
                     if (currentLocation.isAdjacentTo(destinationLocation)) {
                         frontier.clear();
                     }
@@ -185,27 +181,27 @@ public abstract class Robot extends UnitInstance {
 
         //find shortest of paths to adjacent locations and save shortest one
         MapLocation shortestNeighborLocation = null;
+        Stack<MapLocation> shortestPath = new Stack<>();
 
-        ArrayList<MapLocation> shortestPath = new ArrayList<>();
-
-        for (Direction directionFromDestination : moveDirections) {
+        for (Direction directionFromDestination : Player.getMoveDirections()) {
 
             MapLocation neighborLocation = destinationLocation.add(directionFromDestination);
-            if (cameFrom.containsKey(neighborLocation.toString()) && doesLocationAppearEmpty(map, neighborLocation)) {
+            if (checkedLocations.containsKey(neighborLocation.toString()) && doesLocationAppearEmpty(map, neighborLocation)) {
 
-                ArrayList<MapLocation> currentPath = new ArrayList<>();
+                Stack<MapLocation> currentPath = new Stack<>();
                 MapLocation currentTraceLocation = neighborLocation;
 
                 //trace back path
                 while (!currentTraceLocation.equals(startingLocation)) {
-                    currentPath.add(0,currentTraceLocation);
-                    currentTraceLocation = cameFrom.get(currentTraceLocation.toString());
+                    currentPath.push(currentTraceLocation);
+                    currentTraceLocation = checkedLocations.get(currentTraceLocation.toString());
+
                     if (currentTraceLocation == null) {
                         break;
                     }
                     if (currentTraceLocation.isAdjacentTo(destinationLocation)) {
                         currentPath.clear();
-                        currentPath.add(currentTraceLocation);
+                        currentPath.push(currentTraceLocation);
                     }
                 }
 
@@ -215,35 +211,59 @@ public abstract class Robot extends UnitInstance {
                 }
             }
         }
+
         return shortestPath;
     }
 
     /**
-     * For when a robot has nothing to do, should move around so that it finds tasks or gain information this method
-     * finds a location to explore
-     * @return A random location that seems good to be explored
+     * Method that will check if a location appears empty. Checks if the location is onMap, passableTerrain,
+     * and if it is not occupied by a factory or rocket. Return true if there is a robot there
+     * @param map The map to check
+     * @param location The location to check
+     * @return If the location appears empty
      */
-    public MapLocation getLocationToExplore() {
-        PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
-        MapLocation randomLocation = getRandomLocation(initialMap);
+    private boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
+        if (map.onMap(location) && map.isPassableTerrainAt(location) > 0) {
+            if (Player.gc.hasUnitAtLocation(location)) {
 
-        //give up after a certain number of tries
-        int tries = 0;
-        while (Player.gc.canSenseLocation(randomLocation) && !(initialMap.isPassableTerrainAt(randomLocation) > 0) && tries < 100) {
-            randomLocation = getRandomLocation(initialMap);
-            tries++;
+                UnitType unit = Player.gc.senseUnitAtLocation(location).unitType();
+                if (unit == UnitType.Factory || unit == UnitType.Rocket) {
+                    return false;
+                }
+            }
+
+            return true;
         }
-        return randomLocation;
+
+        return false;
     }
 
-    /**
-     * Randomly chooses a location
-     * @param map The map that the location should be on
-     * @return A random location on the map
-     */
-    private static MapLocation getRandomLocation(PlanetMap map) {
-        return new MapLocation(map.getPlanet(), (int)(Math.random()*map.getWidth()),(int)(Math.random()*map.getHeight()));
-    }
+//    /**
+//     * For when a robot has nothing to do, should move around so that it finds tasks or gain information this method
+//     * finds a location to explore
+//     * @return A random location that seems good to be explored
+//     */
+//    public MapLocation getLocationToExplore() {
+//        PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
+//        MapLocation randomLocation = getRandomLocation(initialMap);
+//
+//        //give up after a certain number of tries
+//        int tries = 0;
+//        while (Player.gc.canSenseLocation(randomLocation) && !(initialMap.isPassableTerrainAt(randomLocation) > 0) && tries < 100) {
+//            randomLocation = getRandomLocation(initialMap);
+//            tries++;
+//        }
+//        return randomLocation;
+//    }
+//
+//    /**
+//     * Randomly chooses a location
+//     * @param map The map that the location should be on
+//     * @return A random location on the map
+//     */
+//    private static MapLocation getRandomLocation(PlanetMap map) {
+//        return new MapLocation(map.getPlanet(), (int)(Math.random()*map.getWidth()),(int)(Math.random()*map.getHeight()));
+//    }
 }
 
 

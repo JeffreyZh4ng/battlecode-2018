@@ -14,7 +14,8 @@ public class Worker extends Robot {
         if (this.getEmergencyTask() != null) {
             if (executeTask(this.getEmergencyTask())) {
                 System.out.println("Worker: " + this.getId() + " Finished emergency task!");
-                if (this.getCurrentTask().getCommand() == Command.STALL) {
+
+                if (this.getCurrentTask() != null && this.getCurrentTask().getCommand() == Command.STALL) {
                     GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
                     globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
                     return;
@@ -25,7 +26,7 @@ public class Worker extends Robot {
         } else if (!this.isIdle()) {
             if (executeTask(this.getCurrentTask())) {
                 GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
-                System.out.println("Unit: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+                System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
                 globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
 
                 // Perform run again?
@@ -33,8 +34,8 @@ public class Worker extends Robot {
             }
 
         } else {
-            System.out.println("Unit: " + this.getId() + " wandering!");
-            this.wander();
+            System.out.println("Worker: " + this.getId() + " doing nothing!");
+//            this.wander();
         }
 
         mineKarbonite();
@@ -49,11 +50,11 @@ public class Worker extends Robot {
     private boolean executeTask(RobotTask robotTask) {
         Command robotCommand = robotTask.getCommand();
         MapLocation commandLocation = robotTask.getCommandLocation();
-        System.out.println("Unit: " + this.getId() + " " + robotCommand);
+        System.out.println("Worker: " + this.getId() + " " + robotCommand);
 
         switch (robotCommand) {
             case MOVE:
-                return this.move(this.getId(), commandLocation);
+                return this.pathManager(commandLocation);
             case CLONE:
                 return cloneWorker(commandLocation);
             case BUILD:
@@ -63,7 +64,7 @@ public class Worker extends Robot {
             case BLUEPRINT_ROCKET:
                 return blueprintStructure(commandLocation, UnitType.Rocket);
             default:
-                System.out.println("Critical error occurred in unit: " + this.getId());
+                System.out.println("Critical error occurred in Worker: " + this.getId());
                 return true;
         }
     }
@@ -93,7 +94,7 @@ public class Worker extends Robot {
 
                     Earth.earthStagingWorkerMap.put(clonedWorkerId, newWorker);
 
-                    System.out.println("Unit: " + this.getId() + " Cloned worker!");
+                    System.out.println("Worker: " + this.getId() + " Cloned worker!");
                     System.out.println("New worker has ID of: " + clonedWorkerId);
                     return true;
                 }
@@ -127,7 +128,7 @@ public class Worker extends Robot {
                 Rocket newStructure = new Rocket(structureId, false, commandLocation);
                 Earth.earthRocketMap.put(structureId, newStructure);
             }
-            System.out.println("Unit: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
+            System.out.println("Worker: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
             return true;
         }
 
@@ -144,7 +145,7 @@ public class Worker extends Robot {
 
         if (Player.gc.canBuild(this.getId(), structureId)) {
             Player.gc.build(this.getId(), structureId);
-            System.out.println("Unit: " + this.getId() + " ran build()");
+            System.out.println("Worker: " + this.getId() + " ran build()");
 
             if (Player.gc.unit(structureId).structureIsBuilt() > 0) {
 
@@ -159,7 +160,7 @@ public class Worker extends Robot {
                     Earth.earthFactoryMap.put(rocket.getId(), builtRocket);
                 }
 
-                System.out.println("Unit: " + this.getId() + " Built structure");
+                System.out.println("Worker: " + this.getId() + " Built structure");
                 return true;
             }
         }
@@ -193,7 +194,7 @@ public class Worker extends Robot {
 //
 //                if (this.getEmergencyTask() == null) {
 //                    RobotTask newTask = new RobotTask(-1, -1, Command.MOVE, newLocation);
-//                    System.out.println("Robot: " + this.getId() + " WANDERING!");
+//                    System.out.println("Worker: " + this.getId() + " WANDERING!");
 //                    this.setEmergencyTask(newTask);
 //                }
 //            }
