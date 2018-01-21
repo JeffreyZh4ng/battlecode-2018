@@ -24,10 +24,10 @@ public abstract class Robot extends UnitInstance {
     }
 
     /**
-     * Make worker wander to a random location within its vision radius
+     * Sets emergency task to move robot to explore invisible territory
      */
-    public void wander() {
-        ArrayList<MapLocation> wanderPath = getWanderPath(Player.gc.unit(this.getId()).location().mapLocation(),Player.gc.startingMap(Player.gc.planet()));
+    public void explore() {
+        ArrayList<MapLocation> wanderPath = getExplorePath(Player.gc.unit(this.getId()).location().mapLocation(),Player.gc.startingMap(Player.gc.planet()));
         if (wanderPath != null) {
             path = wanderPath;
             emergencyTask = new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1));
@@ -35,7 +35,7 @@ public abstract class Robot extends UnitInstance {
         System.out.println("no wander Location");
     }
 
-    public ArrayList<MapLocation> getWanderPath(MapLocation startingLocation, PlanetMap map) {
+    public ArrayList<MapLocation> getExplorePath(MapLocation startingLocation, PlanetMap map) {
 
         ArrayList<Direction> moveDirections = getMoveDirections();
 

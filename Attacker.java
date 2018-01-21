@@ -63,7 +63,7 @@ public abstract class Attacker extends Robot {
 
         } else {
             System.out.println("Unit: " + this.getId() + " wandering!");
-            this.wander();
+            this.explore();
         }
     }
 

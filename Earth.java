@@ -25,7 +25,7 @@ public class Earth {
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
     public static HashSet<Integer> earthFinishedTasks = new HashSet<>();
 
-    private static ArrayList<MapLocation> availableStructureLocations = findInitialStructureLocations();
+    private static ArrayList<MapLocation> availableStructureLocations = findAllStructureLocations();
 
     public static void execute() {
 
@@ -137,11 +137,21 @@ public class Earth {
     // no other surounding planned location
     // i guess first can be arbitrary
 
+    private static ArrayList<MapLocation> findAllStructureLocations() {
+        int maxNonPassable = 3;
+        ArrayList<MapLocation> structureLocations = findStructureLocations(maxNonPassable);
+        while (structureLocations.size()<10) {
+            maxNonPassable--;
+            findStructureLocations(maxNonPassable);
+        }
+        return structureLocations;
+    }
+
     /**
      * Finds structure locations based on initial map locations.
      * @return the initially available structure locations
      */
-    private static ArrayList<MapLocation> findInitialStructureLocations() {
+    private static ArrayList<MapLocation> findStructureLocations(int maxNonPassable) {
 
         HashSet<String> chosenLocations = new HashSet<>();
         ArrayList<MapLocation> clearLocations = new ArrayList<>();
@@ -157,6 +167,9 @@ public class Earth {
                     clear = false;
                 }
                 for (Direction direction : Direction.values()) {
+                    if (clear == false) {
+                        break;
+                    }
                     if (chosenLocations.contains(locationToTest.add(direction).toString())) {
                         clear = false;
                         break;
@@ -164,7 +177,7 @@ public class Earth {
                     //is not passable terrain
                     if (!Player.gc.startingMap(Player.gc.planet()).onMap(locationToTest.add(direction)) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
                         nonPassableCount++;
-                        if (nonPassableCount > 3) {
+                        if (nonPassableCount > maxNonPassable) {
                             clear = false;
                             break;
                         }

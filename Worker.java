@@ -29,7 +29,7 @@ public class Worker extends Robot {
 
         } else {
             System.out.println("Unit: " + this.getId() + " wandering!");
-            this.wander();
+            this.explore();
         }
 
         mineKarbonite();
