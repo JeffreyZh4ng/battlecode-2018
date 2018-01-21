@@ -160,6 +160,9 @@ public class Earth {
         return initialKarboniteValues;
     }
 
+    /**
+     * updates karbonite values in hashmap
+     */
     private static void updateKarboniteMap() {
 
         ArrayList<String> toRemove = new ArrayList<>();

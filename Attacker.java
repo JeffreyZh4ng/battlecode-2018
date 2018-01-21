@@ -1,5 +1,10 @@
 import bc.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Queue;
+
 public abstract class Attacker extends Robot {
 
     public Attacker(int id) {
@@ -10,9 +15,8 @@ public abstract class Attacker extends Robot {
         return (int)(Player.gc.unit(this.getId()).attackRange());
     }
 
-    public MapLocation getAttackTarget() {
-        Planet planet = this.getLocation().getPlanet();
-        if (planet == Planet.Earth) {
+    public static MapLocation getAttackTarget() {
+        if (Player.gc.planet() == Planet.Earth) {
             return Earth.earthAttackTarget;
         } else {
             return Mars.marsAttackTarget;
@@ -36,6 +40,41 @@ public abstract class Attacker extends Robot {
             Mars.marsAttackTarget = attackTarget;
         }
     }
+
+    public static HashMap<String, MapLocation> mapToAttackTarget = null;
+
+    public static void createMapToAttackTarget() {
+        ArrayList<Direction> moveDirections = getMoveDirections();
+        MapLocation attackTarget = getAttackTarget();
+        Queue<MapLocation> frontier = new LinkedList<>();
+        frontier.add(attackTarget);
+        HashMap<String, MapLocation> cameFrom = new HashMap<>();
+        cameFrom.put(attackTarget.toString(), attackTarget);
+
+        while (!frontier.isEmpty()) {
+
+            // Get next direction to check around
+            MapLocation currentLocation = frontier.poll();
+
+            // Check if locations around frontier location have already been added to came from and if they are empty
+            for (Direction nextDirection : moveDirections) {
+                MapLocation nextLocation = currentLocation.add(nextDirection);
+
+                if (doesLocationAppearEmpty(Player.gc.startingMap(Player.gc.planet()), nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
+                    frontier.add(nextLocation);
+                    cameFrom.put(nextLocation.toString(), currentLocation);
+                }
+            }
+        }
+    }
+
+//    public boolean moveToAttackTarget() {
+//
+//    }
+//
+//    public ArrayList<MapLocation> getPathToAttackTarget() {
+//
+//    }
 
     /**
      * If attacker is not in combat, it moves to and attacks the global attackTarget otherwise it attacks the closest enemy in range

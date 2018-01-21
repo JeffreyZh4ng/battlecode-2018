@@ -86,7 +86,7 @@ public abstract class Robot extends UnitInstance {
      * @param location The location to check
      * @return If the location appears empty
      */
-    public boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
+    public static boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
 
         // Returns if location is onMap, passableTerrain, and if it appears unoccupied by a Unit
         return map.onMap(location) && map.isPassableTerrainAt(location) > 0 &&
