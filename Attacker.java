@@ -68,7 +68,7 @@ public abstract class Attacker extends Robot {
                     System.out.println("Unit: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
                     System.out.println("Removing global attack target! Setting to null");
                 }
-            }
+        }
 
         } else {
             System.out.println("Unit: " + this.getId() + " wandering!");
@@ -106,7 +106,7 @@ public abstract class Attacker extends Robot {
      * task to move to the attack location
      */
     private void updateTask() {
-        if (getAttackTarget() != null) {
+        if (getAttackTarget() != null && this.getCurrentTask() != null && this.getCurrentTask().getTaskId() == -1) {
             this.setCurrentTask(new RobotTask(-1, Command.MOVE, getAttackTarget()));
         }
     }

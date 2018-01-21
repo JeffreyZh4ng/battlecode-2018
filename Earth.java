@@ -167,15 +167,18 @@ public class Earth {
                 MapLocation locationToTest = new MapLocation(Player.gc.planet(), x, y);
                 int nonPassableCount = 0;
                 boolean clear = true;
+                if (!Player.gc.startingMap(Player.gc.planet()).onMap(locationToTest) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest) == 0) {
+                    clear = false;
+                }
                 for (Direction direction : Direction.values()) {
                     if (chosenLocations.contains(locationToTest.add(direction).toString())) {
                         clear = false;
                         break;
                     }
                     //is not passable terrain
-                    if (Player.gc.startingMap(Player.gc.planet()).onMap(locationToTest.add(direction)) && Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
+                    if (!Player.gc.startingMap(Player.gc.planet()).onMap(locationToTest.add(direction)) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
                         nonPassableCount++;
-                        if (nonPassableCount > 5) {
+                        if (nonPassableCount > 3) {
                             clear = false;
                             break;
                         }
@@ -290,6 +293,7 @@ public class Earth {
                 UnitInstance unit = searchMap.get(unitId);
                 if (unit.getCurrentTask() != null && unit.getCurrentTask().getTaskId() != -1) {
                     int globalTaskId = unit.getCurrentTask().getTaskId();
+                    System.out.println("taskid: " + globalTaskId);
                     earthTaskMap.get(globalTaskId).removeWorkerFromList(unitId);
                 }
             }
@@ -330,6 +334,7 @@ public class Earth {
                     case Knight:
                         knightCount--;
                     case Ranger:
+                        System.out.println("Decremented ranger count!");
                         rangerCount--;
                     case Mage:
                         mageCount--;
