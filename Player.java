@@ -1,8 +1,6 @@
 import bc.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 public class Player {
 
@@ -11,12 +9,13 @@ public class Player {
     public static void main(String[] args) {
 
         addStartingWorkersToEarthMap();
-        for (MapLocation location: enemyLocations()) {
-            System.out.println(location.toString());
-        }
+        Queue<MapLocation> enemyPositions = enemyLocations();
 
         while (true) {
 
+            if (gc.round() % 1 == 0) {
+                System.gc();
+            }
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
                 System.out.println("Round number: " + gc.round());
                 System.out.println("Time left: " + Player.gc.getTimeLeftMs());
@@ -25,6 +24,13 @@ public class Player {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+                }
+                if (Earth.earthAttackerMap.size() > 15 && Earth.earthAttackTarget == null) {
+                    System.out.println("Setting attack target!");
+                    Earth.earthAttackTarget = enemyPositions.peek();
+                    if (enemyPositions.size() != 0) {
+                        enemyPositions.poll();
+                    }
                 }
                 Earth.execute();
 
@@ -40,11 +46,11 @@ public class Player {
      * Method that will get the starting locations of all the enemy workers created when the game has started
      * @return An array of enemy locations
      */
-    public static ArrayList<MapLocation> enemyLocations() {
+    public static Queue<MapLocation> enemyLocations() {
         int mapCenterX = (int)((gc.startingMap(Planet.Earth).getWidth()) / 2);
         int mapCenterY = (int)((gc.startingMap(Planet.Earth).getHeight()) / 2);
 
-        ArrayList<MapLocation> enemyLocations = new ArrayList<>();
+        Queue<MapLocation> enemyLocations = new LinkedList<>();
         for (int workerId: Earth.earthWorkerMap.keySet()) {
             MapLocation mapLocation = Earth.earthWorkerMap.get(workerId).getLocation();
             int xDistance = mapCenterX - mapLocation.getX();

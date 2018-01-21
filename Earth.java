@@ -19,6 +19,8 @@ public class Earth {
     public static HashMap<Integer, UnitInstance> earthAttackerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthFactoryMap = new HashMap<>();
 
+    public static HashMap<Integer, UnitInstance> earthMovingUnits = new HashMap<>();
+
     public static HashMap<Integer, UnitInstance> earthStagingWorkerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
     public static HashSet<Integer> earthFinishedTasks = new HashSet<>();
@@ -174,45 +176,29 @@ public class Earth {
         return clearLocations;
     }
 
-    /**
-     * finds the nearest structure location to given location
-     * @param locationNearTo location to search near too
-     * @return the closest available location
-     */
-    private static MapLocation getNearestAvailableStructureLocation(MapLocation locationNearTo) {
-        MapLocation closestLocation = null;
-        long shortestDistance = 100000;
-
-        //choose best location from list
-        for (MapLocation location : availableStructureLocations) {
-            if (closestLocation == null) {
-                closestLocation = location;
-                shortestDistance = location.distanceSquaredTo(locationNearTo);
-
-            } else if (location.distanceSquaredTo(locationNearTo) < shortestDistance) {
-                closestLocation = location;
-                shortestDistance = location.distanceSquaredTo(locationNearTo);
-            }
-        }
-        makeStructureLocationUnavailable(closestLocation);
-        return closestLocation;
-    }
-
-    /**
-     * Makes the given location unavailable.
-     * @param plannedLocation the location to make unavailable
-     */
-    private static void makeStructureLocationUnavailable(MapLocation plannedLocation) {
-        availableStructureLocations.remove(plannedLocation);
-    }
-
-    /**
-     * Makes the given location available.
-     * @param removedLocation the location to make available
-     */
-    private static void makeStructureLocationAvailable(MapLocation removedLocation) {
-        availableStructureLocations.add(removedLocation);
-    }
+//    /**
+//     * finds the nearest structure location to given location
+//     * @param locationNearTo location to search near too
+//     * @return the closest available location
+//     */
+//    private static MapLocation getNearestAvailableStructureLocation(MapLocation locationNearTo) {
+//        MapLocation closestLocation = null;
+//        long shortestDistance = 100000;
+//
+//        //choose best location from list
+//        for (MapLocation location : availableStructureLocations) {
+//            if (closestLocation == null) {
+//                closestLocation = location;
+//                shortestDistance = location.distanceSquaredTo(locationNearTo);
+//
+//            } else if (location.distanceSquaredTo(locationNearTo) < shortestDistance) {
+//                closestLocation = location;
+//                shortestDistance = location.distanceSquaredTo(locationNearTo);
+//            }
+//        }
+//        availableStructureLocations.remove(closestLocation);
+//        return closestLocation;
+//    }
 
     /**
      * Method that will pick the best MapLocation to build a structure
@@ -236,7 +222,7 @@ public class Earth {
                 }
             }
         }
-        makeStructureLocationUnavailable(closestLocation);
+        availableStructureLocations.remove(closestLocation);
         return closestLocation;
     }
 
@@ -246,8 +232,19 @@ public class Earth {
      */
     private static void runUnitMap(HashMap<Integer, UnitInstance> searchMap) {
         for (int unitId: searchMap.keySet()) {
-            searchMap.get(unitId).run();
+            if (searchMap.get(unitId).getCurrentTask().getCommand() == Command.MOVE) {
+                earthMovingUnits.put(unitId, searchMap.get(unitId));
+            } else {
+                searchMap.get(unitId).run();
+            }
         }
+    }
+
+    /**
+     * Helper method that will loop through the list of all moving units and will move them in a smart way
+     */
+    private static void runMovingUnits() {
+
     }
 
     /**

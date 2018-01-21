@@ -137,7 +137,7 @@ public class GlobalTask {
      */
     private void buildOrCloneHelper(int unitId) {
         RobotTask nextTask;
-        if (Earth.earthWorkerMap.size() < 1) {
+        if (Earth.earthWorkerMap.size() < 4) {
             nextTask = new RobotTask(this.getTaskId(), Command.CLONE, this.getTaskLocation());
         } else {
             nextTask = new RobotTask(this.getTaskId(), Command.BUILD, this.getTaskLocation());
@@ -158,7 +158,7 @@ public class GlobalTask {
             }
         }
 
-        if (Earth.earthTaskQueue.peek().getTaskId() == this.getTaskId()) {
+        if (Earth.earthTaskQueue.size() != 0 && Earth.earthTaskQueue.peek().getTaskId() == this.getTaskId()) {
             Earth.earthTaskQueue.poll();
         }
     }
