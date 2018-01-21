@@ -9,18 +9,9 @@ import java.util.LinkedList;
 public abstract class Robot extends UnitInstance {
 
     public ArrayList<MapLocation> path = null;
-    private RobotTask emergencyTask = null;
 
     public Robot(int id) {
         super(id);
-    }
-
-    public RobotTask getEmergencyTask() {
-        return emergencyTask;
-    }
-
-    public void setEmergencyTask(RobotTask emergencyTask) {
-        this.emergencyTask = emergencyTask;
     }
 
     /**
@@ -30,7 +21,7 @@ public abstract class Robot extends UnitInstance {
         ArrayList<MapLocation> wanderPath = getExplorePath(Player.gc.unit(this.getId()).location().mapLocation(),Player.gc.startingMap(Player.gc.planet()));
         if (wanderPath != null) {
             path = wanderPath;
-            emergencyTask = new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1));
+            this.setEmergencyTask(new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1)));
         }
         System.out.println("no wander Location");
     }
@@ -85,7 +76,6 @@ public abstract class Robot extends UnitInstance {
                 break;
             }
         }
-
 
         return newPath;
     }

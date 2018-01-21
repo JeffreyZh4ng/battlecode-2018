@@ -47,7 +47,10 @@ public abstract class Attacker extends Robot {
 
         if (this.getEmergencyTask() != null) {
             if (executeTask(this.getEmergencyTask())) {
-                System.out.println("Unit: " + this.getId() + " Finished emergency task!");
+                System.out.println("Attacker: " + this.getId() + " Finished emergency task!");
+                if (this.getCurrentTask().getCommand() == Command.STALL) {
+                    return;
+                }
                 this.setEmergencyTask(null);
             }
 
@@ -56,10 +59,16 @@ public abstract class Attacker extends Robot {
                 if (this.getCurrentTask().getCommand() == Command.IN_COMBAT) {
                     hasAttackLocationBeenChecked();
                 }
-                System.out.println("Unit: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
-                System.out.println("Removing global attack target! Setting to null");
-                this.setCurrentTask(null);
-            }
+
+                int taskId = this.getCurrentTask().getTaskId();
+                if (taskId != -1) {
+                    Earth.earthTaskMap.get(taskId).finishedTask(this.getId(), this.getCurrentTask().getCommand());
+                } else {
+                    this.setCurrentTask(null);
+                    System.out.println("Unit: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+                    System.out.println("Removing global attack target! Setting to null");
+                }
+        }
 
         } else {
             System.out.println("Unit: " + this.getId() + " wandering!");
@@ -80,6 +89,8 @@ public abstract class Attacker extends Robot {
         switch (robotCommand) {
             case MOVE:
                 return this.move(this.getId(), commandLocation);
+            case STALL:
+                return true;
             case IN_COMBAT:
                 return runBattleAction();
             case LOAD_ROCKET:

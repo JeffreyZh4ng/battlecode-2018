@@ -11,6 +11,7 @@ public abstract class UnitInstance {
 
     private int id;
     private RobotTask currentTask;
+    private RobotTask emergencyTask = null;
 
     public UnitInstance(int id) {
         this.id = id;
@@ -42,6 +43,27 @@ public abstract class UnitInstance {
         currentTask = null;
     }
 
+    public RobotTask getEmergencyTask() {
+        return emergencyTask;
+    }
+
+    public void setEmergencyTask(RobotTask emergencyTask) {
+        this.emergencyTask = emergencyTask;
+    }
+
+    public MapLocation getLocation() {
+        return Player.gc.unit(this.getId()).location().mapLocation();
+    }
+
+    public int getVisionRange() {
+        return (int)(Player.gc.unit(this.getId()).visionRange());
+    }
+
+    /**
+     * Gets all the enemy units in the range of this unit instance with the given range
+     * @param range The range of the unit
+     * @return A vecUnit of all the enemy units in range
+     */
     public VecUnit getEnemyUnitsInRange(int range) {
         Team otherTeam = Player.gc.team() == Team.Blue ? Team.Red : Team.Blue;
         return Player.gc.senseNearbyUnitsByTeam(this.getLocation(), range, otherTeam);
@@ -70,14 +92,4 @@ public abstract class UnitInstance {
         }
         return minDistanceUnit;
     }
-
-    public MapLocation getLocation() {
-        return Player.gc.unit(this.getId()).location().mapLocation();
-    }
-
-    public int getVisionRange() {
-        return (int)(Player.gc.unit(this.getId()).visionRange());
-    }
-
-
 }

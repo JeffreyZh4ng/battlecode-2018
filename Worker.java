@@ -13,7 +13,12 @@ public class Worker extends Robot {
 
         if (this.getEmergencyTask() != null) {
             if (executeTask(this.getEmergencyTask())) {
-                System.out.println("Unit: " + this.getId() + " Finished emergency task!");
+                System.out.println("Worker: " + this.getId() + " Finished emergency task!");
+                if (this.getCurrentTask().getCommand() == Command.STALL) {
+                    GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
+                    globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
+                    return;
+                }
                 this.setEmergencyTask(null);
             }
 
@@ -114,12 +119,12 @@ public class Worker extends Robot {
             Player.gc.blueprint(this.getId(), unitType, directionToBlueprint);
 
             int structureId = Player.gc.senseUnitAtLocation(commandLocation).id();
-            UnitInstance newStructure;
+
             if (unitType == UnitType.Factory) {
-                newStructure = new Factory(structureId, false, commandLocation);
+                UnitInstance newStructure = new Factory(structureId, false, commandLocation);
                 Earth.earthFactoryMap.put(structureId, newStructure);
             } else {
-                newStructure = new Rocket(structureId, false, commandLocation);
+                Rocket newStructure = new Rocket(structureId, false, commandLocation);
                 Earth.earthRocketMap.put(structureId, newStructure);
             }
             System.out.println("Unit: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());

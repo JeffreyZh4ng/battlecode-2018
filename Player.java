@@ -38,7 +38,6 @@ public class Player {
                 System.out.println("");
             }
 
-
             gc.nextTurn();
         }
     }

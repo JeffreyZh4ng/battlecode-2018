@@ -1,6 +1,6 @@
 import bc.MapLocation;
+import bc.UnitType;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 
 public class GlobalTask {
@@ -8,19 +8,19 @@ public class GlobalTask {
     public static int taskIndex = 0;
 
     private int taskId;
-    private int minimumWorkers;
+    private int minimumUnitsCount;
     private boolean hasBlueprinted;
     private Command command;
-    private HashSet<Integer> workersOnTask;
+    private HashSet<Integer> unitsOnTask;
     private MapLocation taskLocation;
 
-    public GlobalTask(int minimumWorkers, Command command, MapLocation taskLocation) {
+    public GlobalTask(int minimumUnitsCount, Command command, MapLocation taskLocation) {
         taskIndex++;
         this.taskId = taskIndex;
-        this.minimumWorkers = minimumWorkers;
+        this.minimumUnitsCount = minimumUnitsCount;
         this.hasBlueprinted = false;
         this.command = command;
-        this.workersOnTask = new HashSet<>();
+        this.unitsOnTask = new HashSet<>();
         this.taskLocation = taskLocation;
     }
 
@@ -28,16 +28,16 @@ public class GlobalTask {
         return taskId;
     }
 
-    public int getMinimumWorkers() {
-        return minimumWorkers;
+    public int getMinimumUnitsCount() {
+        return minimumUnitsCount;
     }
 
     public Command getCommand() {
         return command;
     }
 
-    public HashSet<Integer> getWorkersOnTask() {
-        return workersOnTask;
+    public HashSet<Integer> getUnitsOnTask() {
+        return unitsOnTask;
     }
 
     public MapLocation getTaskLocation() {
@@ -45,15 +45,21 @@ public class GlobalTask {
     }
 
     public void addWorkerToList(int workerId) {
-        workersOnTask.add(workerId);
+        unitsOnTask.add(workerId);
         RobotTask moveTask = new RobotTask(taskId, Command.MOVE, taskLocation);
         Earth.earthWorkerMap.get(workerId).setCurrentTask(moveTask);
     }
 
     public void removeWorkerFromList(int workerId) {
-        if (workersOnTask.contains(workerId)) {
-            workersOnTask.remove(workerId);
+        if (unitsOnTask.contains(workerId)) {
+            unitsOnTask.remove(workerId);
         }
+    }
+
+    public void addAttackerToList(int attackerId) {
+        unitsOnTask.add(attackerId);
+        RobotTask moveTask = new RobotTask(taskId, Command.MOVE, taskLocation);
+        Earth.earthStagingAttackerMap.get(attackerId).setCurrentTask(moveTask);
     }
 
     /**
@@ -115,17 +121,10 @@ public class GlobalTask {
         } else if (this.command == Command.LOAD_ROCKET) {
             switch (command) {
                 case MOVE:
-                    RobotTask nextTask = new RobotTask(this.getTaskId(), Command.STALL, this.getTaskLocation());
-
-                    if (Earth.earthWorkerMap.containsKey(unitId)) {
-                        Earth.earthAttackerMap.get(unitId).setCurrentTask(nextTask);
-                    } else {
-                        Earth.earthAttackerMap.get(unitId).setCurrentTask(nextTask);
-                    }
-                    // Send request to rocket to load unit.
+                    sendRocketRequestHelper(unitId);
                     break;
-                case LOAD_ROCKET:
-                    // Will send a request to the rocket to load this unit at its location
+                case STALL:
+                    sendRocketRequestHelper(unitId);
                     break;
             }
         }
@@ -146,11 +145,36 @@ public class GlobalTask {
     }
 
     /**
+     * Helper method that will control the requests to the rocket and robots for loading the rocket. If the
+     * rocket cannot load the robot immediately, it will send a stall request to the unit.
+     * @param unitId The id of the unit who finished its task
+     */
+    private void sendRocketRequestHelper(int unitId) {
+        UnitInstance unitInstance;
+        if (Earth.earthWorkerMap.containsKey(unitId)) {
+            unitInstance = Earth.earthWorkerMap.get(unitId);
+        } else {
+            unitInstance = Earth.earthAttackerMap.get(unitId);
+        }
+
+        int rocketId = Player.gc.senseUnitAtLocation(this.getTaskLocation()).id();
+        if (Earth.earthRocketMap.get(rocketId).loadUnit(unitId, unitInstance)) {
+            return;
+        }
+
+        RobotTask nextTask = new RobotTask(this.getTaskId(), Command.STALL, this.getTaskLocation());
+        if (Player.gc.unit(unitId).unitType() == UnitType.Worker) {
+            Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
+        } else {
+            Earth.earthAttackerMap.get(unitId).setCurrentTask(nextTask);
+        }
+    }
+    /**
      * When the last command in the string of tasks is finished. Remove the task of all the rest of the units.
      * If the task is still the top task of the task queue, remove it
      */
     private void finishedTask() {
-        for (int unitId: workersOnTask) {
+        for (int unitId: unitsOnTask) {
             if (Earth.earthWorkerMap.containsKey(unitId)) {
                 Earth.earthWorkerMap.get(unitId).removeTask();
             } else {
@@ -168,7 +192,7 @@ public class GlobalTask {
      * are removed and the robots are given a new task
      */
     private void removeDuplicateTasks() {
-        for (int unitId: workersOnTask) {
+        for (int unitId: unitsOnTask) {
             UnitInstance unit = Earth.earthWorkerMap.get(unitId);
             if (unit.getCurrentTask().getCommand() == Command.BLUEPRINT_FACTORY ||
                     unit.getCurrentTask().getCommand() == Command.BLUEPRINT_ROCKET) {
