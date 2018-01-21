@@ -14,7 +14,7 @@ public class Worker extends Robot {
         if (this.getEmergencyTask() != null) {
             if (executeTask(this.getEmergencyTask())) {
                 System.out.println("Worker: " + this.getId() + " Finished emergency task!");
-                if (this.getCurrentTask().getCommand() == Command.STALL) {
+                if (this.getCurrentTask() != null && this.getCurrentTask().getCommand() == Command.STALL) {
                     GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
                     globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
                     return;

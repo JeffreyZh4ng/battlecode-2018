@@ -48,7 +48,7 @@ public abstract class Attacker extends Robot {
         if (this.getEmergencyTask() != null) {
             if (executeTask(this.getEmergencyTask())) {
                 System.out.println("Attacker: " + this.getId() + " Finished emergency task!");
-                if (this.getCurrentTask().getCommand() == Command.STALL) {
+                if (this.getCurrentTask() != null && this.getCurrentTask().getCommand() == Command.STALL) {
                     return;
                 }
                 this.setEmergencyTask(null);
