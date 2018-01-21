@@ -1,4 +1,5 @@
 import bc.*;
+import javafx.util.Pair;
 
 import java.util.*;
 
@@ -26,9 +27,12 @@ public class Earth {
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
     public static HashSet<Integer> earthFinishedTasks = new HashSet<>();
 
+    public static HashMap<String, Pair<MapLocation, Integer>> earthKarboniteCounts = initializeKarboniteMap();
+
     private static ArrayList<MapLocation> availableStructureLocations = findAllStructureLocations();
 
     public static void execute() {
+        updateKarboniteMap();
 
         updateDeadUnits();
 
@@ -137,6 +141,47 @@ public class Earth {
         earthTaskQueue.add(new GlobalTask(minimumUnits, command, globalTaskLocation));
     }
 
+    /**
+     * finds all initial karbonite locations
+     * @return a hashmap of locations with karbonite initially
+     */
+    private static HashMap<String, Pair<MapLocation, Integer>> initializeKarboniteMap() {
+        PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
+        HashMap<String, Pair<MapLocation, Integer>> initialKarboniteValues = new HashMap<>();
+        for (int x = 0; x < initialMap.getWidth(); x++) {
+            for (int y = 0; y < initialMap.getHeight(); y++) {
+                MapLocation location = new MapLocation(Player.gc.planet(), x, y);
+                if (initialMap.initialKarboniteAt(location)>0) {
+                    initialKarboniteValues.put(location.toString(),
+                            new Pair<MapLocation, Integer>(location, (int)initialMap.initialKarboniteAt(location)));
+                }
+            }
+        }
+        return initialKarboniteValues;
+    }
+
+    private static void updateKarboniteMap() {
+
+        ArrayList<String> toRemove = new ArrayList<>();
+        for (Map.Entry<String, Pair<MapLocation, Integer>> locationEntry : earthKarboniteCounts.entrySet()) {
+            Pair<MapLocation, Integer> locationCountPair = locationEntry.getValue();
+
+            if (Player.gc.canSenseLocation(locationCountPair.getKey())) {
+
+                int karboniteAt = (int)Player.gc.karboniteAt(locationCountPair.getKey());
+                if (karboniteAt == 0) {
+                    toRemove.add(locationEntry.getKey());
+                } else if (karboniteAt != locationCountPair.getValue()) {
+                    earthKarboniteCounts.put(locationEntry.getKey(), new Pair<MapLocation, Integer>(locationCountPair.getKey(), karboniteAt));
+                }
+
+            }
+        }
+        for (String location : toRemove) {
+            earthKarboniteCounts.remove(location);
+        }
+    }
+
     //what is a good structure location?
     // 1. far from enemy
     // 2. can be built quickly: near workers
@@ -181,7 +226,7 @@ public class Earth {
                     clear = false;
                 }
                 for (Direction direction : Direction.values()) {
-                    if (clear == false) {
+                    if (!clear) {
                         break;
                     }
                     if (chosenLocations.contains(locationToTest.add(direction).toString())) {
