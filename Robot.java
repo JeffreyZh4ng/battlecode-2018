@@ -40,7 +40,7 @@ public abstract class Robot extends UnitInstance {
         ArrayList<Direction> moveDirections = getMoveDirections();
 
         //shuffle directions so that wandering doesn't gravitate towards a specific direction
-        Collections.shuffle(moveDirections, new Random());
+
 
         MapLocation destinationLocation = null;
         Queue<MapLocation> frontier = new LinkedList<>();
@@ -52,7 +52,7 @@ public abstract class Robot extends UnitInstance {
 
             // Get next direction to check around
             MapLocation currentLocation = frontier.poll();
-
+            Collections.shuffle(moveDirections, new Random());
             // Check if locations around frontier location have already been added to came from and if they are empty
             for (Direction nextDirection : moveDirections) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);

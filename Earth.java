@@ -232,11 +232,11 @@ public class Earth {
      */
     private static void runUnitMap(HashMap<Integer, UnitInstance> searchMap) {
         for (int unitId: searchMap.keySet()) {
-            if (searchMap.get(unitId).getCurrentTask().getCommand() == Command.MOVE) {
-                earthMovingUnits.put(unitId, searchMap.get(unitId));
-            } else {
-                searchMap.get(unitId).run();
-            }
+            //if (searchMap.get(unitId).getCurrentTask().getCommand() == Command.MOVE) {
+            //    earthMovingUnits.put(unitId, searchMap.get(unitId));
+            //} else {
+            searchMap.get(unitId).run();
+            //}
         }
     }
 
