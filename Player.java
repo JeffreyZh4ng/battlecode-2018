@@ -129,8 +129,13 @@ public class Player {
         PlanetMap initialMap = gc.startingMap(mapLocation.getPlanet());
         if (initialMap.onMap(mapLocation)) {
             if (gc.canSenseLocation(mapLocation)) {
-                // System.out.println("Map Location: " + mapLocation.toString());
-                return gc.senseUnitAtLocation(mapLocation);
+                if (gc.hasUnitAtLocation(mapLocation)) {
+                    // System.out.println("Map Location: " + mapLocation.toString());
+                    return gc.senseUnitAtLocation(mapLocation);
+                } else {
+                    System.out.println("NO UNIT AT LOCATION");
+                    return null;
+                }
             } else {
                 System.out.println("LOCATION IS NOT IN VIEW RANGE");
                 return null;

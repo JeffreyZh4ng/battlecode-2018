@@ -140,30 +140,32 @@ public class Worker extends Robot {
      * @return If the structure finished building
      */
     private boolean buildStructure(MapLocation commandLocation) {
-        int structureId = Player.senseUnitAtLocation(commandLocation).id();
+        Unit structure = Player.senseUnitAtLocation(commandLocation);
+        if (structure != null) {
+            int structureId = structure.id();
 
-        if (Player.gc.canBuild(this.getId(), structureId)) {
-            Player.gc.build(this.getId(), structureId);
-            System.out.println("Unit: " + this.getId() + " ran build()");
+            if (Player.gc.canBuild(this.getId(), structureId)) {
+                Player.gc.build(this.getId(), structureId);
+                System.out.println("Unit: " + this.getId() + " ran build()");
 
-            if (Player.gc.unit(structureId).structureIsBuilt() > 0) {
+                if (Player.gc.unit(structureId).structureIsBuilt() > 0) {
 
-                UnitType unitType = Player.gc.unit(structureId).unitType();
-                if (unitType == UnitType.Factory) {
-                    UnitInstance factory = Earth.earthFactoryMap.get(structureId);
-                    UnitInstance builtFactory = new Factory(factory.getId(), true, commandLocation);
-                    Earth.earthFactoryMap.put(factory.getId(), builtFactory);
-                } else {
-                    UnitInstance rocket = Earth.earthRocketMap.get(structureId);
-                    UnitInstance builtRocket = new Rocket(rocket.getId(), true, commandLocation);
-                    Earth.earthFactoryMap.put(rocket.getId(), builtRocket);
+                    UnitType unitType = Player.gc.unit(structureId).unitType();
+                    if (unitType == UnitType.Factory) {
+                        UnitInstance factory = Earth.earthFactoryMap.get(structureId);
+                        UnitInstance builtFactory = new Factory(factory.getId(), true, commandLocation);
+                        Earth.earthFactoryMap.put(factory.getId(), builtFactory);
+                    } else {
+                        UnitInstance rocket = Earth.earthRocketMap.get(structureId);
+                        UnitInstance builtRocket = new Rocket(rocket.getId(), true, commandLocation);
+                        Earth.earthFactoryMap.put(rocket.getId(), builtRocket);
+                    }
+
+                    System.out.println("Unit: " + this.getId() + " Built structure");
+                    return true;
                 }
-
-                System.out.println("Unit: " + this.getId() + " Built structure");
-                return true;
             }
         }
-
         return false;
     }
 
@@ -184,7 +186,7 @@ public class Worker extends Robot {
 
     private void wanderToMine() {
         ArrayList<MapLocation> wanderPath = getPathToKarbonite(Player.gc.unit(this.getId()).location().mapLocation(),Player.gc.startingMap(Player.gc.planet()));
-        if (wanderPath != null) {
+        if (wanderPath != null && wanderPath.size() > 0) {
             path = wanderPath;
             this.setEmergencyTask(new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1)));
         }
