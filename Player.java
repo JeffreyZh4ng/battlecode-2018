@@ -14,6 +14,7 @@ public class Player {
         while (true) {
 
             if (gc.round() % 2 == 0) {
+                System.runFinalization();
                 System.gc();
             }
             if (gc.planet() == Planet.Earth) {
