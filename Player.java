@@ -13,7 +13,8 @@ public class Player {
 
         while (true) {
 
-            if (gc.round() % 1 == 0) {
+            if (gc.round() % 5 == 0) {
+                System.runFinalization();
                 System.gc();
             }
             if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
@@ -36,7 +37,6 @@ public class Player {
 
                 System.out.println("");
             }
-
 
             gc.nextTurn();
         }

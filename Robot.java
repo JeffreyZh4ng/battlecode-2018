@@ -9,18 +9,9 @@ import java.util.LinkedList;
 public abstract class Robot extends UnitInstance {
 
     public ArrayList<MapLocation> path = null;
-    private RobotTask emergencyTask = null;
 
     public Robot(int id) {
         super(id);
-    }
-
-    public RobotTask getEmergencyTask() {
-        return emergencyTask;
-    }
-
-    public void setEmergencyTask(RobotTask emergencyTask) {
-        this.emergencyTask = emergencyTask;
     }
 
     /**
@@ -33,7 +24,7 @@ public abstract class Robot extends UnitInstance {
         int randomLocation = (int) (Math.random() * locations.size());
 
         MapLocation wanderLocation = locations.get(randomLocation);
-        emergencyTask = new RobotTask(-1, Command.MOVE, wanderLocation);
+        this.setEmergencyTask(new RobotTask(-1, Command.MOVE, wanderLocation));
     }
 
     /**
