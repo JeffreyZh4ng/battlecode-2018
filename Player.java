@@ -13,10 +13,10 @@ public class Player {
 
         while (true) {
 
-            if (gc.round() % 1 == 0) {
+            if (gc.round() % 2 == 0) {
                 System.gc();
             }
-            if (gc.team() == Team.Blue && gc.planet() == Planet.Earth) {
+            if (gc.planet() == Planet.Earth) {
                 System.out.println("Round number: " + gc.round());
                 System.out.println("Time left: " + Player.gc.getTimeLeftMs());
 
