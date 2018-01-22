@@ -164,9 +164,9 @@ public class GlobalTask {
 
         RobotTask nextTask = new RobotTask(this.getTaskId(), Command.STALL, this.getTaskLocation());
         if (Player.gc.unit(unitId).unitType() == UnitType.Worker) {
-            Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
+            Earth.earthWorkerMap.get(unitId).setEmergencyTask(nextTask);
         } else {
-            Earth.earthAttackerMap.get(unitId).setCurrentTask(nextTask);
+            Earth.earthAttackerMap.get(unitId).setEmergencyTask(nextTask);
         }
     }
     /**

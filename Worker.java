@@ -14,6 +14,7 @@ public class Worker extends Robot {
         if (this.getEmergencyTask() != null) {
             if (executeTask(this.getEmergencyTask())) {
                 System.out.println("Worker: " + this.getId() + " Finished emergency task!");
+
                 if (this.getCurrentTask() != null && this.getCurrentTask().getCommand() == Command.STALL) {
                     GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
                     globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
@@ -25,7 +26,7 @@ public class Worker extends Robot {
         } else if (!this.isIdle()) {
             if (executeTask(this.getCurrentTask())) {
                 GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
-                System.out.println("Unit: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+                System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
                 globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
 
                 // Perform run again?
@@ -33,8 +34,10 @@ public class Worker extends Robot {
             }
 
         } else {
-            System.out.println("Unit: " + this.getId() + " wandering!");
-            this.wanderToMine();
+            System.out.println("Worker: " + this.getId() + " doing nothing!");
+//            this.wander();
+//            System.out.println("Unit: " + this.getId() + " wandering!");
+//            this.wanderToMine();
         }
 
         mineKarbonite();
@@ -49,11 +52,11 @@ public class Worker extends Robot {
     private boolean executeTask(RobotTask robotTask) {
         Command robotCommand = robotTask.getCommand();
         MapLocation commandLocation = robotTask.getCommandLocation();
-        System.out.println("Unit: " + this.getId() + " " + robotCommand);
+        System.out.println("Worker: " + this.getId() + " " + robotCommand);
 
         switch (robotCommand) {
             case MOVE:
-                return this.move(this.getId(), commandLocation);
+                return this.pathManager(commandLocation);
             case CLONE:
                 return cloneWorker(commandLocation);
             case BUILD:
@@ -63,7 +66,7 @@ public class Worker extends Robot {
             case BLUEPRINT_ROCKET:
                 return blueprintStructure(commandLocation, UnitType.Rocket);
             default:
-                System.out.println("Critical error occurred in unit: " + this.getId());
+                System.out.println("Critical error occurred in Worker: " + this.getId());
                 return true;
         }
     }
@@ -93,7 +96,7 @@ public class Worker extends Robot {
 
                     Earth.earthStagingWorkerMap.put(clonedWorkerId, newWorker);
 
-                    System.out.println("Unit: " + this.getId() + " Cloned worker!");
+                    System.out.println("Worker: " + this.getId() + " Cloned worker!");
                     System.out.println("New worker has ID of: " + clonedWorkerId);
                     return true;
                 }
@@ -127,7 +130,7 @@ public class Worker extends Robot {
                 Rocket newStructure = new Rocket(structureId, false, commandLocation);
                 Earth.earthRocketMap.put(structureId, newStructure);
             }
-            System.out.println("Unit: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
+            System.out.println("Worker: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
             return true;
         }
 
@@ -140,30 +143,27 @@ public class Worker extends Robot {
      * @return If the structure finished building
      */
     private boolean buildStructure(MapLocation commandLocation) {
-        Unit structure = Player.senseUnitAtLocation(commandLocation);
-        if (structure != null) {
-            int structureId = structure.id();
+        int structureId = Player.senseUnitAtLocation(commandLocation).id();
 
-            if (Player.gc.canBuild(this.getId(), structureId)) {
-                Player.gc.build(this.getId(), structureId);
-                System.out.println("Unit: " + this.getId() + " ran build()");
+        if (Player.gc.canBuild(this.getId(), structureId)) {
+            Player.gc.build(this.getId(), structureId);
+            System.out.println("Worker: " + this.getId() + " ran build()");
 
-                if (Player.gc.unit(structureId).structureIsBuilt() > 0) {
+            if (Player.gc.unit(structureId).structureIsBuilt() > 0) {
 
-                    UnitType unitType = Player.gc.unit(structureId).unitType();
-                    if (unitType == UnitType.Factory) {
-                        UnitInstance factory = Earth.earthFactoryMap.get(structureId);
-                        UnitInstance builtFactory = new Factory(factory.getId(), true, commandLocation);
-                        Earth.earthFactoryMap.put(factory.getId(), builtFactory);
-                    } else {
-                        UnitInstance rocket = Earth.earthRocketMap.get(structureId);
-                        UnitInstance builtRocket = new Rocket(rocket.getId(), true, commandLocation);
-                        Earth.earthFactoryMap.put(rocket.getId(), builtRocket);
-                    }
-
-                    System.out.println("Unit: " + this.getId() + " Built structure");
-                    return true;
+                UnitType unitType = Player.gc.unit(structureId).unitType();
+                if (unitType == UnitType.Factory) {
+                    UnitInstance factory = Earth.earthFactoryMap.get(structureId);
+                    UnitInstance builtFactory = new Factory(factory.getId(), true, commandLocation);
+                    Earth.earthFactoryMap.put(factory.getId(), builtFactory);
+                } else {
+                    UnitInstance rocket = Earth.earthRocketMap.get(structureId);
+                    UnitInstance builtRocket = new Rocket(rocket.getId(), true, commandLocation);
+                    Earth.earthFactoryMap.put(rocket.getId(), builtRocket);
                 }
+
+                System.out.println("Worker: " + this.getId() + " Built structure");
+                return true;
             }
         }
         return false;
@@ -185,41 +185,49 @@ public class Worker extends Robot {
     }
 
     private void wanderToMine() {
-        ArrayList<MapLocation> wanderPath = getPathToKarbonite(Player.gc.unit(this.getId()).location().mapLocation(),Player.gc.startingMap(Player.gc.planet()));
-        if (wanderPath != null && wanderPath.size() > 0) {
-            path = wanderPath;
-            this.setEmergencyTask(new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1)));
+        MapLocation karboniteLocation = getPathToKarbonite(this.getLocation(), Player.gc.startingMap(Player.gc.planet()));
+
+        if (this.getMovePathStack() != null) {
+            this.setCurrentTask(new RobotTask(-1, Command.MOVE, karboniteLocation));
+            System.out.println("Setting the current task to go mine karbonite");
         }
         System.out.println("no wander Location");
     }
 
+    /**
+     * Method that will get the path to the nearest karbonite deposit.
+     * @param startingLocation The starting location of the robot
+     * @param map The map the robot is on
+     * @return The stack of path values to the karbonite deposit
+     */
+    // TODO: Change this to return the map location of the karbonite pocket.
+    public MapLocation getPathToKarbonite(MapLocation startingLocation, PlanetMap map) {
 
-    public ArrayList<MapLocation> getPathToKarbonite(MapLocation startingLocation, PlanetMap map) {
-
-        ArrayList<Direction> moveDirections = getMoveDirections();
+        ArrayList<Direction> moveDirections = Player.getMoveDirections();
 
         //shuffle directions so that wandering doesn't gravitate towards a specific direction
-
-
         MapLocation destinationLocation = null;
+
         Queue<MapLocation> frontier = new LinkedList<>();
         frontier.add(startingLocation);
-        HashMap<String, MapLocation> cameFrom = new HashMap<>();
-        cameFrom.put(startingLocation.toString(), startingLocation);
+
+        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
+        checkedLocations.put(startingLocation.toString(), startingLocation);
 
         while (!frontier.isEmpty()) {
 
             // Get next direction to check around
             MapLocation currentLocation = frontier.poll();
             Collections.shuffle(moveDirections, new Random());
+
             // Check if locations around frontier location have already been added to came from and if they are empty
             for (Direction nextDirection : moveDirections) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if (doesLocationAppearEmpty(map, nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
+                if (Player.doesLocationAppearEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
                     frontier.add(nextLocation);
-                    cameFrom.put(nextLocation.toString(), currentLocation);
-                    if (Earth.earthKarboniteCounts.containsKey(currentLocation.toString())) {
+                    checkedLocations.put(nextLocation.toString(), currentLocation);
+                    if (Earth.earthKarboniteMap.containsKey(currentLocation.toString())) {
                         frontier.clear();
                         destinationLocation = currentLocation;
                     }
@@ -227,23 +235,22 @@ public class Worker extends Robot {
             }
         }
 
-
         if (destinationLocation == null) {
             return null;
         }
-        ArrayList<MapLocation> newPath = new ArrayList<>();
-
-        ArrayList<MapLocation> currentPath = new ArrayList<>();
+        Stack<MapLocation> newPath = new Stack<>();
         MapLocation currentTraceLocation = destinationLocation;
 
-        //trace back path
+        // trace back path
         while (!currentTraceLocation.equals(startingLocation)) {
-            newPath.add(0, currentTraceLocation);
-            currentTraceLocation = cameFrom.get(currentTraceLocation.toString());
+            newPath.push(currentTraceLocation);
+            currentTraceLocation = checkedLocations.get(currentTraceLocation.toString());
             if (currentTraceLocation == null) {
                 break;
             }
         }
+
+        this.setMovePathStack(newPath);
 
         return newPath;
     }
@@ -259,7 +266,7 @@ public class Worker extends Robot {
 //
 //                if (this.getEmergencyTask() == null) {
 //                    RobotTask newTask = new RobotTask(-1, -1, Command.MOVE, newLocation);
-//                    System.out.println("Robot: " + this.getId() + " WANDERING!");
+//                    System.out.println("Worker: " + this.getId() + " WANDERING!");
 //                    this.setEmergencyTask(newTask);
 //                }
 //            }

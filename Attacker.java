@@ -87,7 +87,11 @@ public abstract class Attacker extends Robot {
         if (this.getEmergencyTask() != null) {
             if (executeTask(this.getEmergencyTask())) {
                 System.out.println("Attacker: " + this.getId() + " Finished emergency task!");
-                if (this.getCurrentTask() != null && this.getCurrentTask().getCommand() == Command.STALL) {
+
+                if (this.getCurrentTask() != null && this.getEmergencyTask().getCommand() == Command.STALL) {
+                    GlobalTask globalTask = Earth.earthTaskMap.get(this.getEmergencyTask().getTaskId());
+                    globalTask.finishedTask(this.getId(), this.getEmergencyTask().getCommand());
+
                     return;
                 }
                 this.setEmergencyTask(null);
@@ -103,15 +107,16 @@ public abstract class Attacker extends Robot {
                 if (taskId != -1) {
                     Earth.earthTaskMap.get(taskId).finishedTask(this.getId(), this.getCurrentTask().getCommand());
                 } else {
+                    System.out.println("Attacker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
                     this.setCurrentTask(null);
-                    System.out.println("Unit: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
-                    System.out.println("Removing global attack target! Setting to null");
                 }
         }
 
         } else {
-            System.out.println("Unit: " + this.getId() + " wandering!");
-            this.explore();
+            System.out.println("Attacker: " + this.getId() + " doing nothing!");
+//            this.wander();
+//            System.out.println("Unit: " + this.getId() + " wandering!");
+//            this.explore();
         }
     }
 
@@ -127,7 +132,7 @@ public abstract class Attacker extends Robot {
 
         switch (robotCommand) {
             case MOVE:
-                return this.move(this.getId(), commandLocation);
+                return this.pathManager(commandLocation);
             case STALL:
                 return true;
             case IN_COMBAT:
@@ -135,18 +140,27 @@ public abstract class Attacker extends Robot {
             case LOAD_ROCKET:
                 return loadRocket(commandLocation);
             default:
-                System.out.println("Critical error occurred in unit: " + this.getId());
+                System.out.println("Critical error occurred in attacker: " + this.getId());
                 return true;
         }
     }
 
     /**
-     * Updated the current task. If the robot has no current task and the attack location is not null, set a new
-     * task to move to the attack location
+     * Updated the current task. If the global attack target is not null, check if the robot has a current task.
+     * If it has a current task, check if the task has an id of -1. If it does, replace the task with the
+     * updated attack target task. If the current robot has a task with id != -1, ignore it.
      */
     private void updateTask() {
-        if (getAttackTarget() != null && this.getCurrentTask() != null && this.getCurrentTask().getTaskId() == -1) {
-            this.setCurrentTask(new RobotTask(-1, Command.MOVE, getAttackTarget()));
+        if (getAttackTarget() != null) {
+            if (this.getCurrentTask() != null && this.getCurrentTask().getTaskId() == -1) {
+                this.setCurrentTask(new RobotTask(-1, Command.MOVE, getAttackTarget()));
+            } else if (this.getCurrentTask() == null) {
+                this.setCurrentTask(new RobotTask(-1, Command.MOVE, getAttackTarget()));
+            }
+
+        } else if (getAttackTarget() == null && this.getCurrentTask() != null && this.getCurrentTask().getTaskId() == -1) {
+            System.out.println("Attacker: " + this.getId() + " The global target has been cleared, removing task");
+            this.removeTask();
         }
     }
 

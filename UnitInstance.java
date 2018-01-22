@@ -10,11 +10,13 @@ import java.util.Queue;
 public abstract class UnitInstance {
 
     private int id;
+    private UnitType unitType;
     private RobotTask currentTask;
     private RobotTask emergencyTask = null;
 
     public UnitInstance(int id) {
         this.id = id;
+        unitType = Player.gc.unit(id).unitType();
     }
 
     /**
@@ -25,6 +27,10 @@ public abstract class UnitInstance {
 
     public int getId() {
         return id;
+    }
+
+    public UnitType getUnitType() {
+        return unitType;
     }
 
     public boolean isIdle() {

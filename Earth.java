@@ -1,5 +1,4 @@
 import bc.*;
-import javafx.util.Pair;
 
 import java.util.*;
 
@@ -27,15 +26,15 @@ public class Earth {
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
     public static HashSet<Integer> earthFinishedTasks = new HashSet<>();
 
-    public static HashMap<String, Pair<MapLocation, Integer>> earthKarboniteCounts = initializeKarboniteMap();
+    public static HashMap<String, Integer> earthKarboniteMap = initializeKarboniteMap();
 
     private static ArrayList<MapLocation> availableStructureLocations = findAllStructureLocations();
 
     public static void execute() {
         updateKarboniteMap();
-
         updateDeadUnits();
 
+        System.out.println("Current number of rangers: " + rangerCount);
         updateTaskQueue();
 
         runRocketMap();
@@ -48,7 +47,6 @@ public class Earth {
 
         addStagingUnitsToMap();
     }
-
 
     /**
      * Will update and assign tasks to workers if there are idle workers. Loops through a list of idle workers.
@@ -143,17 +141,16 @@ public class Earth {
 
     /**
      * finds all initial karbonite locations
-     * @return a hashmap of locations with karbonite initially
+     * @return a HashMap of locations with karbonite initially
      */
-    private static HashMap<String, Pair<MapLocation, Integer>> initializeKarboniteMap() {
+    private static HashMap<String, Integer> initializeKarboniteMap() {
         PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
-        HashMap<String, Pair<MapLocation, Integer>> initialKarboniteValues = new HashMap<>();
+        HashMap<String, Integer> initialKarboniteValues = new HashMap<>();
         for (int x = 0; x < initialMap.getWidth(); x++) {
             for (int y = 0; y < initialMap.getHeight(); y++) {
                 MapLocation location = new MapLocation(Player.gc.planet(), x, y);
                 if (initialMap.initialKarboniteAt(location)>0) {
-                    initialKarboniteValues.put(location.toString(),
-                            new Pair<MapLocation, Integer>(location, (int)initialMap.initialKarboniteAt(location)));
+                    initialKarboniteValues.put(Player.mapLocationToString(location), (int)initialMap.initialKarboniteAt(location));
                 }
             }
         }
@@ -161,44 +158,33 @@ public class Earth {
     }
 
     /**
-     * updates karbonite values in hashmap
+     * Method that will update the karbonite values on the map at the beginning of each round.
      */
     private static void updateKarboniteMap() {
 
         ArrayList<String> toRemove = new ArrayList<>();
-        for (Map.Entry<String, Pair<MapLocation, Integer>> locationEntry : earthKarboniteCounts.entrySet()) {
-            Pair<MapLocation, Integer> locationCountPair = locationEntry.getValue();
+        for (Map.Entry<String, Integer> locationEntry : earthKarboniteMap.entrySet()) {
+            MapLocation location = Player.stringToMapLocation(locationEntry.getKey());
 
-            if (Player.gc.canSenseLocation(locationCountPair.getKey())) {
-
-                int karboniteAt = (int)Player.gc.karboniteAt(locationCountPair.getKey());
+            if (Player.gc.canSenseLocation(location)) {
+                int karboniteAt = (int)Player.gc.karboniteAt(location);
                 if (karboniteAt == 0) {
                     toRemove.add(locationEntry.getKey());
-                } else if (karboniteAt != locationCountPair.getValue()) {
-                    earthKarboniteCounts.put(locationEntry.getKey(), new Pair<MapLocation, Integer>(locationCountPair.getKey(), karboniteAt));
+                } else if (karboniteAt != locationEntry.getValue()) {
+                    earthKarboniteMap.put(locationEntry.getKey(), karboniteAt);
                 }
 
             }
         }
         for (String location : toRemove) {
-            earthKarboniteCounts.remove(location);
+            earthKarboniteMap.remove(location);
         }
     }
 
-    //what is a good structure location?
-    // 1. far from enemy
-    // 2. can be built quickly: near workers
-    // 3. has enough space to unload
-    // 4. leaves space for other structures
-    // 5. does not restrict motion of units
-
-    // 1, 2, and 3 apply to pickStructureLocation
-    // 4 and 5 apply to findInitialStructureLocations
-
-    // 5 consecutive open passable location and
-    // no other surounding planned location
-    // i guess first can be arbitrary
-
+    /**
+     * Finds all the possible structure locations with certain specifications
+     * @return A list of all the possible locations
+     */
     private static ArrayList<MapLocation> findAllStructureLocations() {
         int maxNonPassable = 3;
         ArrayList<MapLocation> structureLocations = findStructureLocations(maxNonPassable);
@@ -286,7 +272,7 @@ public class Earth {
      */
     private static void runUnitMap(HashMap<Integer, UnitInstance> searchMap) {
         for (int unitId: searchMap.keySet()) {
-//            if (searchMap.get(unitId).getCurrentTask().getCommand() == Command.MOVE) {
+//            if (searchMap.get(unitId).getCurrentTask().getCommand() == Command.MOVE && Player.gc.isMoveReady(unitId)) {
 //                earthMovingUnits.put(unitId, searchMap.get(unitId));
 //            } else {
                 searchMap.get(unitId).run();
@@ -330,10 +316,10 @@ public class Earth {
             unitSet.add(units.get(i).id());
         }
 
+        decrementAttackCounts(unitSet);
         earthWorkerMap = findDeadUnits(unitSet, earthWorkerMap);
         earthFactoryMap = findDeadUnits(unitSet, earthFactoryMap);
         earthAttackerMap = findDeadUnits(unitSet, earthAttackerMap);
-        decrementAttackCounts(unitSet);
     }
 
     /**
@@ -354,7 +340,7 @@ public class Earth {
                 UnitInstance unit = searchMap.get(unitId);
                 if (unit.getCurrentTask() != null && unit.getCurrentTask().getTaskId() != -1) {
                     int globalTaskId = unit.getCurrentTask().getTaskId();
-                    System.out.println("taskid: " + globalTaskId);
+                    System.out.println("Removing unit from task: " + globalTaskId);
                     earthTaskMap.get(globalTaskId).removeWorkerFromList(unitId);
                 }
             }
@@ -391,7 +377,7 @@ public class Earth {
         for (int unitId: earthAttackerMap.keySet()) {
             if (!unitSet.contains(unitId)) {
 
-                switch (Player.gc.unit(unitId).unitType()) {
+                switch (earthAttackerMap.get(unitId).getUnitType()) {
                     case Knight:
                         knightCount--;
                     case Ranger:
