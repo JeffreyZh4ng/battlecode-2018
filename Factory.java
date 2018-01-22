@@ -12,8 +12,8 @@ public class Factory extends Structure {
     @Override
     public void run() {
         if (this.isBuilt()) {
-            if (Player.gc.canProduceRobot(this.getId(), UnitType.Ranger) && Earth.rangerCount < 10) {
-                Player.gc.produceRobot(this.getId(), UnitType.Ranger);
+            if (Player.gc.canProduceRobot(this.getId(), UnitType.Knight) && Earth.knightCount < 1) {
+                Player.gc.produceRobot(this.getId(), UnitType.Knight);
             }
         }
 
@@ -31,8 +31,8 @@ public class Factory extends Structure {
                 Planet planet = this.getStructureLocation().getPlanet();
                 int unitId = Player.gc.senseUnitAtLocation(unloadLocation).id();
 
-                Earth.rangerCount++;
-                UnitInstance unitInstance = new Ranger(unitId);
+                Earth.knightCount++;
+                UnitInstance unitInstance = new Knight(unitId);
                 if (planet == Planet.Earth) {
                     Earth.earthStagingAttackerMap.put(unitId, unitInstance);
                 } else {

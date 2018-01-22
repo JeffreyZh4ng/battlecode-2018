@@ -18,15 +18,16 @@ public class Player {
                 System.gc();
             }
             if (gc.planet() == Planet.Earth) {
+
                 System.out.println("Round number: " + gc.round());
                 System.out.println("Time left: " + Player.gc.getTimeLeftMs());
 
-                if (gc.round() == 1) {
+                if (gc.round() == 10) {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                 }
-                if (Earth.earthAttackerMap.size() > 10 && Earth.earthAttackTarget == null) {
+                if (Earth.earthAttackTarget == null) {
                     System.out.println("Setting attack target!");
                     Earth.earthAttackTarget = enemyPositions.peek();
                     if (enemyPositions.size() != 0) {

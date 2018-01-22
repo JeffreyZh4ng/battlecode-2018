@@ -18,24 +18,22 @@ public abstract class Robot extends UnitInstance {
         return movePathStack;
     }
 
-
-    /**
-     * Checks if location both passable and appears not to have robots in it
-     * @param map The map to check
-     * @param location The location to check
-     * @return If the location appears empty
-     */
-    public static boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
-
-        // Returns if location is onMap, passableTerrain, and if it appears unoccupied by a Unit
-        return map.onMap(location) && map.isPassableTerrainAt(location) > 0 &&
-                (!Player.gc.canSenseLocation(location) || !Player.gc.hasUnitAtLocation(location));
-    }
-
-
     public void setMovePathStack(Stack<MapLocation> movePathStack) {
         this.movePathStack = movePathStack;
     }
+
+    @Override
+    public void setCurrentTask(RobotTask currentTask) {
+        super.setCurrentTask(currentTask);
+        movePathStack = null;
+    }
+
+    @Override
+    public void setEmergencyTask(RobotTask emergencyTask) {
+        super.setEmergencyTask(emergencyTask);
+        movePathStack = null;
+    }
+
 
     /**
      * A move method manager that will analyze the path of other robots to see when this one should move

@@ -8,11 +8,6 @@ public class Ranger extends Attacker {
         super(id);
     }
 
-    @Override
-    public boolean runBattleAction() {
-        return attackClosestEnemyInRange();
-    }
-
     public void run() {
         runAttacker();
     }
@@ -21,8 +16,8 @@ public class Ranger extends Attacker {
      * Attacks the weakest enemy that it can, will move towards if unreachable
      * @return true if nothing to attack false if attacked or has enemy in range
      */
-    public boolean attackClosestEnemyInRange() {
-
+    @Override
+    public boolean runBattleAction() {
         Team otherTeam = Player.gc.team() == Team.Blue ? Team.Red : Team.Blue;
         VecUnit enemyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), otherTeam);
 
@@ -33,8 +28,6 @@ public class Ranger extends Attacker {
         if (Player.gc.isAttackReady(this.getId())) {
             Unit closestUnit = getClosestUnit(-1, enemyUnits);
             int closestDistanceToUnit = (int)this.getLocation().distanceSquaredTo(closestUnit.location().mapLocation());
-
-            // System.out.println("closest distance: " + closestDistanceToUnit + " attackRange: " + this.getAttackRange());
 
             if (closestDistanceToUnit > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {

@@ -60,21 +60,13 @@ public abstract class Attacker extends Robot {
             for (Direction nextDirection : moveDirections) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if (doesLocationAppearEmpty(Player.gc.startingMap(Player.gc.planet()), nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
+                if (Player.doesLocationAppearEmpty(Player.gc.startingMap(Player.gc.planet()), nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
                     frontier.add(nextLocation);
                     cameFrom.put(nextLocation.toString(), currentLocation);
                 }
             }
         }
     }
-
-//    public boolean moveToAttackTarget() {
-//
-//    }
-//
-//    public ArrayList<MapLocation> getPathToAttackTarget() {
-//
-//    }
 
     /**
      * If attacker is not in combat, it moves to and attacks the global attackTarget otherwise it attacks the closest enemy in range
@@ -153,6 +145,7 @@ public abstract class Attacker extends Robot {
     private void updateTask() {
         if (getAttackTarget() != null) {
             if (this.getCurrentTask() != null && this.getCurrentTask().getTaskId() == -1) {
+                this.setMovePathStack(null);
                 this.setCurrentTask(new RobotTask(-1, Command.MOVE, getAttackTarget()));
             } else if (this.getCurrentTask() == null) {
                 this.setCurrentTask(new RobotTask(-1, Command.MOVE, getAttackTarget()));
@@ -170,6 +163,7 @@ public abstract class Attacker extends Robot {
      */
     private void senseForEnemyUnits() {
         VecUnit enemyUnits = this.getEnemyUnitsInRange(this.getVisionRange());
+        System.out.println(this.getVisionRange());
 
         if (enemyUnits != null && enemyUnits.size() > 0) {
             if (getAttackTarget() == null) {
