@@ -37,7 +37,7 @@ public class Worker extends Robot {
             System.out.println("Worker: " + this.getId() + " doing nothing!");
 //            this.wander();
 //            System.out.println("Unit: " + this.getId() + " wandering!");
-//            this.wanderToMine();
+            this.wanderToMine();
         }
 
         mineKarbonite();
@@ -187,7 +187,7 @@ public class Worker extends Robot {
     private void wanderToMine() {
         MapLocation karboniteLocation = getPathToKarbonite(this.getLocation(), Player.gc.startingMap(Player.gc.planet()));
 
-        if (this.getMovePathStack() != null) {
+        if (karboniteLocation != null && this.getMovePathStack() != null) {
             this.setCurrentTask(new RobotTask(-1, Command.MOVE, karboniteLocation));
             System.out.println("Setting the current task to go mine karbonite");
         }
@@ -200,7 +200,6 @@ public class Worker extends Robot {
      * @param map The map the robot is on
      * @return The stack of path values to the karbonite deposit
      */
-    // TODO: Change this to return the map location of the karbonite pocket.
     public MapLocation getPathToKarbonite(MapLocation startingLocation, PlanetMap map) {
 
         ArrayList<Direction> moveDirections = Player.getMoveDirections();
@@ -230,6 +229,10 @@ public class Worker extends Robot {
                     if (Earth.earthKarboniteMap.containsKey(currentLocation.toString())) {
                         frontier.clear();
                         destinationLocation = currentLocation;
+                    } else {
+                        if (frontier.size() > 30) {
+                            return null;
+                        }
                     }
                 }
             }

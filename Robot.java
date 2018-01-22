@@ -132,6 +132,12 @@ public abstract class Robot extends UnitInstance {
                     frontier.add(nextLocation);
                     checkedLocations.put(nextLocation.toString(), currentLocation);
 
+                    if (currentLocation == null) {
+                        System.out.println("clot: " + currentLocation);
+                    }
+                    if (destinationLocation == null) {
+                        System.out.println("dloc: " + destinationLocation);
+                    }
                     if (currentLocation.isAdjacentTo(destinationLocation)) {
                         frontier.clear();
                     }
