@@ -34,7 +34,7 @@ public class Worker extends Robot {
             }
 
         } else {
-            System.out.println("Worker: " + this.getId() + " doing nothing!");
+            // System.out.println("Worker: " + this.getId() + " doing nothing!");
 //            this.wander();
 //            System.out.println("Unit: " + this.getId() + " wandering!");
             this.wanderToMine();
@@ -191,7 +191,6 @@ public class Worker extends Robot {
             this.setCurrentTask(new RobotTask(-1, Command.MOVE, karboniteLocation));
             System.out.println("Setting the current task to go mine karbonite");
         }
-        System.out.println("no wander Location");
     }
 
     /**
@@ -223,7 +222,7 @@ public class Worker extends Robot {
             for (Direction nextDirection : moveDirections) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if (Player.doesLocationAppearEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
+                if (Player.isLocationEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
                     frontier.add(nextLocation);
                     checkedLocations.put(nextLocation.toString(), currentLocation);
                     if (Earth.earthKarboniteMap.containsKey(currentLocation.toString())) {

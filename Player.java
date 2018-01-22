@@ -15,21 +15,19 @@ public class Player {
         addStartingWorkersToEarthMap();
         Queue<MapLocation> enemyPositions = enemyLocations();
 
-        if (gc.planet() == Planet.Earth) {
-            Earth.initializeStructureLocations();
-        }
         while (true) {
 
             if (gc.round() % 2 == 0) {
                 System.runFinalization();
                 System.gc();
             }
-            if (gc.planet() == Planet.Earth) {
+            if (gc.planet() == Planet.Earth && gc.team() == Team.Blue) {
 
                 System.out.println("Round number: " + gc.round());
                 System.out.println("Time left: " + Player.gc.getTimeLeftMs());
 
-                if (gc.round() == 10) {
+                if (gc.round() == 1) {
+                    setStructureLocations(0, 100);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
@@ -200,28 +198,28 @@ public class Player {
         return directions;
     }
 
-    /**
-     * Method that will check if a location appears empty. Checks if the location is onMap, passableTerrain,
-     * and if it is not occupied by a factory or rocket. Return true if there is a robot there
-     * @param map The map to check
-     * @param location The location to check
-     * @return If the location appears empty
-     */
-    public static boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
-        if (map.onMap(location) && map.isPassableTerrainAt(location) > 0) {
-            if (Player.gc.hasUnitAtLocation(location)) {
-
-                UnitType unit = Player.gc.senseUnitAtLocation(location).unitType();
-                if (unit == UnitType.Factory || unit == UnitType.Rocket) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        return false;
-    }
+//    /**
+//     * Method that will check if a location appears empty. Checks if the location is onMap, passableTerrain,
+//     * and if it is not occupied by a factory or rocket. Return true if there is a robot there
+//     * @param map The map to check
+//     * @param location The location to check
+//     * @return If the location appears empty
+//     */
+//    public static boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
+//        if (map.onMap(location) && map.isPassableTerrainAt(location) > 0) {
+//            if (Player.gc.hasUnitAtLocation(location)) {
+//
+//                UnitType unit = Player.gc.senseUnitAtLocation(location).unitType();
+//                if (unit == UnitType.Factory || unit == UnitType.Rocket) {
+//                    return false;
+//                }
+//            }
+//
+//            return true;
+//        }
+//
+//        return false;
+//    }
 
     /**
      * Method that will convert a MapLocation into an easily recognizable string.
@@ -261,6 +259,88 @@ public class Player {
         int yLocation = Integer.parseInt(location);
 
         return new MapLocation(mapPlanet, xLocation, yLocation);
+    }
+
+    /**
+     * Finds structure locations based on initial map locations.
+     * @return the initially available structure locations
+     */
+    public static void setStructureLocations(int maxNonPassable, int radius) {
+
+        MapLocation workerLocation = null;
+        int minDistance = -1;
+        // find worker with smallest sum to other workers, implementation inefficnet but max 3 workers so not big concern
+        VecUnit myWorkers = Player.gc.units();
+        // System.out.println(myWorkers);
+        for (int i = 0; i < myWorkers.size(); i ++) {
+            int distanceSum = 0;
+            MapLocation workerOneLocation = myWorkers.get(i).location().mapLocation();
+            for (int j = 0; j < myWorkers.size(); j ++) {
+                if (i != j) {
+                    distanceSum += workerOneLocation.distanceSquaredTo(myWorkers.get(j).location().mapLocation());
+                }
+            }
+            if (minDistance == -1 || distanceSum < minDistance) {
+                workerLocation = workerOneLocation;
+                minDistance = distanceSum;
+            }
+        }
+        // System.out.println(workerLocation);
+
+        VecMapLocation locationsToCheck = Player.gc.allLocationsWithin(workerLocation, radius);
+        HashSet<String> chosenLocations = new HashSet<>();
+        ArrayList<MapLocation> clearLocations = new ArrayList<>();
+
+        for (int i = 0; i < locationsToCheck.size(); i++) {
+            //location to test is the center location
+            MapLocation locationToTest = locationsToCheck.get(i);
+            int nonPassableCount = 0;
+            boolean clear = true;
+            if (!Player.gc.startingMap(Player.gc.planet()).onMap(locationToTest) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest) == 0) {
+                clear = false;
+            }
+            for (Direction direction : Direction.values()) {
+                if (!clear) {
+                    break;
+                }
+                if (chosenLocations.contains(locationToTest.add(direction).toString())) {
+                    clear = false;
+                    break;
+                }
+                //is not passable terrain
+                if (!Player.gc.startingMap(Player.gc.planet()).onMap(locationToTest.add(direction)) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
+                    nonPassableCount++;
+                    if (nonPassableCount > maxNonPassable) {
+                        clear = false;
+                        break;
+                    }
+                }
+            }
+            if (clear) {
+                clearLocations.add(locationToTest);
+                chosenLocations.add(locationToTest.toString());
+            }
+
+        }
+        Earth.availableStructureLocations = clearLocations;
+    }
+
+    /**
+     * Method that will check if a location is empty. Checks if the location is onMap, passableTerrain,
+     * and if it is not occupied by a factory or rocket. Return false if there is a robot there
+     * @param map The map to check
+     * @param location The location to check
+     * @return If the location appears empty
+     */
+    public static boolean isLocationEmpty(PlanetMap map, MapLocation location) {
+        if (map.onMap(location) && map.isPassableTerrainAt(location) > 0) {
+            if (Player.gc.hasUnitAtLocation(location)) {
+                return false;
+            }
+            return true;
+        }
+
+        return false;
     }
 }
 

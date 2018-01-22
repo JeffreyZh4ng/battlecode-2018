@@ -23,4 +23,8 @@ public class RobotTask {
     public MapLocation getCommandLocation() {
         return commandLocation;
     }
+
+    public void setCommandLocation(MapLocation commandLocation) {
+        this.commandLocation = commandLocation;
+    }
 }

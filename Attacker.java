@@ -43,30 +43,30 @@ public abstract class Attacker extends Robot {
 
     public static HashMap<String, MapLocation> mapToAttackTarget = null;
 
-    public static void createMapToAttackTarget() {
-        ArrayList<Direction> moveDirections = Player.getMoveDirections();
-        MapLocation attackTarget = getAttackTarget();
-        Queue<MapLocation> frontier = new LinkedList<>();
-        frontier.add(attackTarget);
-        HashMap<String, MapLocation> cameFrom = new HashMap<>();
-        cameFrom.put(attackTarget.toString(), attackTarget);
-
-        while (!frontier.isEmpty()) {
-
-            // Get next direction to check around
-            MapLocation currentLocation = frontier.poll();
-
-            // Check if locations around frontier location have already been added to came from and if they are empty
-            for (Direction nextDirection : moveDirections) {
-                MapLocation nextLocation = currentLocation.add(nextDirection);
-
-                if (Player.doesLocationAppearEmpty(Player.gc.startingMap(Player.gc.planet()), nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
-                    frontier.add(nextLocation);
-                    cameFrom.put(nextLocation.toString(), currentLocation);
-                }
-            }
-        }
-    }
+//    public static void createMapToAttackTarget() {
+//        ArrayList<Direction> moveDirections = Player.getMoveDirections();
+//        MapLocation attackTarget = getAttackTarget();
+//        Queue<MapLocation> frontier = new LinkedList<>();
+//        frontier.add(attackTarget);
+//        HashMap<String, MapLocation> cameFrom = new HashMap<>();
+//        cameFrom.put(attackTarget.toString(), attackTarget);
+//
+//        while (!frontier.isEmpty()) {
+//
+//            // Get next direction to check around
+//            MapLocation currentLocation = frontier.poll();
+//
+//            // Check if locations around frontier location have already been added to came from and if they are empty
+//            for (Direction nextDirection : moveDirections) {
+//                MapLocation nextLocation = currentLocation.add(nextDirection);
+//
+//                if (Player.doesLocationAppearEmpty(Player.gc.startingMap(Player.gc.planet()), nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
+//                    frontier.add(nextLocation);
+//                    cameFrom.put(nextLocation.toString(), currentLocation);
+//                }
+//            }
+//        }
+//    }
 
     /**
      * If attacker is not in combat, it moves to and attacks the global attackTarget otherwise it attacks the closest enemy in range
@@ -105,7 +105,7 @@ public abstract class Attacker extends Robot {
         }
 
         } else {
-            System.out.println("Attacker: " + this.getId() + " doing nothing!");
+            // System.out.println("Attacker: " + this.getId() + " doing nothing!");
 //            this.wander();
 //            System.out.println("Unit: " + this.getId() + " wandering!");
 //            this.explore();
@@ -145,8 +145,9 @@ public abstract class Attacker extends Robot {
     private void updateTask() {
         if (getAttackTarget() != null) {
             if (this.getCurrentTask() != null && this.getCurrentTask().getTaskId() == -1) {
-                this.setMovePathStack(null);
-                this.setCurrentTask(new RobotTask(-1, Command.MOVE, getAttackTarget()));
+                if (this.getCurrentTask().getCommandLocation().equals(getAttackTarget())) {
+                    this.getCurrentTask().setCommandLocation(getAttackTarget());
+                }
             } else if (this.getCurrentTask() == null) {
                 this.setCurrentTask(new RobotTask(-1, Command.MOVE, getAttackTarget()));
             }
@@ -163,7 +164,6 @@ public abstract class Attacker extends Robot {
      */
     private void senseForEnemyUnits() {
         VecUnit enemyUnits = this.getEnemyUnitsInRange(this.getVisionRange());
-        System.out.println(this.getVisionRange());
 
         if (enemyUnits != null && enemyUnits.size() > 0) {
             if (getAttackTarget() == null) {

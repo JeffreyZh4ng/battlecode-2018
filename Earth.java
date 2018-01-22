@@ -27,8 +27,7 @@ public class Earth {
     public static HashSet<Integer> earthFinishedTasks = new HashSet<>();
 
     public static HashMap<String, Integer> earthKarboniteMap = initializeKarboniteMap();
-
-    private static ArrayList<MapLocation> availableStructureLocations = null;
+    public static ArrayList<MapLocation> availableStructureLocations = null;
 
     public static void execute() {
         updateKarboniteMap();
@@ -181,87 +180,19 @@ public class Earth {
         }
     }
 
-    /**
-     * Finds all the possible structure locations with certain specifications
-     * @return A list of all the possible locations
-     */
-    private static ArrayList<MapLocation> findAllStructureLocations() {
-        int maxNonPassable = 3;
-        ArrayList<MapLocation> structureLocations = findStructureLocations(maxNonPassable,100);
-//        while (structureLocations.size()<5) {
-//            maxNonPassable--;
-//            findStructureLocations(maxNonPassable,100);
-//        }
-        return structureLocations;
-    }
-
-    public static void initializeStructureLocations() {
-        availableStructureLocations = findAllStructureLocations();
-    }
-
-    /**
-     * Finds structure locations based on initial map locations.
-     * @return the initially available structure locations
-     */
-    private static ArrayList<MapLocation> findStructureLocations(int maxNonPassable, int radius) {
-
-        MapLocation workerLocation = null;
-        int minDistance = -1;
-        // find worker with smallest sum to other workers, implementation inefficnet but max 3 workers so not big concern
-        VecUnit myWorkers = Player.gc.units();
-        System.out.println(myWorkers);
-        for (int i = 0; i < myWorkers.size(); i ++) {
-            int distanceSum = 0;
-            MapLocation workerOneLocation = myWorkers.get(i).location().mapLocation();
-            for (int j = 0; j < myWorkers.size(); j ++) {
-                if (i != j) {
-                    distanceSum += workerOneLocation.distanceSquaredTo(myWorkers.get(j).location().mapLocation());
-                }
-            }
-            if (minDistance == -1 || distanceSum < minDistance) {
-                workerLocation = workerOneLocation;
-                minDistance = distanceSum;
-            }
-        }
-        System.out.println(workerLocation);
-
-        VecMapLocation locationsToCheck = Player.gc.allLocationsWithin(workerLocation, radius);
-        HashSet<String> chosenLocations = new HashSet<>();
-        ArrayList<MapLocation> clearLocations = new ArrayList<>();
-
-        for (int i = 0; i < locationsToCheck.size(); i++) {
-            //location to test is the center location
-            MapLocation locationToTest = locationsToCheck.get(i);
-            int nonPassableCount = 0;
-            boolean clear = true;
-            if (!Player.gc.startingMap(Player.gc.planet()).onMap(locationToTest) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest) == 0) {
-                clear = false;
-            }
-            for (Direction direction : Direction.values()) {
-                if (!clear) {
-                    break;
-                }
-                if (chosenLocations.contains(locationToTest.add(direction).toString())) {
-                    clear = false;
-                    break;
-                }
-                //is not passable terrain
-                if (!Player.gc.startingMap(Player.gc.planet()).onMap(locationToTest.add(direction)) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
-                    nonPassableCount++;
-                    if (nonPassableCount > maxNonPassable) {
-                        clear = false;
-                        break;
-                    }
-                }
-            }
-            if (clear) {
-                clearLocations.add(locationToTest);
-                chosenLocations.add(locationToTest.toString());
-            }
-
-        }
-        return clearLocations;
-    }
+//    /**
+//     * Finds all the possible structure locations with certain specifications
+//     * @return A list of all the possible locations
+//     */
+//    private static ArrayList<MapLocation> findAllStructureLocations() {
+//        int maxNonPassable = 3;
+//        ArrayList<MapLocation> structureLocations = findStructureLocations(maxNonPassable,100);
+////        while (structureLocations.size() < 5) {
+////            maxNonPassable--;
+////            findStructureLocations(maxNonPassable,100);
+////        }
+//        return structureLocations;
+//    }
 
     /**
      * Method that will pick the best MapLocation to build a structure

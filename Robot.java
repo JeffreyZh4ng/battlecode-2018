@@ -34,7 +34,6 @@ public abstract class Robot extends UnitInstance {
         movePathStack = null;
     }
 
-
     /**
      * A move method manager that will analyze the path of other robots to see when this one should move
      * @param destinationLocation The destination location of this robot
@@ -43,7 +42,7 @@ public abstract class Robot extends UnitInstance {
     public boolean pathManager(MapLocation destinationLocation) {
         if (move(this.getId(), destinationLocation)) {
             if (movePathStack == null) {
-                System.out.println("Attacker: " + this.getId() + " Could not find a path to destination!");
+                System.out.println("Attacker: " + this.getId() + " Reached destination");
                 return true;
             } else {
                 movePathStack.pop();
@@ -67,6 +66,7 @@ public abstract class Robot extends UnitInstance {
         // if path should be recalculated
         if (movePathStack == null) {
             movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
+            System.out.println("Unit: " + this.getId() + " Recalculated path");
             if (movePathStack == null) {
                 System.out.println("Cannot get to location: " + destinationLocation.toString());
                 return true;
@@ -99,7 +99,12 @@ public abstract class Robot extends UnitInstance {
             System.out.println("Attacker: " + this.getId() + " Moved!");
             return true;
         } else {
-            System.out.println("Waiting");
+//            if (recalculatePath()) {
+//                return move(robotId, destinationLocation);
+//            } else {
+//                System.out.println("Attacker: " + this.getId() + " Waiting, trapped");
+//                return false;
+//            }
             return false;
         }
     }
@@ -111,7 +116,7 @@ public abstract class Robot extends UnitInstance {
      * @param map The map of earth or mars
      * @return The next place to step
      */
-    public Stack<MapLocation> getPathFromBFS(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
+    private Stack<MapLocation> getPathFromBFS(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
 
         Queue<MapLocation> frontier = new LinkedList<>();
         frontier.add(startingLocation);
@@ -128,16 +133,10 @@ public abstract class Robot extends UnitInstance {
             for (Direction nextDirection : Player.getMoveDirections()) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if (Player.doesLocationAppearEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
+                if (Player.isLocationEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
                     frontier.add(nextLocation);
                     checkedLocations.put(nextLocation.toString(), currentLocation);
 
-                    if (currentLocation == null) {
-                        System.out.println("clot: " + currentLocation);
-                    }
-                    if (destinationLocation == null) {
-                        System.out.println("dloc: " + destinationLocation);
-                    }
                     if (currentLocation.isAdjacentTo(destinationLocation)) {
                         frontier.clear();
                     }
@@ -152,7 +151,7 @@ public abstract class Robot extends UnitInstance {
         for (Direction directionFromDestination : Player.getMoveDirections()) {
 
             MapLocation neighborLocation = destinationLocation.add(directionFromDestination);
-            if (checkedLocations.containsKey(neighborLocation.toString()) && Player.doesLocationAppearEmpty(map, neighborLocation)) {
+            if (checkedLocations.containsKey(neighborLocation.toString()) && Player.isLocationEmpty(map, neighborLocation)) {
 
                 Stack<MapLocation> currentPath = new Stack<>();
                 MapLocation currentTraceLocation = neighborLocation;
@@ -180,6 +179,38 @@ public abstract class Robot extends UnitInstance {
 
         return shortestPath;
     }
+
+//    /**
+//     * Helper method that will recalculate the path of a robot if it cannot move
+//     */
+//    private boolean recalculatePath() {
+//        PlanetMap map = Player.gc.startingMap(Player.gc.planet());
+//        MapLocation currentPosition = movePathStack.peek();
+//        while (!Player.isLocationEmpty(map, movePathStack.peek())) {
+//            if (movePathStack.size() == 1) {
+//                break;
+//            } else {
+//                movePathStack.pop();
+//            }
+//        }
+//
+//        MapLocation emptyPosition = movePathStack.pop();
+//        Stack<MapLocation> newPath = getPathFromBFS(currentPosition, emptyPosition, map);
+//        if (newPath == null) {
+//            return false;
+//        }
+//
+//        Stack<MapLocation> insertPath = new Stack<>();
+//        while (!newPath.empty()) {
+//            insertPath.push(newPath.pop());
+//        }
+//
+//        while (!insertPath.empty()) {
+//            movePathStack.push(insertPath.pop());
+//        }
+//
+//        return true;
+//    }
 
 //    /**
 //     * Sets emergency task to move robot to explore invisible territory
