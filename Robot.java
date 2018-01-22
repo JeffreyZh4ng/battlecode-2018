@@ -64,7 +64,7 @@ public abstract class Robot extends UnitInstance {
         }
 
         // if path should be recalculated
-        if (movePathStack == null) {
+        if (movePathStack == null && Player.gc.getTimeLeftMs() > 1000) {
             movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
             System.out.println("Unit: " + this.getId() + " Recalculated path");
             if (movePathStack == null) {
@@ -99,12 +99,6 @@ public abstract class Robot extends UnitInstance {
             System.out.println("Attacker: " + this.getId() + " Moved!");
             return true;
         } else {
-//            if (recalculatePath()) {
-//                return move(robotId, destinationLocation);
-//            } else {
-//                System.out.println("Attacker: " + this.getId() + " Waiting, trapped");
-//                return false;
-//            }
             return false;
         }
     }
@@ -179,38 +173,6 @@ public abstract class Robot extends UnitInstance {
 
         return shortestPath;
     }
-
-//    /**
-//     * Helper method that will recalculate the path of a robot if it cannot move
-//     */
-//    private boolean recalculatePath() {
-//        PlanetMap map = Player.gc.startingMap(Player.gc.planet());
-//        MapLocation currentPosition = movePathStack.peek();
-//        while (!Player.isLocationEmpty(map, movePathStack.peek())) {
-//            if (movePathStack.size() == 1) {
-//                break;
-//            } else {
-//                movePathStack.pop();
-//            }
-//        }
-//
-//        MapLocation emptyPosition = movePathStack.pop();
-//        Stack<MapLocation> newPath = getPathFromBFS(currentPosition, emptyPosition, map);
-//        if (newPath == null) {
-//            return false;
-//        }
-//
-//        Stack<MapLocation> insertPath = new Stack<>();
-//        while (!newPath.empty()) {
-//            insertPath.push(newPath.pop());
-//        }
-//
-//        while (!insertPath.empty()) {
-//            movePathStack.push(insertPath.pop());
-//        }
-//
-//        return true;
-//    }
 
 //    /**
 //     * Sets emergency task to move robot to explore invisible territory
