@@ -44,7 +44,7 @@ public abstract class Attacker extends Robot {
     public static HashMap<String, MapLocation> mapToAttackTarget = null;
 
     public static void createMapToAttackTarget() {
-        ArrayList<Direction> moveDirections = getMoveDirections();
+        ArrayList<Direction> moveDirections = Player.getMoveDirections();
         MapLocation attackTarget = getAttackTarget();
         Queue<MapLocation> frontier = new LinkedList<>();
         frontier.add(attackTarget);
