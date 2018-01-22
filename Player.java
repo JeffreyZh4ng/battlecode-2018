@@ -11,6 +11,9 @@ public class Player {
         addStartingWorkersToEarthMap();
         Queue<MapLocation> enemyPositions = enemyLocations();
 
+        if (gc.planet() == Planet.Earth) {
+            Earth.initializeStructureLocations();
+        }
         while (true) {
 
             if (gc.round() % 2 == 0) {
