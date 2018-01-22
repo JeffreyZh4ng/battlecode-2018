@@ -66,6 +66,15 @@ public abstract class Robot extends UnitInstance {
             return false;
         }
 
+        // if path should be recalculated
+        if (movePathStack == null) {
+            movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
+            if (movePathStack == null) {
+                System.out.println("Cannot get to location: " + destinationLocation.toString());
+                return true;
+            }
+        }
+
         // If this robot is covering destination, try to move it to an adjacent square. If it moves it is done moving
         if (Player.gc.unit(robotId).location().mapLocation().equals(destinationLocation)) {
 
@@ -82,18 +91,9 @@ public abstract class Robot extends UnitInstance {
 
         // If adjacent to destination, the robot has finished moving
         // TODO: Check?
-        if (Player.gc.unit(robotId).location().mapLocation().isAdjacentTo(destinationLocation)) {
+        if (Player.gc.unit(robotId).location().mapLocation().isAdjacentTo(destinationLocation) || movePathStack.empty()) {
             movePathStack = null;
             return true;
-        }
-
-        // if path should be recalculated
-        if (movePathStack == null) {
-            movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
-            if (movePathStack == null) {
-                System.out.println("Cannot get to location: " + destinationLocation.toString());
-                return true;
-            }
         }
 
         if (Player.gc.canMove(robotId, this.getLocation().directionTo(movePathStack.peek()))) {

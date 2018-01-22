@@ -252,7 +252,7 @@ public class Worker extends Robot {
 
         this.setMovePathStack(newPath);
 
-        return newPath;
+        return destinationLocation;
     }
 
 //    /**
