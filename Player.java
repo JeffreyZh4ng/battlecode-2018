@@ -5,6 +5,10 @@ import java.util.*;
 public class Player {
 
     public static final GameController gc = new GameController();
+    // TODO: Need to go through code and find any instances of Player.gc.Team() and replace with this. Need to
+    // TODO: reduce API calls because that is whats causing many timeout errors
+    public static final Team team = gc.team();
+
 
     public static void main(String[] args) {
 
@@ -27,7 +31,7 @@ public class Player {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                 }
-                if (Earth.earthAttackTarget == null) {
+                if (Earth.rangerCount > 10 && Earth.earthAttackTarget == null) {
                     System.out.println("Setting attack target!");
                     Earth.earthAttackTarget = enemyPositions.peek();
                     if (enemyPositions.size() != 0) {

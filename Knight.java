@@ -29,10 +29,8 @@ public class Knight extends Attacker {
             Unit closestUnit = getClosestUnit(-1, enemyUnits);
             int closestDistanceToUnit = (int)this.getLocation().distanceSquaredTo(closestUnit.location().mapLocation());
 
-            if (closestDistanceToUnit > 2) {
-                System.out.println("BJHJHJHJ");
+            if (closestDistanceToUnit > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {
-                    System.out.println(closestUnit.location().mapLocation().toString());
                     move(this.getId(), closestUnit.location().mapLocation());
                 }
             }
