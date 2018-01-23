@@ -105,10 +105,7 @@ public abstract class Attacker extends Robot {
         }
 
         } else {
-            // System.out.println("Attacker: " + this.getId() + " doing nothing!");
-//            this.wander();
-//            System.out.println("Unit: " + this.getId() + " wandering!");
-//            this.explore();
+            this.wanderWithinRadius(81);
         }
     }
 
@@ -185,7 +182,7 @@ public abstract class Attacker extends Robot {
         if (getAttackTarget() != null) {
 
             int distanceToAttackLocation = (int)(currentLocation.distanceSquaredTo(getAttackTarget()));
-            if (distanceToAttackLocation < this.getAttackRange()) {
+            if (distanceToAttackLocation < this.getVisionRange()) {
                 removeAttackTarget();
                 System.out.println("Global target has been removed!");
             }
@@ -195,7 +192,7 @@ public abstract class Attacker extends Robot {
 
     /**
      * Will load the rocket at the given location
-     * @return
+     * @return If the unit was loaded or not
      */
     public boolean loadRocket(MapLocation mapLocation) {
         return true;

@@ -98,6 +98,9 @@ public class Earth {
         int taskId = globalTask.getTaskId();
 
         if (!earthTaskMap.containsKey(globalTask.getTaskId())) {
+
+            // TODO: FIX THIS! NEED TO GIVE NEAREST ATTACKERS THE TASK< NOT ONES IN THE STAGING MAP!
+            // TODO: SEARCH FOR NEAREST ATTACKER
             for (int workerId: earthWorkerMap.keySet()) {
                 if (earthWorkerMap.get(workerId).isIdle()) {
                     globalTask.addWorkerToList(workerId);

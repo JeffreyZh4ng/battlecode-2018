@@ -15,6 +15,29 @@ public class Rocket extends Structure {
         return inFlight;
     }
 
+
+    @Override
+    public void run() {
+        if (this.isBuilt()) {
+            if (this.getLocation().getPlanet() == Planet.Earth && !inFlight) {
+                if (garrison.size() == 8) {
+                    MapLocation locationToLand = Player.getLandingLocation();
+                    if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
+                        Player.gc.launchRocket(this.getId(), locationToLand);
+                        inFlight = true;
+                    }
+                }
+            }
+
+            if (this.getLocation().getPlanet() == Planet.Mars) {
+                unload();
+                if (garrison.size() == 0) {
+                    Player.gc.disintegrateUnit(this.getId());
+                }
+            }
+        }
+    }
+
     @Override
     public void unload() {
         for (int i = 0; i < 8; i++) {
@@ -50,28 +73,6 @@ public class Rocket extends Structure {
                     Mars.marsWorkerMap.put(unitId, unitInstance);
                 } else {
                     Mars.marsAttackerMap.put(unitId, unitInstance);
-                }
-            }
-        }
-    }
-
-    @Override
-    public void run() {
-        if (this.isBuilt()) {
-            if (this.getLocation().getPlanet() == Planet.Earth && !inFlight) {
-                if (garrison.size() == 8) {
-                    MapLocation locationToLand = Player.getLandingLocation();
-                    if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
-                        Player.gc.launchRocket(this.getId(), locationToLand);
-                        inFlight = true;
-                    }
-                }
-            }
-
-            if (this.getLocation().getPlanet() == Planet.Mars) {
-                unload();
-                if (garrison.size() == 0) {
-                    Player.gc.disintegrateUnit(this.getId());
                 }
             }
         }

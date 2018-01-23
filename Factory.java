@@ -9,18 +9,43 @@ public class Factory extends Structure {
         super(id, isBuilt, factoryLocation);
     }
 
+    /**
+     * Method that will run code for the factory
+     */
     @Override
     public void run() {
         if (this.isBuilt()) {
-            if (Player.gc.canProduceRobot(this.getId(), UnitType.Knight) && Earth.knightCount < 30) {
-                Earth.knightCount++;
-                Player.gc.produceRobot(this.getId(), UnitType.Knight);
+            UnitType unitToProduce = findUnitToProduce();
+            if (Player.gc.canProduceRobot(this.getId(), unitToProduce)) {
+                Player.gc.produceRobot(this.getId(), unitToProduce);
+
+                switch (unitToProduce) {
+                    case Knight:
+                        Earth.knightCount++;
+                        System.out.println("Knight count + " + Earth.knightCount);
+                        break;
+                    case Ranger:
+                        Earth.rangerCount++;
+                        System.out.println("Ranger count + " + Earth.rangerCount);
+                        break;
+                    case Healer:
+                        Earth.healerCount++;
+                        System.out.println("Healer count + " + Earth.healerCount);
+                        break;
+                    case Mage:
+                        Earth.mageCount++;
+                        System.out.println("Mage count + " + Earth.mageCount);
+                        break;
+                }
             }
         }
 
         unload();
     }
 
+    /**
+     * Method that will unload units inside its garrison when it can
+     */
     @Override
     public void unload() {
         for (int i = 0; i < 8; i++) {
@@ -33,6 +58,28 @@ public class Factory extends Structure {
 
                 UnitInstance unitInstance = new Knight(unitId);
                 Earth.earthStagingAttackerMap.put(unitId, unitInstance);
+            }
+        }
+    }
+
+    /**
+     * Method that will tell the factory produce a specific unit given the current unit counts.
+     * @return The unit to produce
+     */
+    private UnitType findUnitToProduce() {
+        int armySize = Earth.earthAttackerMap.size();
+        if (armySize > 40 && Earth.mageCount < 5) {
+            return UnitType.Mage;
+
+        } else if (Earth.earthAttackerMap.size() > 10 && Earth.healerCount < (armySize / 6)) {
+            return UnitType.Healer;
+
+        } else {
+            int randomInt = (int)(Math.random() * 2);
+            if (randomInt == 0) {
+                return UnitType.Knight;
+            } else {
+                return UnitType.Ranger;
             }
         }
     }
