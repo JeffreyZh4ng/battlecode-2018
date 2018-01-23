@@ -12,9 +12,9 @@ public class Factory extends Structure {
     @Override
     public void run() {
         if (this.isBuilt()) {
-            if (Player.gc.canProduceRobot(this.getId(), UnitType.Ranger) && Earth.rangerCount < 0) {
-                Earth.rangerCount++;
-                Player.gc.produceRobot(this.getId(), UnitType.Ranger);
+            if (Player.gc.canProduceRobot(this.getId(), UnitType.Knight) && Earth.knightCount < 50) {
+                Earth.knightCount++;
+                Player.gc.produceRobot(this.getId(), UnitType.Knight);
             }
         }
 
@@ -29,15 +29,10 @@ public class Factory extends Structure {
                 Player.gc.unload(this.getId(), direction);
 
                 MapLocation unloadLocation = this.getLocation().add(direction);
-                Planet planet = this.getStructureLocation().getPlanet();
                 int unitId = Player.gc.senseUnitAtLocation(unloadLocation).id();
 
-                UnitInstance unitInstance = new Ranger(unitId);
-                if (planet == Planet.Earth) {
-                    Earth.earthStagingAttackerMap.put(unitId, unitInstance);
-                } else {
-                    Mars.marsStagingAttackerMap.put(unitId, unitInstance);
-                }
+                UnitInstance unitInstance = new Knight(unitId);
+                Earth.earthStagingAttackerMap.put(unitId, unitInstance);
             }
         }
     }

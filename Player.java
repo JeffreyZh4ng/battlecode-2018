@@ -342,6 +342,10 @@ public class Player {
 
         return false;
     }
+
+//    public static MapLocation getEmptyLocationOnMars() {
+//        return new MapLocation(Planet.Mars, 0 ,0);
+//    }
 }
 
 

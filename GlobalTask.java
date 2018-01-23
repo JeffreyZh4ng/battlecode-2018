@@ -150,15 +150,8 @@ public class GlobalTask {
      * @param unitId The id of the unit who finished its task
      */
     private void sendRocketRequestHelper(int unitId) {
-        UnitInstance unitInstance;
-        if (Earth.earthWorkerMap.containsKey(unitId)) {
-            unitInstance = Earth.earthWorkerMap.get(unitId);
-        } else {
-            unitInstance = Earth.earthAttackerMap.get(unitId);
-        }
-
         int rocketId = Player.gc.senseUnitAtLocation(this.getTaskLocation()).id();
-        if (Earth.earthRocketMap.get(rocketId).loadUnit(unitId, unitInstance)) {
+        if (Earth.earthRocketMap.get(rocketId).loadUnit(unitId)) {
             return;
         }
 

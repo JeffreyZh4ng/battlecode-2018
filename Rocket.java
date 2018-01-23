@@ -1,16 +1,11 @@
-import bc.MapLocation;
-import bc.Planet;
+import bc.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 public class Rocket extends Structure {
 
     private boolean inFlight = false;
-    private ArrayList<Integer> loadList = new ArrayList<>();
-    private HashMap<Integer, UnitInstance> garrison = new HashMap<>();
+    private HashSet<Integer> garrison = new HashSet<>();
 
     public Rocket(int id, boolean isBuilt, MapLocation rocketLocation) {
         super(id, isBuilt, rocketLocation);
@@ -22,30 +17,63 @@ public class Rocket extends Structure {
 
     @Override
     public void unload() {
-//        for (int i = 0; i < 8; i++) {
-//            Direction direction = Direction.swigToEnum(i);
-//            if (Player.gc.canUnload(this.getId(), direction)) {
-//                Player.gc.unload(this.getId(), direction);
-//
-//                MapLocation unloadLocation = this.structureLocation.add(direction);
-//                Planet planet = structureLocation.getPlanet();
-//                int unitId = Player.gc.senseUnitAtLocation(unloadLocation).id();
-//
-//                UnitInstance unitInstance = new Ranger(unitId);
-//                if (planet == Planet.Earth) {
-//                    Earth.earthStagingAttackerMap.put(unitId, unitInstance);
-//                } else {
-//                    if (unitInstance.)
-//                        Mars.marsStagingAttackerMap.put(unitId, unitInstance);
-//                }
-//            }
-//        }
+        for (int i = 0; i < 8; i++) {
+            Direction direction = Direction.swigToEnum(i);
+            if (Player.gc.canUnload(this.getId(), direction)) {
+                Player.gc.unload(this.getId(), direction);
+
+                MapLocation unloadLocation = this.getLocation().add(direction);
+                int unitId = Player.gc.senseUnitAtLocation(unloadLocation).id();
+                garrison.add(unitId);
+
+                UnitType unitType = Player.gc.unit(unitId).unitType();
+                UnitInstance unitInstance;
+                switch (unitType) {
+                    case Knight:
+                        unitInstance = new Knight(unitId);
+                        break;
+                    case Ranger:
+                        unitInstance = new Ranger(unitId);
+                        break;
+                    case Healer:
+                        unitInstance = new Healer(unitId);
+                        break;
+                    case Mage:
+                        unitInstance = new Mage(unitId);
+                        break;
+                    default:
+                        unitInstance = new Worker(unitId);
+                        break;
+                }
+
+                if (unitType == UnitType.Worker) {
+                    Mars.marsWorkerMap.put(unitId, unitInstance);
+                } else {
+                    Mars.marsAttackerMap.put(unitId, unitInstance);
+                }
+            }
+        }
     }
 
     @Override
     public void run() {
         if (this.isBuilt()) {
-            if (this.getLocation().getPlanet() == Planet.Earth) {
+//            if (this.getLocation().getPlanet() == Planet.Earth && !inFlight) {
+//                if (garrison.size() == 8) {
+//                    MapLocation locationToLand = Player.getEmptyLocationOnMars();
+//                    if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
+//                        Player.gc.launchRocket(this.getId(), locationToLand);
+//                        inFlight = true;
+//
+//                    }
+//                }
+//            }
+
+            if (this.getLocation().getPlanet() == Planet.Mars) {
+                unload();
+                if (garrison.size() == 0) {
+                    Player.gc.disintegrateUnit(this.getId());
+                }
             }
         }
     }
@@ -53,37 +81,29 @@ public class Rocket extends Structure {
     /**
      * Every round this method is called to try to load units that were previously unable to be loaded
      */
-    public boolean loadUnit(int unitId, UnitInstance unitInstance) {
+    public boolean loadUnit(int unitId) {
         if (Player.gc.canLoad(this.getId(), unitId)) {
             Player.gc.load(this.getId(), unitId);
-            garrison.put(unitId, unitInstance);
+            garrison.add(unitId);
             Earth.earthGarrisonedUnits.add(unitId);
 
             return true;
-
         }
 
         return false;
     }
 
-//    /**
-//     * Method that will be called by the GlobalTask. The rocket will try to load a unit if it can. If it cant,
-//     * it will add it to the list to be loaded
-//     * @param unitId The id of the unit to be loaded
-//     */
-//    public boolean addLoadToList(int unitId, UnitInstance unitInstance) {
-//        if (Player.gc.canLoad(this.getId(), unitId)) {
-//            Player.gc.load(this.getId(), unitId);
-//            garrison.put(unitId, unitInstance);
-//
-//            return true;
-//
-//        } else {
-//            loadList.add(unitId);
-//
-//            return false;
-//        }
-//    }
+    /**
+     * When a rocket is empty, disintegrate it
+     * @return If the rocket was disintegrated or not
+     */
+    public boolean disintegrateRocket() {
+        if (garrison.size() >= 8) {
+            Player.gc.disintegrateUnit(this.getId());
 
+            return true;
+        }
 
+        return false;
+    }
 }

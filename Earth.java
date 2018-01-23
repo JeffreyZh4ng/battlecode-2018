@@ -19,7 +19,6 @@ public class Earth {
     public static HashMap<Integer, UnitInstance> earthAttackerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthFactoryMap = new HashMap<>();
 
-    public static HashMap<Integer, UnitInstance> earthMovingUnits = new HashMap<>();
     public static HashSet<Integer> earthGarrisonedUnits = new HashSet<>();
 
     public static HashMap<Integer, UnitInstance> earthStagingWorkerMap = new HashMap<>();
@@ -33,7 +32,7 @@ public class Earth {
         updateKarboniteMap();
         updateDeadUnits();
 
-        System.out.println("Current number of rangers: " + rangerCount);
+//        System.out.println("Current number of rangers: " + rangerCount);
         updateTaskQueue();
 
         runRocketMap();
@@ -181,20 +180,6 @@ public class Earth {
         }
     }
 
-//    /**
-//     * Finds all the possible structure locations with certain specifications
-//     * @return A list of all the possible locations
-//     */
-//    private static ArrayList<MapLocation> findAllStructureLocations() {
-//        int maxNonPassable = 3;
-//        ArrayList<MapLocation> structureLocations = findStructureLocations(maxNonPassable,100);
-////        while (structureLocations.size() < 5) {
-////            maxNonPassable--;
-////            findStructureLocations(maxNonPassable,100);
-////        }
-//        return structureLocations;
-//    }
-
     /**
      * Method that will pick the best MapLocation to build a structure
      * @return The MapLocation of the best place to build a structure or null if no locations exist or no available workers exist
@@ -227,19 +212,8 @@ public class Earth {
      */
     private static void runUnitMap(HashMap<Integer, UnitInstance> searchMap) {
         for (int unitId: searchMap.keySet()) {
-//            if (searchMap.get(unitId).getCurrentTask().getCommand() == Command.MOVE && Player.gc.isMoveReady(unitId)) {
-//                earthMovingUnits.put(unitId, searchMap.get(unitId));
-//            } else {
-                searchMap.get(unitId).run();
-//            }
+            searchMap.get(unitId).run();
         }
-    }
-
-    /**
-     * Helper method that will loop through the list of all moving units and will move them in a smart way
-     */
-    private static void runMovingUnits() {
-
     }
 
     /**
@@ -268,7 +242,9 @@ public class Earth {
         HashSet<Integer> unitSet = new HashSet<>();
         VecUnit units = Player.gc.myUnits();
         for (int i = 0; i < units.size(); i++) {
-            unitSet.add(units.get(i).id());
+            if (units.get(i).location().isOnPlanet(Planet.Earth)) {
+                unitSet.add(units.get(i).id());
+            }
         }
 
         decrementAttackCounts(unitSet);
