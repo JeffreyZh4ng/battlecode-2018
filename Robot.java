@@ -56,7 +56,7 @@ public abstract class Robot extends UnitInstance {
      * Move a robot
      * @param robotId robot to move
      * @param destinationLocation The destination location a unit
-     * @return if the robot has reached within on square of its destination or cannot get to destination at all
+     * @return True if the robot was able to move
      */
     public boolean move(int robotId, MapLocation destinationLocation) {
         if (!Player.gc.isMoveReady(this.getId())) {
@@ -99,6 +99,10 @@ public abstract class Robot extends UnitInstance {
             System.out.println("Attacker: " + this.getId() + " Moved!");
             return true;
         } else {
+            if (this.getUnitType() == UnitType.Worker) {
+                System.out.println("Worker: " + this.getId() + " recalculating path");
+                movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
+            }
             return false;
         }
     }

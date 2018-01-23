@@ -148,7 +148,7 @@ public class Earth {
         for (int x = 0; x < initialMap.getWidth(); x++) {
             for (int y = 0; y < initialMap.getHeight(); y++) {
                 MapLocation location = new MapLocation(Player.gc.planet(), x, y);
-                if (initialMap.initialKarboniteAt(location)>0) {
+                if (initialMap.initialKarboniteAt(location) > 0) {
                     initialKarboniteValues.put(Player.mapLocationToString(location), (int)initialMap.initialKarboniteAt(location));
                 }
             }
@@ -176,6 +176,7 @@ public class Earth {
             }
         }
         for (String location : toRemove) {
+            System.out.println("removing Kloc: " + location);
             earthKarboniteMap.remove(location);
         }
     }

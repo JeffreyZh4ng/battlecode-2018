@@ -25,19 +25,19 @@ public class Worker extends Robot {
 
         } else if (!this.isIdle()) {
             if (executeTask(this.getCurrentTask())) {
-                GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
                 System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
-                globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
-
-                // Perform run again?
-                run();
+                if (this.getCurrentTask().getTaskId() != -1) {
+                    GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
+                    globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
+                    run();
+                } else {
+                    this.removeTask();
+                }
             }
 
-        } else {
-            // System.out.println("Worker: " + this.getId() + " doing nothing!");
-//            this.wander();
-//            System.out.println("Unit: " + this.getId() + " wandering!");
-            this.wanderToMine();
+        } else if (Earth.earthTaskQueue.size() == 0) {
+            System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
+            wanderToMine();
         }
 
         mineKarbonite();
@@ -116,7 +116,6 @@ public class Worker extends Robot {
     private boolean blueprintStructure(MapLocation commandLocation, UnitType unitType) {
         MapLocation robotCurrentLocation = Player.gc.unit(this.getId()).location().mapLocation();
         Direction directionToBlueprint = robotCurrentLocation.directionTo(commandLocation);
-        // System.out.println(this.getLocation());
 
         if (Player.gc.canBlueprint(this.getId(), unitType, directionToBlueprint)) {
             Player.gc.blueprint(this.getId(), unitType, directionToBlueprint);
@@ -184,9 +183,11 @@ public class Worker extends Robot {
         }
     }
 
+    /**
+     * Method that will set the robots current task to wander and mine karbonite
+     */
     private void wanderToMine() {
         MapLocation karboniteLocation = getPathToKarbonite(this.getLocation(), Player.gc.startingMap(Player.gc.planet()));
-
         if (karboniteLocation != null && this.getMovePathStack() != null) {
             this.setCurrentTask(new RobotTask(-1, Command.MOVE, karboniteLocation));
             System.out.println("Setting the current task to go mine karbonite");
@@ -225,13 +226,11 @@ public class Worker extends Robot {
                 if (Player.isLocationEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
                     frontier.add(nextLocation);
                     checkedLocations.put(nextLocation.toString(), currentLocation);
-                    if (Earth.earthKarboniteMap.containsKey(currentLocation.toString())) {
+                    if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(currentLocation))) {
                         frontier.clear();
                         destinationLocation = currentLocation;
                     } else {
-                        if (frontier.size() > 30) {
-                            return null;
-                        }
+
                     }
                 }
             }
@@ -252,51 +251,10 @@ public class Worker extends Robot {
             }
         }
 
+        System.out.println("newpath: " + newPath);
         this.setMovePathStack(newPath);
 
         return destinationLocation;
     }
-
-//    /**
-//     * Method that will run when the worker has no tasks left. The worker will wander around and will mine karbonite
-//     */
-//    private void wanderAndMineKarbonite() {
-//        for (int i = 0; i < DIRECTION_MAX_VAL + 1; i++) {
-//            Direction direction = Direction.swigToEnum(i);
-//            MapLocation newLocation = Player.gc.unit(this.getId()).location().mapLocation().add(direction);
-//            if (Player.gc.canHarvest(this.getId(), direction) && Player.gc.karboniteAt(newLocation) >= 3) {
-//
-//                if (this.getEmergencyTask() == null) {
-//                    RobotTask newTask = new RobotTask(-1, -1, Command.MOVE, newLocation);
-//                    System.out.println("Worker: " + this.getId() + " WANDERING!");
-//                    this.setEmergencyTask(newTask);
-//                }
-//            }
-//        }
-//    }
-
-//    /**
-//     * Finds the nearest known of karbonite location
-//     *
-//     * @return karbonite location or null if none known of
-//     */
-//    private MapLocation getNearestKarboniteLocation() {
-//        MapLocation nearestLocation = null;
-//        MapLocation myLocation = Player.gc.unit(this.getId()).location().mapLocation();
-//        //check all locations
-//        for (int x = 0; x < Player.gc.startingMap(Player.gc.planet()).getWidth(); x++) {
-//            for (int y = 0; y < Player.gc.startingMap(Player.gc.planet()).getHeight(); y++) {
-//                MapLocation locationToTest = new MapLocation(Player.gc.planet(), x, y);
-//                if (Player.gc.canSenseLocation(locationToTest) && Player.gc.karboniteAt(locationToTest) > 0) {
-//                    if (nearestLocation == null) {
-//                        nearestLocation = locationToTest;
-//                    } else if (myLocation.distanceSquaredTo(locationToTest) < myLocation.distanceSquaredTo(nearestLocation)) {
-//                        nearestLocation = locationToTest;
-//                    }
-//                }
-//            }
-//        }
-//        return nearestLocation;
-//    }
 }
 

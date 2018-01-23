@@ -12,7 +12,7 @@ public class Factory extends Structure {
     @Override
     public void run() {
         if (this.isBuilt()) {
-            if (Player.gc.canProduceRobot(this.getId(), UnitType.Ranger) && Earth.rangerCount < 40) {
+            if (Player.gc.canProduceRobot(this.getId(), UnitType.Ranger) && Earth.rangerCount < 0) {
                 Earth.rangerCount++;
                 Player.gc.produceRobot(this.getId(), UnitType.Ranger);
             }

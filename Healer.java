@@ -2,15 +2,10 @@ import bc.Team;
 import bc.Unit;
 import bc.VecUnit;
 
-public class Healer extends Attacker{
+public class Healer extends Attacker {
 
     public Healer(int id) {
         super(id);
-    }
-
-    @Override
-    public boolean runBattleAction() {
-        return false;
     }
 
     @Override
@@ -18,47 +13,51 @@ public class Healer extends Attacker{
         runBattleAction();
     }
 
-//    @Override
-//    public boolean runBattleAction() {
-//        VecUnit friendlyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), Player.team);
-//
-//        if (friendlyUnits.size() == 0) {
-//            return true;
-//        }
-//
-//        if (Player.gc.isHealReady(this.getId())) {
-//            Unit lowestHealthUnit = getLowestHealthFriendly(friendlyUnits);
-//            int distanceToLowestHealthUnit = (int)(this.getLocation().distanceSquaredTo(lowestHealthUnit.location().mapLocation()));
-//
-//            if (closestDistanceToUnit > this.getAttackRange()) {
-//                if (Player.gc.isMoveReady(this.getId())) {
-//                    move(this.getId(), closestUnit.location().mapLocation());
-//                }
-//            }
-//
-//            if (Player.gc.canHeal(this.getId(), closestUnit.id())) {
-//                Player.gc.heal(this.getId(), closestUnit.id());
-//            }
-//        }
-//
-//        return false;
-//    }
-//
-//    private Unit getLowestHealthFriendly(VecUnit units) {
-//        if (units.size() == 0) {
-//            System.out.println("unit list was empty");
-//            return null;
-//        }
-//        Unit minDistanceUnit = null;
-//        int closestDistanceToUnit = -1;
-//        for (int i = 0; i < units.size(); i++) {
-//            int distanceToUnit = (int)(this.getLocation().distanceSquaredTo(units.get(i).location().mapLocation()));
-//            if ((minDistanceUnit == null && minSquaredRadius < distanceToUnit) ||
-//                    (minDistanceUnit != null && distanceToUnit < closestDistanceToUnit)) {
-//                closestDistanceToUnit = distanceToUnit;
-//                minDistanceUnit = units.get(i);
-//            }
-//        }
-//        return minDistanceUnit;
-//    }
+    @Override
+    public boolean runBattleAction() {
+        VecUnit friendlyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getAttackRange(), Player.team);
+
+        if (friendlyUnits.size() == 0) {
+            friendlyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), Player.team);
+        }
+
+        if (Player.gc.isHealReady(this.getId())) {
+            Unit lowestHealthUnit = getLowestHealthFriendly(friendlyUnits);
+            int distanceToLowestHealthUnit = (int)(this.getLocation().distanceSquaredTo(lowestHealthUnit.location().mapLocation()));
+
+            if (distanceToLowestHealthUnit > this.getAttackRange()) {
+                if (Player.gc.isMoveReady(this.getId())) {
+                    move(this.getId(), lowestHealthUnit.location().mapLocation());
+                }
+            }
+
+            if (Player.gc.canHeal(this.getId(), lowestHealthUnit.id())) {
+                Player.gc.heal(this.getId(), lowestHealthUnit.id());
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Given a VecUnit of units, will return the unit with the lowest health
+     * @param units the units to compare
+     * @return the weakest of the given units
+     */
+    private Unit getLowestHealthFriendly(VecUnit units) {
+        if (units.size() == 0) {
+            System.out.println("unit list was empty");
+            return null;
+        }
+        Unit weakestUnit = null;
+        int weakestUnitHealth = -1;
+        for (int i = 0; i < units.size(); i++) {
+            int unitHealth = (int)units.get(i).health();
+            if ((weakestUnit == null  || unitHealth < weakestUnitHealth)) {
+                weakestUnitHealth = unitHealth;
+                weakestUnit = units.get(i);
+            }
+        }
+        return weakestUnit;
+    }
 }
