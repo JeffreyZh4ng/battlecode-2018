@@ -44,7 +44,7 @@ public abstract class Robot extends UnitInstance {
     public boolean pathManager(MapLocation destinationLocation) {
         if (move(this.getId(), destinationLocation)) {
             if (movePathStack == null) {
-                System.out.println("Attacker: " + this.getId() + " Reached destination");
+                System.out.println("Unit: " + this.getId() + " Reached destination");
                 return true;
             } else {
                 movePathStack.pop();
@@ -90,21 +90,18 @@ public abstract class Robot extends UnitInstance {
         }
 
         // If adjacent to destination, the robot has finished moving
-        // TODO: Check?
-        if (Player.gc.unit(robotId).location().mapLocation().isAdjacentTo(destinationLocation) || movePathStack.empty()) {
+        if (Player.gc.unit(robotId).location().mapLocation().isAdjacentTo(destinationLocation)) {
             movePathStack = null;
             return true;
         }
 
         if (Player.gc.canMove(robotId, this.getLocation().directionTo(movePathStack.peek()))) {
             Player.gc.moveRobot(robotId, this.getLocation().directionTo(movePathStack.peek()));
-            System.out.println("Attacker: " + this.getId() + " Moved!");
+            System.out.println("Unit: " + this.getId() + " Moved");
             return true;
         } else {
-            if (this.getUnitType() == UnitType.Worker) {
-                System.out.println("Worker: " + this.getId() + " recalculating path");
-                movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
-            }
+            System.out.println("Unit: " + this.getId() + " recalculating path");
+            movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
             return false;
         }
     }
@@ -146,7 +143,7 @@ public abstract class Robot extends UnitInstance {
 
         //find shortest of paths to adjacent locations and save shortest one
         MapLocation shortestNeighborLocation = null;
-        Stack<MapLocation> shortestPath = new Stack<>();
+        Stack<MapLocation> shortestPath = null;
 
         for (Direction directionFromDestination : Player.getMoveDirections()) {
 

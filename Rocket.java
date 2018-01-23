@@ -85,6 +85,7 @@ public class Rocket extends Structure {
             Player.gc.load(this.getId(), unitId);
             garrison.add(unitId);
             Earth.earthGarrisonedUnits.add(unitId);
+            System.out.println("Loaded unit " + unitId);
 
             return true;
         }

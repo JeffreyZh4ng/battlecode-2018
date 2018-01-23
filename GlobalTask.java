@@ -6,6 +6,7 @@ import java.util.HashSet;
 public class GlobalTask {
 
     public static int taskIndex = 0;
+    private static final int MAX_WORKER_COUNT = 10;
 
     private int taskId;
     private int minimumUnitsCount;
@@ -136,7 +137,7 @@ public class GlobalTask {
      */
     private void buildOrCloneHelper(int unitId) {
         RobotTask nextTask;
-        if (Earth.earthWorkerMap.size() < 4) {
+        if (Earth.earthWorkerMap.size() < MAX_WORKER_COUNT) {
             nextTask = new RobotTask(this.getTaskId(), Command.CLONE, this.getTaskLocation());
         } else {
             nextTask = new RobotTask(this.getTaskId(), Command.BUILD, this.getTaskLocation());

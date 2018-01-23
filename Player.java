@@ -28,7 +28,7 @@ public class Player {
                 System.runFinalization();
                 System.gc();
             }
-            if (gc.planet() == Planet.Earth ) {
+            if (gc.planet() == Planet.Earth) {
 
                 System.out.println("Round number: " + gc.round());
                 System.out.println("Time left: " + Player.gc.getTimeLeftMs());
@@ -46,7 +46,7 @@ public class Player {
                         enemyPositions.poll();
                     }
                 }
-                if (gc.round() == 150) {
+                if (gc.round() == 50) {
                     findPassableMarsThreeSquares();
                     Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
                     Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
