@@ -10,6 +10,8 @@ public abstract class Robot extends UnitInstance {
 
     public Stack<MapLocation> movePathStack = null;
 
+    MapLocation wanderFromLocation = this.getLocation();
+
     public Robot(int id) {
         super(id);
     }
@@ -176,6 +178,18 @@ public abstract class Robot extends UnitInstance {
         }
 
         return shortestPath;
+    }
+
+    public void wanderWithinRadius(int radius) {
+        ArrayList<Direction> moveDirections = Player.getMoveDirections();
+        MapLocation myLocation = this.getLocation();
+        for (Direction direction : moveDirections) {
+            if ( Player.isOccupiable(myLocation.add(direction)) && this.wanderFromLocation.distanceSquaredTo(myLocation.add(direction))< radius) {
+                if (Player.gc.canMove(this.getId(), direction)) {
+                    Player.gc.moveRobot(this.getId(), direction);
+                }
+            }
+        }
     }
 
 //    /**
