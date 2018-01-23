@@ -9,8 +9,7 @@ public class Player {
     // TODO: reduce API calls because that is whats causing many timeout errors
     public static final Team team = gc.team();
 
-    public static ArrayList<MapLocation> availableLandingLocations = null;
-
+    private static ArrayList<MapLocation> availableLandingLocations = null;
 
     public static void main(String[] args) {
 
@@ -374,6 +373,18 @@ public class Player {
         availableLandingLocations = availableLocations;
     }
 
+    /**
+     * Gets a landing location for mars
+     * @return The landing location
+     */
+    public static MapLocation getLandingLocation() {
+        if (availableLandingLocations.size() == 0) {
+            return null;
+        }
+        MapLocation location = availableLandingLocations.get(0);
+        availableLandingLocations.remove(0);
+        return location;
+    }
 }
 
 
