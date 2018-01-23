@@ -37,7 +37,16 @@ public class Worker extends Robot {
 
         } else if (Earth.earthTaskQueue.size() == 0) {
             System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
-            wanderToMine();
+
+            boolean karboniteHere = false;
+            for (Direction direction : Direction.values()) {
+                if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(this.getLocation().add(direction)))) {
+                    karboniteHere = true;
+                }
+            }
+            if(!karboniteHere) {
+                wanderToMine();
+            }
         }
 
         mineKarbonite();
@@ -202,6 +211,9 @@ public class Worker extends Robot {
      */
     public MapLocation getPathToKarbonite(MapLocation startingLocation, PlanetMap map) {
 
+        if (Earth.earthKarboniteMap.size() == 0) {
+            return null;
+        }
         ArrayList<Direction> moveDirections = Player.getMoveDirections();
 
         //shuffle directions so that wandering doesn't gravitate towards a specific direction
@@ -214,11 +226,11 @@ public class Worker extends Robot {
         checkedLocations.put(startingLocation.toString(), startingLocation);
 
         while (!frontier.isEmpty()) {
-
             // Get next direction to check around
             MapLocation currentLocation = frontier.poll();
-            Collections.shuffle(moveDirections, new Random());
 
+
+            Collections.shuffle(moveDirections, new Random());
             // Check if locations around frontier location have already been added to came from and if they are empty
             for (Direction nextDirection : moveDirections) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
@@ -226,11 +238,9 @@ public class Worker extends Robot {
                 if (Player.isLocationEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
                     frontier.add(nextLocation);
                     checkedLocations.put(nextLocation.toString(), currentLocation);
-                    if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(currentLocation))) {
+                    if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(nextLocation))) {
                         frontier.clear();
-                        destinationLocation = currentLocation;
-                    } else {
-
+                        destinationLocation = nextLocation;
                     }
                 }
             }
