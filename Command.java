@@ -10,12 +10,10 @@ public enum Command {
     // Commands for the robot task list
     BLUEPRINT_FACTORY,
     BLUEPRINT_ROCKET,
-    UNLOAD_STRUCTURE,
     LOAD_ROCKET,
     IN_COMBAT,
     BUILD,
     CLONE,
-    SNIPE,
     MOVE,
     STALL,
 }

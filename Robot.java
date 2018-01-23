@@ -96,12 +96,20 @@ public abstract class Robot extends UnitInstance {
         }
 
         if (Player.gc.canMove(robotId, this.getLocation().directionTo(movePathStack.peek()))) {
-            Player.gc.moveRobot(robotId, this.getLocation().directionTo(movePathStack.peek()));
-            System.out.println("Unit: " + this.getId() + " Moved");
-            return true;
+            try {
+                Player.gc.moveRobot(robotId, this.getLocation().directionTo(movePathStack.peek()));
+                System.out.println("Unit: " + this.getId() + " Moved");
+                return true;
+            } catch (Exception e) {
+                System.out.println(e);
+                System.out.println("Unit: " + this.getId() + "Couldn't move for some reason!");
+                return false;
+            }
         } else {
-            System.out.println("Unit: " + this.getId() + " recalculating path");
-            movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
+            if (this.getUnitType() == UnitType.Worker) {
+                System.out.println("Unit: " + this.getId() + " recalculating path");
+                movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
+            }
             return false;
         }
     }

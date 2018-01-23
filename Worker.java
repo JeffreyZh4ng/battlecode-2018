@@ -153,7 +153,13 @@ public class Worker extends Robot {
      * @return If the structure finished building
      */
     private boolean buildStructure(MapLocation commandLocation) {
-        int structureId = Player.senseUnitAtLocation(commandLocation).id();
+        int structureId;
+        try {
+            structureId = Player.senseUnitAtLocation(commandLocation).id();
+        } catch (Exception e) {
+            System.out.println("Worker: " + this.getId() + " Was not able to sense the location!");
+            return false;
+        }
 
         if (Player.gc.canBuild(this.getId(), structureId) && this.getLocation().isAdjacentTo(commandLocation)) {
             Player.gc.build(this.getId(), structureId);

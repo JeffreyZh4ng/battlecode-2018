@@ -39,7 +39,7 @@ public class Player {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                 }
-                if (Earth.knightCount > 6 && Earth.earthAttackTarget == null) {
+                if (Earth.earthAttackerMap.size() > 6 && Earth.earthAttackTarget == null) {
                     System.out.println("Setting attack target!");
                     Earth.earthAttackTarget = enemyPositions.peek();
                     if (enemyPositions.size() != 0) {
