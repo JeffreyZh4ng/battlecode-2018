@@ -348,6 +348,9 @@ public class Player {
         return false;
     }
 
+    /**
+     * finds 3x3 locations on mars to land on and stores in availableLandingLocations
+     */
     public static void findPassableMarsThreeSquares() {
         ArrayList<MapLocation> availableLocations = new ArrayList<>();
         PlanetMap marsStartingMap = Player.gc.startingMap(Planet.Mars);
@@ -369,6 +372,14 @@ public class Player {
         availableLandingLocations = availableLocations;
     }
 
+    public static MapLocation getLandingLocation() {
+        if (availableLandingLocations.size() == 0) {
+            return null;
+        }
+        MapLocation location = availableLandingLocations.get(0);
+        availableLandingLocations.remove(0);
+        return location;
+    }
 }
 
 
