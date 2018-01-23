@@ -47,6 +47,8 @@ public class Player {
                 Earth.execute();
 
                 System.out.println("");
+            } else {
+                Mars.execute();
             }
 
             gc.nextTurn();
@@ -347,7 +349,7 @@ public class Player {
 
         return false;
     }
-    
+
     /**
      * Method that will find locations on mars that will let rockets land
      */

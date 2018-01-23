@@ -15,7 +15,7 @@ public class Mars {
     public static HashMap<Integer, UnitInstance> marsStagingWorkerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> marsStagingAttackerMap = new HashMap<>();
 
-    public void execute() {
+    public static void execute() {
         updateDeadUnits();
         lookForLandedRockets();
 
@@ -29,7 +29,7 @@ public class Mars {
     /**
      * Method that will look for friendly rockets that have landed on Mars and will add them to the map
      */
-    private void lookForLandedRockets() {
+    private static void lookForLandedRockets() {
         RocketLandingInfo landingInfo = Player.gc.rocketLandings();
         VecRocketLanding vecRocketLanding = landingInfo.landingsOn(Player.gc.round());
         for (int i = 0; i < vecRocketLanding.size(); i++) {
