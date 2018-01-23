@@ -23,7 +23,7 @@ public class Player {
                 System.runFinalization();
                 System.gc();
             }
-            if (gc.planet() == Planet.Earth) {
+            if (gc.planet() == Planet.Earth ) {
 
                 System.out.println("Round number: " + gc.round());
                 System.out.println("Time left: " + Player.gc.getTimeLeftMs());
@@ -34,7 +34,7 @@ public class Player {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                 }
-                if (Earth.rangerCount > 6 && Earth.earthAttackTarget == null) {
+                if (Earth.mageCount > 6 && Earth.earthAttackTarget == null) {
                     System.out.println("Setting attack target!");
                     Earth.earthAttackTarget = enemyPositions.peek();
                     if (enemyPositions.size() != 0) {
@@ -373,6 +373,7 @@ public class Player {
         }
         availableLandingLocations = availableLocations;
     }
+
 }
 
 

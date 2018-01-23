@@ -20,6 +20,9 @@ public class Healer extends Attacker {
         if (friendlyUnits.size() == 0) {
             friendlyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), Player.team);
         }
+        if (friendlyUnits.size() == 0) {
+            return false;
+        }
 
         if (Player.gc.isHealReady(this.getId())) {
             Unit lowestHealthUnit = getLowestHealthFriendly(friendlyUnits);
