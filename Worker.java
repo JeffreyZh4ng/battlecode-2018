@@ -126,7 +126,9 @@ public class Worker extends Robot {
         MapLocation robotCurrentLocation = Player.gc.unit(this.getId()).location().mapLocation();
         Direction directionToBlueprint = robotCurrentLocation.directionTo(commandLocation);
 
-        if (Player.gc.canBlueprint(this.getId(), unitType, directionToBlueprint)) {
+        if (Player.gc.canBlueprint(this.getId(), unitType, directionToBlueprint) &&
+                this.getLocation().isAdjacentTo(commandLocation)) {
+
             Player.gc.blueprint(this.getId(), unitType, directionToBlueprint);
 
             int structureId = Player.gc.senseUnitAtLocation(commandLocation).id();
@@ -153,7 +155,7 @@ public class Worker extends Robot {
     private boolean buildStructure(MapLocation commandLocation) {
         int structureId = Player.senseUnitAtLocation(commandLocation).id();
 
-        if (Player.gc.canBuild(this.getId(), structureId)) {
+        if (Player.gc.canBuild(this.getId(), structureId) && this.getLocation().isAdjacentTo(commandLocation)) {
             Player.gc.build(this.getId(), structureId);
             System.out.println("Worker: " + this.getId() + " ran build()");
 
@@ -209,7 +211,7 @@ public class Worker extends Robot {
      * @param map The map the robot is on
      * @return The stack of path values to the karbonite deposit
      */
-    public MapLocation getPathToKarbonite(MapLocation startingLocation, PlanetMap map) {
+    private MapLocation getPathToKarbonite(MapLocation startingLocation, PlanetMap map) {
 
         if (Earth.earthKarboniteMap.size() == 0) {
             return null;

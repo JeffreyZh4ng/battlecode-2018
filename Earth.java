@@ -32,7 +32,6 @@ public class Earth {
         updateKarboniteMap();
         updateDeadUnits();
 
-//        System.out.println("Current number of rangers: " + rangerCount);
         updateTaskQueue();
 
         runRocketMap();
@@ -61,7 +60,7 @@ public class Earth {
         }
 
         for (int workerId: earthWorkerMap.keySet()) {
-            if (earthWorkerMap.get(workerId).isIdle()) {
+            if (earthWorkerMap.get(workerId).isIdle() || earthWorkerMap.get(workerId).getCurrentTask().getTaskId() == -1) {
 
                 GlobalTask globalTask = earthTaskQueue.peek();
                 int taskId = globalTask.getTaskId();
@@ -106,11 +105,12 @@ public class Earth {
                 }
             }
 
-            System.out.println("Workers on task: " + globalTask.getTaskId() + " is " + globalTask.getUnitsOnTask().size());
+            System.out.println("Units on task: " + globalTask.getTaskId() + " is " + globalTask.getUnitsOnTask().size());
             earthTaskMap.put(taskId, globalTask);
         }
 
         for (int attackerId: earthStagingAttackerMap.keySet()) {
+            System.out.println("Getting attacker " + attackerId + " to load rocket!");
             earthStagingAttackerMap.get(attackerId);
             globalTask.addAttackerToList(attackerId);
 
@@ -130,7 +130,7 @@ public class Earth {
      * @param command The command of the task that you want to be added to the global list
      */
     public static void createGlobalTask(Command command) {
-        int minimumUnits = command == Command.LOAD_ROCKET ? 8 : 4;
+        int minimumUnits = (command == Command.LOAD_ROCKET) ? 8 : 4;
         MapLocation globalTaskLocation = pickStructureLocation();
         System.out.println("Picked location: " + globalTaskLocation.toString());
 
@@ -175,7 +175,6 @@ public class Earth {
             }
         }
         for (String location : toRemove) {
-            System.out.println("removing Kloc: " + location);
             earthKarboniteMap.remove(location);
         }
     }
