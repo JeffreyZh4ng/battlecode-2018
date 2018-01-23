@@ -99,8 +99,6 @@ public class Earth {
 
         if (!earthTaskMap.containsKey(globalTask.getTaskId())) {
 
-            // TODO: FIX THIS! NEED TO GIVE NEAREST ATTACKERS THE TASK< NOT ONES IN THE STAGING MAP!
-            // TODO: SEARCH FOR NEAREST ATTACKER
             for (int workerId: earthWorkerMap.keySet()) {
                 if (earthWorkerMap.get(workerId).isIdle()) {
                     globalTask.addWorkerToList(workerId);
@@ -112,17 +110,21 @@ public class Earth {
             earthTaskMap.put(taskId, globalTask);
         }
 
-        for (int attackerId: earthStagingAttackerMap.keySet()) {
-            System.out.println("Getting attacker " + attackerId + " to load rocket!");
-            earthStagingAttackerMap.get(attackerId);
-            globalTask.addAttackerToList(attackerId);
+        while (globalTask.getUnitsOnTask().size() < 8) {
+            int attackerId = Player.getNearestFriendlyAttacker(globalTask.getTaskLocation());
+            if (attackerId != -1) {
+                System.out.println("Getting attacker " + attackerId + " to load rocket!");
+                globalTask.addAttackerToList(attackerId);
 
-            if (globalTask.getUnitsOnTask().size() == 8) {
-                earthTaskQueue.poll();
-                System.out.println("Task has enough workers! Polling: " + taskId);
-                if (earthTaskQueue.size() == 0) {
-                    return;
-                }
+            }
+
+        }
+        
+        if (globalTask.getUnitsOnTask().size() == 8) {
+            earthTaskQueue.poll();
+            System.out.println("Task has enough workers! Polling: " + taskId);
+            if (earthTaskQueue.size() == 0) {
+                return;
             }
         }
     }
