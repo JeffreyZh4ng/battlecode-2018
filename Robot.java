@@ -186,17 +186,14 @@ public abstract class Robot extends UnitInstance {
     }
 
     public void wanderWithinRadius(int radius) {
-        if (Player.gc.isMoveReady(this.getId())) {
+
             ArrayList<Direction> moveDirections = Player.getMoveDirections();
             MapLocation myLocation = this.getLocation();
             for (Direction direction : moveDirections) {
                 if (Player.isOccupiable(myLocation.add(direction)) && this.wanderFromLocation.distanceSquaredTo(myLocation.add(direction)) < radius) {
-                    if (Player.gc.canMove(this.getId(), direction)) {
-                        Player.gc.moveRobot(this.getId(), direction);
-                    }
+                    this.setCurrentTask(new RobotTask(-1, Command.MOVE, myLocation.add(direction)));
                 }
             }
-        }
     }
 
 //    /**
