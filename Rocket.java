@@ -58,16 +58,15 @@ public class Rocket extends Structure {
     @Override
     public void run() {
         if (this.isBuilt()) {
-//            if (this.getLocation().getPlanet() == Planet.Earth && !inFlight) {
-//                if (garrison.size() == 8) {
-//                    MapLocation locationToLand = Player.getEmptyLocationOnMars();
-//                    if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
-//                        Player.gc.launchRocket(this.getId(), locationToLand);
-//                        inFlight = true;
-//
-//                    }
-//                }
-//            }
+            if (this.getLocation().getPlanet() == Planet.Earth && !inFlight) {
+                if (garrison.size() == 8) {
+                    MapLocation locationToLand = Player.getLandingLocation();
+                    if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
+                        Player.gc.launchRocket(this.getId(), locationToLand);
+                        inFlight = true;
+                    }
+                }
+            }
 
             if (this.getLocation().getPlanet() == Planet.Mars) {
                 unload();

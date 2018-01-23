@@ -15,6 +15,12 @@ public class Player {
 
         addStartingWorkersToEarthMap();
         Queue<MapLocation> enemyPositions = enemyLocations();
+        gc.queueResearch(UnitType.Rocket);
+        gc.queueResearch(UnitType.Knight);
+        gc.queueResearch(UnitType.Knight);
+        gc.queueResearch(UnitType.Healer);
+        gc.queueResearch(UnitType.Healer);
+        gc.queueResearch(UnitType.Healer);
 
         while (true) {
 
@@ -33,7 +39,7 @@ public class Player {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                 }
-                if (Earth.mageCount > 6 && Earth.earthAttackTarget == null) {
+                if (Earth.knightCount > 6 && Earth.earthAttackTarget == null) {
                     System.out.println("Setting attack target!");
                     Earth.earthAttackTarget = enemyPositions.peek();
                     if (enemyPositions.size() != 0) {
@@ -42,6 +48,9 @@ public class Player {
                 }
                 if (gc.round() == 150) {
                     findPassableMarsThreeSquares();
+                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
+                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
+                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
                 }
                 Earth.execute();
 
