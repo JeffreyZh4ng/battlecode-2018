@@ -9,6 +9,8 @@ public class Player {
     // TODO: reduce API calls because that is whats causing many timeout errors
     public static final Team team = gc.team();
 
+    public static ArrayList<MapLocation> availableLandingLocations = null;
+
 
     public static void main(String[] args) {
 
@@ -38,6 +40,9 @@ public class Player {
                     if (enemyPositions.size() != 0) {
                         enemyPositions.poll();
                     }
+                }
+                if (gc.round() == 150) {
+                    findPassableMarsThreeSquares();
                 }
                 Earth.execute();
 
@@ -341,6 +346,27 @@ public class Player {
         }
 
         return false;
+    }
+
+    public static void findPassableMarsThreeSquares() {
+        ArrayList<MapLocation> availableLocations = new ArrayList<>();
+        PlanetMap marsStartingMap = Player.gc.startingMap(Planet.Mars);
+        for (int x = 1; x < marsStartingMap.getWidth() - 1; x++) {
+            for (int y = 1; y < marsStartingMap.getHeight() -1; y++) {
+                MapLocation location = new MapLocation(Planet.Mars, x, y);
+                boolean isClear = true;
+                for (Direction direction : Direction.values()) {
+                    if (availableLocations.contains(location.add(direction)) || marsStartingMap.isPassableTerrainAt(location.add(direction)) == 0) {
+                        isClear = false;
+                        break;
+                    }
+                }
+                if (isClear) {
+                    availableLocations.add(location);
+                }
+            }
+        }
+        availableLandingLocations = availableLocations;
     }
 }
 

@@ -250,8 +250,6 @@ public class Worker extends Robot {
                 break;
             }
         }
-
-        System.out.println("newpath: " + newPath);
         this.setMovePathStack(newPath);
 
         return destinationLocation;
