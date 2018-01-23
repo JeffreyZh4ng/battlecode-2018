@@ -56,7 +56,7 @@ public abstract class Robot extends UnitInstance {
      * Move a robot
      * @param robotId robot to move
      * @param destinationLocation The destination location a unit
-     * @return if the robot has reached within on square of its destination or cannot get to destination at all
+     * @return True if the robot was able to move
      */
     public boolean move(int robotId, MapLocation destinationLocation) {
         if (!Player.gc.isMoveReady(this.getId())) {

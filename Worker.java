@@ -25,19 +25,19 @@ public class Worker extends Robot {
 
         } else if (!this.isIdle()) {
             if (executeTask(this.getCurrentTask())) {
-                GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
                 System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
-                globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
-
-                // Perform run again?
-                run();
+                if (this.getCurrentTask().getTaskId() != -1) {
+                    GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
+                    globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
+                    run();
+                }
             }
 
         } else {
             // System.out.println("Worker: " + this.getId() + " doing nothing!");
 //            this.wander();
 //            System.out.println("Unit: " + this.getId() + " wandering!");
-            this.wanderToMine();
+            wanderToMine();
         }
 
         mineKarbonite();
@@ -186,7 +186,6 @@ public class Worker extends Robot {
 
     private void wanderToMine() {
         MapLocation karboniteLocation = getPathToKarbonite(this.getLocation(), Player.gc.startingMap(Player.gc.planet()));
-
         if (karboniteLocation != null && this.getMovePathStack() != null) {
             this.setCurrentTask(new RobotTask(-1, Command.MOVE, karboniteLocation));
             System.out.println("Setting the current task to go mine karbonite");
@@ -225,13 +224,11 @@ public class Worker extends Robot {
                 if (Player.isLocationEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
                     frontier.add(nextLocation);
                     checkedLocations.put(nextLocation.toString(), currentLocation);
-                    if (Earth.earthKarboniteMap.containsKey(currentLocation.toString())) {
+                    if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(currentLocation))) {
                         frontier.clear();
                         destinationLocation = currentLocation;
                     } else {
-                        if (frontier.size() > 30) {
-                            return null;
-                        }
+
                     }
                 }
             }
@@ -252,6 +249,7 @@ public class Worker extends Robot {
             }
         }
 
+        System.out.println("newpath: " + newPath);
         this.setMovePathStack(newPath);
 
         return destinationLocation;

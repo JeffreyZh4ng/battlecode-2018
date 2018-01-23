@@ -21,7 +21,7 @@ public class Player {
                 System.runFinalization();
                 System.gc();
             }
-            if (gc.planet() == Planet.Earth && gc.team() == Team.Blue) {
+            if (gc.planet() == Planet.Earth ) {
 
                 System.out.println("Round number: " + gc.round());
                 System.out.println("Time left: " + Player.gc.getTimeLeftMs());

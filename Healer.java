@@ -7,7 +7,7 @@ public class Healer extends Attacker {
     public Healer(int id) {
         super(id);
     }
-    
+
     @Override
     public void run() {
         runBattleAction();
