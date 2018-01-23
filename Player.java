@@ -401,16 +401,15 @@ public class Player {
      * @return the id of the closest robot, -1 if no robot found
      */
     public static int getNearestFriendlyAttacker(MapLocation locationNearTo) {
-        VecUnit myUnits = Player.gc.units();
-        if (myUnits.size() == 0) {
-            return -1;
-        }
-        HashSet<String> unitLocationsStrings = new HashSet<>();
-        for (int i = 0; i < myUnits.size(); i++) {
-            unitLocationsStrings.add(myUnits.get(i).location().mapLocation().toString());
-        } {
 
+        HashSet<String> unitLocationsStrings = new HashSet<>();
+
+        for (int unitId: Earth.earthAttackerMap.keySet()) {
+            if (Earth.earthAttackerMap.get(unitId).getCurrentTask() == null || Earth.earthAttackerMap.get(unitId).getCurrentTask().getTaskId() == -1) {
+               unitLocationsStrings.add(Earth.earthAttackerMap.get(unitId).getLocation().toString());
+            }
         }
+
         ArrayList<Direction> moveDirections = Player.getMoveDirections();
 
         MapLocation robotLocation = null;
