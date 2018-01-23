@@ -394,6 +394,59 @@ public class Player {
         availableLandingLocations.remove(0);
         return location;
     }
+
+    /**
+     * Finds the nearest of friendly units to a given location and returns the id of that robot
+     * @param locationNearTo the location t search around
+     * @return the id of the closest robot, -1 if no robot found
+     */
+    public static int getNearestFriendlyAttacker(MapLocation locationNearTo) {
+        VecUnit myUnits = Player.gc.units();
+        if (myUnits.size() == 0) {
+            return -1;
+        }
+        HashSet<String> unitLocationsStrings = new HashSet<>();
+        for (int i = 0; i < myUnits.size(); i++) {
+            unitLocationsStrings.add(myUnits.get(i).location().mapLocation().toString());
+        } {
+
+        }
+        ArrayList<Direction> moveDirections = Player.getMoveDirections();
+
+        MapLocation robotLocation = null;
+        int robotId = -1;
+
+        Queue<MapLocation> frontier = new LinkedList<>();
+        frontier.add(locationNearTo);
+
+        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
+        checkedLocations.put(locationNearTo.toString(), locationNearTo);
+
+        while (!frontier.isEmpty()) {
+            // Get next direction to check around
+            MapLocation currentLocation = frontier.poll();
+
+
+            Collections.shuffle(moveDirections, new Random());
+            // Check if locations around frontier location have already been added to came from and if they are empty
+            for (Direction nextDirection : moveDirections) {
+                MapLocation nextLocation = currentLocation.add(nextDirection);
+
+                if (Player.isLocationEmpty(Player.gc.startingMap(Player.gc.planet()), nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
+                    frontier.add(nextLocation);
+                    checkedLocations.put(nextLocation.toString(), currentLocation);
+                    if (unitLocationsStrings.contains(nextLocation.toString())) {
+                        frontier.clear();
+                        robotLocation = nextLocation;
+                        robotId = Player.gc.senseUnitAtLocation(nextLocation).id();
+                    }
+                }
+            }
+        }
+
+        return robotId;
+
+    }
 }
 
 
