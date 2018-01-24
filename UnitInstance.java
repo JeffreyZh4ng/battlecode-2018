@@ -10,13 +10,15 @@ import java.util.Queue;
 public abstract class UnitInstance {
 
     private int id;
+    private Queue<RobotTask> taskQueue;
     private UnitType unitType;
-    private RobotTask currentTask;
-    private RobotTask emergencyTask = null;
+    private RobotTask emergencyTask;
 
     public UnitInstance(int id) {
         this.id = id;
+        taskQueue = new LinkedList<>();
         unitType = Player.gc.unit(id).unitType();
+        emergencyTask = null;
     }
 
     /**
@@ -29,24 +31,32 @@ public abstract class UnitInstance {
         return id;
     }
 
+    public int getVisionRange() {
+        return (int)(Player.gc.unit(this.getId()).visionRange());
+    }
+
+    public boolean hasTasks() {
+        return (!taskQueue.isEmpty());
+    }
+
+    public MapLocation getLocation() {
+        return Player.gc.unit(this.getId()).location().mapLocation();
+    }
+
     public UnitType getUnitType() {
         return unitType;
     }
 
-    public boolean isIdle() {
-        return currentTask == null;
-    }
-
     public RobotTask getCurrentTask() {
-        return currentTask;
+        return taskQueue.peek();
     }
 
-    public void setCurrentTask(RobotTask currentTask) {
-        this.currentTask = currentTask;
+    public void addTaskToQueue(RobotTask task) {
+        taskQueue.add(task);
     }
 
-    public void removeTask() {
-        currentTask = null;
+    public void pollCurrentTask() {
+        taskQueue.poll();
     }
 
     public RobotTask getEmergencyTask() {
@@ -55,14 +65,6 @@ public abstract class UnitInstance {
 
     public void setEmergencyTask(RobotTask emergencyTask) {
         this.emergencyTask = emergencyTask;
-    }
-
-    public MapLocation getLocation() {
-        return Player.gc.unit(this.getId()).location().mapLocation();
-    }
-
-    public int getVisionRange() {
-        return (int)(Player.gc.unit(this.getId()).visionRange());
     }
 
     /**

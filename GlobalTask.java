@@ -9,16 +9,16 @@ public class GlobalTask {
     private static final int MAX_WORKER_COUNT = 10;
 
     private int taskId;
-    private int minimumUnitsCount;
+    private boolean isBuilt;
     private boolean hasBlueprinted;
-    private Command command;
     private HashSet<Integer> unitsOnTask;
+    private Command command;
     private MapLocation taskLocation;
 
-    public GlobalTask(int minimumUnitsCount, Command command, MapLocation taskLocation) {
+    public GlobalTask(Command command, MapLocation taskLocation) {
         taskIndex++;
         this.taskId = taskIndex;
-        this.minimumUnitsCount = minimumUnitsCount;
+        this.isBuilt = false;
         this.hasBlueprinted = false;
         this.command = command;
         this.unitsOnTask = new HashSet<>();
@@ -29,8 +29,20 @@ public class GlobalTask {
         return taskId;
     }
 
-    public int getMinimumUnitsCount() {
-        return minimumUnitsCount;
+    public boolean hasStructureBeenBlueprinted() {
+        return hasBlueprinted;
+    }
+
+    public void structureHasBeenBlueprinted() {
+        hasBlueprinted = true;
+    }
+
+    public boolean isStructureBuilt() {
+        return isBuilt;
+    }
+
+    public void structureHasBeenBuilt() {
+        isBuilt = true;
     }
 
     public Command getCommand() {
@@ -44,6 +56,9 @@ public class GlobalTask {
     public MapLocation getTaskLocation() {
         return taskLocation;
     }
+
+
+
 
     public void addWorkerToList(int workerId) {
         unitsOnTask.add(workerId);
@@ -61,6 +76,23 @@ public class GlobalTask {
         unitsOnTask.add(attackerId);
         RobotTask moveTask = new RobotTask(taskId, Command.MOVE, taskLocation);
         Earth.earthAttackerMap.get(attackerId).setCurrentTask(moveTask);
+    }
+
+    /**
+     * Method that will check the global task status.
+     * @return If the task has been completed or not
+     */
+    public boolean checkGlobalTaskStatus(Command command) {
+        switch (command) {
+            case BLUEPRINT_FACTORY:
+                return hasBlueprinted;
+            case BLUEPRINT_ROCKET:
+                return hasBlueprinted;
+            case BUILD:
+                return isBuilt;
+            default:
+                return false;
+        }
     }
 
     /**

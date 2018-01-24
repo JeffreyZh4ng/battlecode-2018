@@ -13,56 +13,71 @@ public class Worker extends Robot {
 
         if (this.getEmergencyTask() != null) {
             if (executeTask(this.getEmergencyTask())) {
-                // System.out.println("Worker: " + this.getId() + " Finished emergency task!");
-
-                if (this.getCurrentTask() != null && this.getEmergencyTask().getCommand() == Command.STALL) {
-                    GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
-                    globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
-                    return;
-                }
+                System.out.println("Worker: " + this.getId() + " Finished emergency task!");
                 this.setEmergencyTask(null);
-                return;
-            }
-
-        } else if (!this.isIdle()) {
-            if (executeTask(this.getCurrentTask())) {
-                // System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
-                if (this.getCurrentTask().getTaskId() != -1) {
-                    GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
-                    globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
-                    run();
-                    return;
-                } else {
-                    this.removeTask();
-                }
-            }
-
-        } else if (Earth.earthTaskQueue.size() == 0) {
-            // System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
-
-            boolean karboniteHere = false;
-            for (Direction direction : Direction.values()) {
-                if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(this.getLocation().add(direction)))) {
-                    karboniteHere = true;
-                }
-            }
-            if(!karboniteHere) {
-                wanderToMine();
             }
         }
+
+        if (this.hasTasks()) {
+            checkTaskStatus();
+            executeCurrentTask();
+
+        } else {
+//            System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
+//
+//            boolean karboniteHere = false;
+//            for (Direction direction : Direction.values()) {
+//                if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(this.getLocation().add(direction)))) {
+//                    karboniteHere = true;
+//                }
+//            }
+//            if(!karboniteHere) {
+//                wanderToMine();
+//            }
+        }
+
         mineKarbonite();
     }
 
     /**
+     * Method that will check the current status of the the worker's task. Removes task if it is already finished
+     */
+    private void checkTaskStatus() {
+        if (this.getCurrentTask().getTaskId() != -1) {
+
+            GlobalTask currentGlobalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
+            if (currentGlobalTask.checkGlobalTaskStatus(this.getCurrentTask().getCommand())) {
+                this.pollCurrentTask();
+
+                // If the task was already completed, check if the next one was completed as well
+                if (this.hasTasks()) {
+                    checkTaskStatus();
+                }
+            }
+        }
+    }
+
+    /**
+     * Helper method that will run the workers current tasks. If it finished one, it checks if it can start the next
+     */
+    private void executeCurrentTask() {
+        if (executeTask(this.getCurrentTask())) {
+            System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+            this.pollCurrentTask();
+
+            // If the worker has completed the current task, check if it can also complete the next one
+            executeCurrentTask();
+        }
+    }
+
+    /**
      * Executes the task from the task queue
-     *
      * @param robotTask The task the robot has to complete
      * @return If the task was completed or not
      */
     private boolean executeTask(RobotTask robotTask) {
         Command robotCommand = robotTask.getCommand();
         MapLocation commandLocation = robotTask.getCommandLocation();
-        // System.out.println("Worker: " + this.getId() + " " + robotCommand);
 
         switch (robotCommand) {
             case MOVE:
@@ -78,14 +93,13 @@ public class Worker extends Robot {
             case STALL:
                 return true;
             default:
-                // System.out.println("Critical error occurred in Worker: " + this.getId());
+                System.out.println("Critical error occurred in Worker: " + this.getId());
                 return true;
         }
     }
 
     /**
      * Given a MapLocation, see if you can clone a worker and put it at that spot
-     *
      * @param commandLocation The MapLocation of the new worker
      * @return If the worker was cloned or not
      */
@@ -108,8 +122,8 @@ public class Worker extends Robot {
 
                     Earth.earthStagingWorkerMap.put(clonedWorkerId, newWorker);
 
-                    // System.out.println("Worker: " + this.getId() + " Cloned worker!");
-                    // System.out.println("New worker has ID of: " + clonedWorkerId);
+                    System.out.println("Worker: " + this.getId() + " Cloned worker!");
+                    System.out.println("New worker has ID of: " + clonedWorkerId);
                     return true;
                 }
             }
@@ -122,28 +136,30 @@ public class Worker extends Robot {
      * Given the map location of a blueprint you want to build, check if you can build it and add
      * a new blueprint instance to the blueprint map
      * @param commandLocation The MapLocation of the blueprint you want to build
-     * @param unitType Either a factory or rocket blueprint
+     * @param structureType Either a factory or rocket blueprint
      * @return If the blueprint was built or not
      */
-    private boolean blueprintStructure(MapLocation commandLocation, UnitType unitType) {
-        MapLocation robotCurrentLocation = Player.gc.unit(this.getId()).location().mapLocation();
-        Direction directionToBlueprint = robotCurrentLocation.directionTo(commandLocation);
+    private boolean blueprintStructure(MapLocation commandLocation, UnitType structureType) {
+        Direction directionToBlueprint = this.getLocation().directionTo(commandLocation);
 
-        if (Player.gc.canBlueprint(this.getId(), unitType, directionToBlueprint) &&
+        if (Player.gc.canBlueprint(this.getId(), structureType, directionToBlueprint) &&
                 this.getLocation().isAdjacentTo(commandLocation)) {
 
-            Player.gc.blueprint(this.getId(), unitType, directionToBlueprint);
-
+            Player.gc.blueprint(this.getId(), structureType, directionToBlueprint);
             int structureId = Player.gc.senseUnitAtLocation(commandLocation).id();
 
-            if (unitType == UnitType.Factory) {
+            if (structureType == UnitType.Factory) {
                 UnitInstance newStructure = new Factory(structureId, false, commandLocation);
                 Earth.earthFactoryMap.put(structureId, newStructure);
             } else {
                 Rocket newStructure = new Rocket(structureId, false, commandLocation);
                 Earth.earthRocketMap.put(structureId, newStructure);
             }
-            // System.out.println("Worker: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
+
+            // Set the global task variable hasBlueprinted to true
+            Earth.earthTaskMap.get(this.getCurrentTask().getTaskId()).structureHasBeenBlueprinted();
+
+            System.out.println("Worker: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
             return true;
         }
 
@@ -156,35 +172,25 @@ public class Worker extends Robot {
      * @return If the structure finished building
      */
     private boolean buildStructure(MapLocation commandLocation) {
-        int structureId;
-        try {
-            structureId = Player.senseUnitAtLocation(commandLocation).id();
-        } catch (Exception e) {
-            // System.out.println("Worker: " + this.getId() + " Was not able to sense the location!");
-            return false;
-        }
-
-        if (Player.gc.canBuild(this.getId(), structureId) && this.getLocation().isAdjacentTo(commandLocation)) {
+        int structureId = Player.senseUnitAtLocation(commandLocation).id();
+        if (Player.gc.canBuild(this.getId(), structureId)) {
             Player.gc.build(this.getId(), structureId);
-            // System.out.println("Worker: " + this.getId() + " ran build()");
 
             if (Player.gc.unit(structureId).structureIsBuilt() > 0) {
 
                 UnitType unitType = Player.gc.unit(structureId).unitType();
                 if (unitType == UnitType.Factory) {
-                    UnitInstance factory = Earth.earthFactoryMap.get(structureId);
-                    UnitInstance builtFactory = new Factory(factory.getId(), true, commandLocation);
-                    Earth.earthFactoryMap.put(factory.getId(), builtFactory);
+                    UnitInstance builtFactory = new Factory(structureId, true, commandLocation);
+                    Earth.earthFactoryMap.put(structureId, builtFactory);
                 } else {
-                    UnitInstance rocket = Earth.earthRocketMap.get(structureId);
-                    UnitInstance builtRocket = new Rocket(rocket.getId(), true, commandLocation);
-                    Earth.earthFactoryMap.put(rocket.getId(), builtRocket);
-
-                    GlobalTask loadRocket = new GlobalTask(8, Command.LOAD_ROCKET, commandLocation);
-                    Earth.earthTaskQueue.add(loadRocket);
+                    Rocket builtRocket = new Rocket(structureId, true, commandLocation);
+                    Earth.earthFactoryMap.put(structureId, builtRocket);
                 }
 
-                // System.out.println("Worker: " + this.getId() + " Built structure");
+                // Set the global task variable hasBlueprinted to true
+                Earth.earthTaskMap.get(this.getCurrentTask().getTaskId()).structureHasBeenBlueprinted();
+
+                System.out.println("Worker: " + this.getId() + " Built structure");
                 return true;
             }
         }
@@ -206,77 +212,77 @@ public class Worker extends Robot {
         }
     }
 
-    /**
-     * Method that will set the robots current task to wander and mine karbonite
-     */
-    private void wanderToMine() {
-        MapLocation karboniteLocation = getPathToKarbonite(this.getLocation(), Player.gc.startingMap(Player.gc.planet()));
-        if (karboniteLocation != null && this.getMovePathStack() != null) {
-            this.setCurrentTask(new RobotTask(-1, Command.MOVE, karboniteLocation));
-            // System.out.println("Setting the current task to go mine karbonite");
-        }
-    }
-
-    /**
-     * Method that will get the path to the nearest karbonite deposit.
-     * @param startingLocation The starting location of the robot
-     * @param map The map the robot is on
-     * @return The stack of path values to the karbonite deposit
-     */
-    private MapLocation getPathToKarbonite(MapLocation startingLocation, PlanetMap map) {
-
-        if (Earth.earthKarboniteMap.size() == 0) {
-            return null;
-        }
-        ArrayList<Direction> moveDirections = Player.getMoveDirections();
-
-        //shuffle directions so that wandering doesn't gravitate towards a specific direction
-        MapLocation destinationLocation = null;
-
-        Queue<MapLocation> frontier = new LinkedList<>();
-        frontier.add(startingLocation);
-
-        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
-        checkedLocations.put(startingLocation.toString(), startingLocation);
-
-        while (!frontier.isEmpty()) {
-            // Get next direction to check around
-            MapLocation currentLocation = frontier.poll();
-
-
-            Collections.shuffle(moveDirections, new Random());
-            // Check if locations around frontier location have already been added to came from and if they are empty
-            for (Direction nextDirection : moveDirections) {
-                MapLocation nextLocation = currentLocation.add(nextDirection);
-
-                if (Player.isLocationEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
-                    frontier.add(nextLocation);
-                    checkedLocations.put(nextLocation.toString(), currentLocation);
-                    if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(nextLocation))) {
-                        frontier.clear();
-                        destinationLocation = nextLocation;
-                    }
-                }
-            }
-        }
-
-        if (destinationLocation == null) {
-            return null;
-        }
-        Stack<MapLocation> newPath = new Stack<>();
-        MapLocation currentTraceLocation = destinationLocation;
-
-        // trace back path
-        while (!currentTraceLocation.equals(startingLocation)) {
-            newPath.push(currentTraceLocation);
-            currentTraceLocation = checkedLocations.get(currentTraceLocation.toString());
-            if (currentTraceLocation == null) {
-                break;
-            }
-        }
-        this.setMovePathStack(newPath);
-
-        return destinationLocation;
-    }
+//    /**
+//     * Method that will set the robots current task to wander and mine karbonite
+//     */
+//    private void wanderToMine() {
+//        MapLocation karboniteLocation = getPathToKarbonite(this.getLocation(), Player.gc.startingMap(Player.gc.planet()));
+//        if (karboniteLocation != null && this.getMovePathStack() != null) {
+//            this.setCurrentTask(new RobotTask(-1, Command.MOVE, karboniteLocation));
+//            System.out.println("Setting the current task to go mine karbonite");
+//        }
+//    }
+//
+//    /**
+//     * Method that will get the path to the nearest karbonite deposit.
+//     * @param startingLocation The starting location of the robot
+//     * @param map The map the robot is on
+//     * @return The stack of path values to the karbonite deposit
+//     */
+//    private MapLocation getPathToKarbonite(MapLocation startingLocation, PlanetMap map) {
+//
+//        if (Earth.earthKarboniteMap.size() == 0) {
+//            return null;
+//        }
+//        ArrayList<Direction> moveDirections = Player.getMoveDirections();
+//
+//        //shuffle directions so that wandering doesn't gravitate towards a specific direction
+//        MapLocation destinationLocation = null;
+//
+//        Queue<MapLocation> frontier = new LinkedList<>();
+//        frontier.add(startingLocation);
+//
+//        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
+//        checkedLocations.put(startingLocation.toString(), startingLocation);
+//
+//        while (!frontier.isEmpty()) {
+//            // Get next direction to check around
+//            MapLocation currentLocation = frontier.poll();
+//
+//
+//            Collections.shuffle(moveDirections, new Random());
+//            // Check if locations around frontier location have already been added to came from and if they are empty
+//            for (Direction nextDirection : moveDirections) {
+//                MapLocation nextLocation = currentLocation.add(nextDirection);
+//
+//                if (Player.isLocationEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
+//                    frontier.add(nextLocation);
+//                    checkedLocations.put(nextLocation.toString(), currentLocation);
+//                    if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(nextLocation))) {
+//                        frontier.clear();
+//                        destinationLocation = nextLocation;
+//                    }
+//                }
+//            }
+//        }
+//
+//        if (destinationLocation == null) {
+//            return null;
+//        }
+//        Stack<MapLocation> newPath = new Stack<>();
+//        MapLocation currentTraceLocation = destinationLocation;
+//
+//        // trace back path
+//        while (!currentTraceLocation.equals(startingLocation)) {
+//            newPath.push(currentTraceLocation);
+//            currentTraceLocation = checkedLocations.get(currentTraceLocation.toString());
+//            if (currentTraceLocation == null) {
+//                break;
+//            }
+//        }
+//        this.setMovePathStack(newPath);
+//
+//        return destinationLocation;
+//    }
 }
 

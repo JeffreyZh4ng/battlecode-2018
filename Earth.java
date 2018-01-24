@@ -53,7 +53,7 @@ public class Earth {
      */
     private static void updateTaskQueue() {
         if (earthTaskQueue.size() == 0) {
-            // System.out.println("Queue size is zero!");
+            System.out.println("Queue size is zero!");
             return;
         }
 
@@ -66,19 +66,19 @@ public class Earth {
                 if (!earthTaskMap.containsKey(globalTask.getTaskId())) {
                     globalTask.addWorkerToList(workerId);
 
-                    // System.out.println("Workers on task: " + globalTask.getTaskId() + " is " + globalTask.getUnitsOnTask().size());
+                    System.out.println("Workers on task: " + globalTask.getTaskId() + " is " + globalTask.getUnitsOnTask().size());
 
                     earthTaskMap.put(taskId, globalTask);
                 } else {
                     earthTaskMap.get(taskId);
                     globalTask.addWorkerToList(workerId);
-                    // System.out.println("Added worker: " + workerId + " to task: " + taskId);
-                    // System.out.println("Current workers on task: " + globalTask.getUnitsOnTask().size());
+                    System.out.println("Added worker: " + workerId + " to task: " + taskId);
+                    System.out.println("Current workers on task: " + globalTask.getUnitsOnTask().size());
                 }
 
                 if (globalTask.getMinimumUnitsCount() == earthTaskMap.get(taskId).getUnitsOnTask().size()) {
                     earthTaskQueue.poll();
-                    // System.out.println("Task has enough workers! Polling: " + taskId);
+                    System.out.println("Task has enough workers! Polling: " + taskId);
                     if (earthTaskQueue.size() == 0) {
                         return;
                     }
@@ -105,14 +105,14 @@ public class Earth {
                     }
                 }
 
-                // System.out.println("Units on task: " + globalTask.getTaskId() + " is " + globalTask.getUnitsOnTask().size());
+                System.out.println("Units on task: " + globalTask.getTaskId() + " is " + globalTask.getUnitsOnTask().size());
                 earthTaskMap.put(taskId, globalTask);
             }
 
             while (globalTask.getUnitsOnTask().size() < 8) {
                 int attackerId = Player.getNearestFriendlyAttacker(globalTask.getTaskLocation(), globalTask.getUnitsOnTask());
                 if (attackerId != -1) {
-                    // System.out.println("Getting attacker " + attackerId + " to load rocket!");
+                    System.out.println("Getting attacker " + attackerId + " to load rocket!");
                     globalTask.addAttackerToList(attackerId);
                 } else {
                     break;
@@ -122,7 +122,7 @@ public class Earth {
 
             if (globalTask.getUnitsOnTask().size() == 8) {
                 earthTaskQueue.poll();
-                // System.out.println("Task has enough workers! Polling: " + taskId);
+                System.out.println("Task has enough workers! Polling: " + taskId);
                 if (earthTaskQueue.size() == 0) {
                     return;
                 }
@@ -138,7 +138,7 @@ public class Earth {
     public static void createGlobalTask(Command command) {
         int minimumUnits = (command == Command.LOAD_ROCKET) ? 8 : 4;
         MapLocation globalTaskLocation = pickStructureLocation();
-        // System.out.println("Picked location: " + globalTaskLocation.toString());
+        System.out.println("Picked location: " + globalTaskLocation.toString());
 
         earthTaskQueue.add(new GlobalTask(minimumUnits, command, globalTaskLocation));
     }
@@ -276,14 +276,14 @@ public class Earth {
                 UnitInstance unit = searchMap.get(unitId);
                 if (unit.getCurrentTask() != null && unit.getCurrentTask().getTaskId() != -1) {
                     int globalTaskId = unit.getCurrentTask().getTaskId();
-                    // System.out.println("Removing unit from task: " + globalTaskId);
+                    System.out.println("Removing unit from task: " + globalTaskId);
                     earthTaskMap.get(globalTaskId).removeWorkerFromList(unitId);
                 }
             }
         }
 
         for (int unitId: deadUnits) {
-            // System.out.println("Removing unit: " + unitId);
+            System.out.println("Removing unit: " + unitId);
             searchMap.remove(unitId);
         }
 
@@ -317,7 +317,7 @@ public class Earth {
                     case Knight:
                         knightCount--;
                     case Ranger:
-                        // System.out.println("Decremented ranger count!");
+                        System.out.println("Decremented ranger count!");
                         rangerCount--;
                     case Mage:
                         mageCount--;
@@ -334,7 +334,7 @@ public class Earth {
     private static void removeFinishedTasks() {
         for (int taskId: earthFinishedTasks) {
             earthTaskMap.remove(taskId);
-            // System.out.println("Deleting task " + taskId);
+            System.out.println("Deleting task " + taskId);
         }
         earthFinishedTasks.clear();
     }
@@ -345,13 +345,13 @@ public class Earth {
     private static void addStagingUnitsToMap() {
         for (int unitId : earthStagingWorkerMap.keySet()) {
             earthWorkerMap.put(unitId, earthStagingWorkerMap.get(unitId));
-            // System.out.println("Added unit: " + unitId + " To the worker list");
+            System.out.println("Added unit: " + unitId + " To the worker list");
         }
         earthStagingWorkerMap.clear();
 
         for (int unitId : earthStagingAttackerMap.keySet()) {
             earthAttackerMap.put(unitId, earthStagingAttackerMap.get(unitId));
-            // System.out.println("Added unit: " + unitId + " To the attacker list");
+            System.out.println("Added unit: " + unitId + " To the attacker list");
         }
         earthStagingAttackerMap.clear();
     }
