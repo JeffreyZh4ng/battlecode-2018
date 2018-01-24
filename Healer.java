@@ -30,7 +30,7 @@ public class Healer extends Attacker {
 
             if (distanceToLowestHealthUnit > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {
-                    move(this.getId(), lowestHealthUnit.location().mapLocation());
+                    move(lowestHealthUnit.location().mapLocation());
                 }
             }
 

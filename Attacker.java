@@ -82,7 +82,7 @@ public abstract class Attacker extends Robot {
 
                 if (this.getCurrentTask() != null && this.getEmergencyTask().getCommand() == Command.STALL) {
                     GlobalTask globalTask = Earth.earthTaskMap.get(this.getEmergencyTask().getTaskId());
-                    globalTask.finishedTask(this.getId(), this.getEmergencyTask().getCommand());
+                    // globalTask.finishedTask(this.getId(), this.getEmergencyTask().getCommand());
 
                     System.out.println("Returning!!! " + this.getId());
                     return;
@@ -98,10 +98,10 @@ public abstract class Attacker extends Robot {
 
                 int taskId = this.getCurrentTask().getTaskId();
                 if (taskId != -1) {
-                    Earth.earthTaskMap.get(taskId).finishedTask(this.getId(), this.getCurrentTask().getCommand());
+                    // Earth.earthTaskMap.get(taskId).finishedTask(this.getId(), this.getCurrentTask().getCommand());
                 } else {
                     System.out.println("Attacker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
-                    this.setCurrentTask(null);
+                    // this.setCurrentTask(null);
                 }
             }
         } else {
@@ -147,12 +147,12 @@ public abstract class Attacker extends Robot {
                     this.getCurrentTask().setCommandLocation(getAttackTarget());
                 }
             } else if (this.getCurrentTask() == null) {
-                this.setCurrentTask(new RobotTask(-1, Command.MOVE, getAttackTarget()));
+                // this.setCurrentTask(new RobotTask(-1, Command.MOVE, getAttackTarget()));
             }
 
         } else if (getAttackTarget() == null && this.getCurrentTask() != null && this.getCurrentTask().getTaskId() == -1) {
             System.out.println("Attacker: " + this.getId() + " The global target has been cleared, removing task");
-            this.removeTask();
+            // this.removeTask();
         }
     }
 

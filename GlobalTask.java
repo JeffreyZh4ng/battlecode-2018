@@ -29,16 +29,8 @@ public class GlobalTask {
         return taskId;
     }
 
-    public boolean hasStructureBeenBlueprinted() {
-        return hasBlueprinted;
-    }
-
     public void structureHasBeenBlueprinted() {
         hasBlueprinted = true;
-    }
-
-    public boolean isStructureBuilt() {
-        return isBuilt;
     }
 
     public void structureHasBeenBuilt() {
@@ -57,25 +49,53 @@ public class GlobalTask {
         return taskLocation;
     }
 
-
-
-
+    /**
+     * Adds a worker to the task list and send the worker the set of commands it needs to complete the global task
+     * @param workerId The id of the worker being added
+     */
     public void addWorkerToList(int workerId) {
         unitsOnTask.add(workerId);
+        UnitInstance worker = Earth.earthWorkerMap.get(workerId);
+
         RobotTask moveTask = new RobotTask(taskId, Command.MOVE, taskLocation);
-        Earth.earthWorkerMap.get(workerId).setCurrentTask(moveTask);
+        worker.addTaskToQueue(moveTask);
+
+        RobotTask blueprintTask;
+        if (getCommand() == Command.CONSTRUCT_FACTORY) {
+            blueprintTask = new RobotTask(taskId, Command.BLUEPRINT_FACTORY, taskLocation);
+        } else {
+            blueprintTask = new RobotTask(taskId, Command.BLUEPRINT_ROCKET, taskLocation);
+        }
+        worker.addTaskToQueue(blueprintTask);
+
+        if (Earth.earthWorkerMap.size() < MAX_WORKER_COUNT) {
+            RobotTask cloneTask = new RobotTask(taskId, Command.CLONE, taskLocation);
+            worker.addTaskToQueue(cloneTask);
+        }
+
+        RobotTask buildTask = new RobotTask(taskId, Command.MOVE, taskLocation);
+        worker.addTaskToQueue(buildTask);
     }
 
+    /**
+     * Removes a worker from the list and at the same time tries to find another one to complete the tasks
+     * @param workerId The id of the worker being removed
+     */
     public void removeWorkerFromList(int workerId) {
         if (unitsOnTask.contains(workerId)) {
+            System.out.println("Removing worker: " + workerId);
             unitsOnTask.remove(workerId);
+        } else {
+            System.out.println("Worker: " + workerId + " was not part of the task?");
         }
-    }
 
-    public void addAttackerToList(int attackerId) {
-        unitsOnTask.add(attackerId);
-        RobotTask moveTask = new RobotTask(taskId, Command.MOVE, taskLocation);
-        Earth.earthAttackerMap.get(attackerId).setCurrentTask(moveTask);
+        // Assign the task to another worker. If none are found, it stops trying to find another unit
+        for (int unitId: Earth.earthWorkerMap.keySet()) {
+            if (Earth.earthWorkerMap.get(unitId).getCurrentTask().getTaskId() == -1) {
+                addWorkerToList(unitId);
+                break;
+            }
+        }
     }
 
     /**
@@ -90,150 +110,85 @@ public class GlobalTask {
                 return hasBlueprinted;
             case BUILD:
                 return isBuilt;
+            case STALL:
+                return false;
             default:
                 return false;
         }
     }
 
-    /**
-     * When the unit has finished its task, call this method to determine what to do next
-     * @param unitId The id of the unit who finished its task
-     * @param command The command that it just finished
-     */
-    public void finishedTask(int unitId, Command command) {
-        if (this.command == Command.CONSTRUCT_FACTORY) {
-            switch (command) {
-
-                case MOVE:
-                    if (!hasBlueprinted) {
-                        RobotTask nextTask = new RobotTask(this.getTaskId(), Command.BLUEPRINT_FACTORY, this.getTaskLocation());
-                        Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
-                    } else {
-                        buildOrCloneHelper(unitId);
-                    }
-                    break;
-                case BLUEPRINT_FACTORY:
-                    hasBlueprinted = true;
-                    removeDuplicateTasks();
-                    buildOrCloneHelper(unitId);
-                    break;
-                case CLONE:
-                    RobotTask nextTask = new RobotTask(this.getTaskId(), Command.BUILD, this.getTaskLocation());
-                    Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
-                    break;
-                case BUILD:
-                    finishedTask();
-                    break;
-            }
-
-        } else if (this.command == Command.CONSTRUCT_ROCKET) {
-            switch (command) {
-
-                case MOVE:
-                    if (!hasBlueprinted) {
-                        RobotTask nextTask = new RobotTask(this.getTaskId(), Command.BLUEPRINT_ROCKET, this.getTaskLocation());
-                        Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
-                    } else {
-                        buildOrCloneHelper(unitId);
-                    }
-                    break;
-                case BLUEPRINT_ROCKET:
-                    hasBlueprinted = true;
-                    removeDuplicateTasks();
-                    buildOrCloneHelper(unitId);
-                    break;
-                case CLONE:
-                    RobotTask nextTask = new RobotTask(this.getTaskId(), Command.BUILD, this.getTaskLocation());
-                    Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
-                    break;
-                case BUILD:
-                    finishedTask();
-                    break;
-            }
-
-        } else if (this.command == Command.LOAD_ROCKET) {
-            switch (command) {
-                case MOVE:
-                    sendRocketRequestHelper(unitId);
-                    break;
-                case STALL:
-                    sendRocketRequestHelper(unitId);
-                    break;
-            }
-        }
-    }
-
-    /**
-     * Helper method that will decide whether the next robot will build or clone as the next task
-     * @param unitId The id of the robot who's next task you want to determine
-     */
-    private void buildOrCloneHelper(int unitId) {
-        RobotTask nextTask;
-        if (Earth.earthWorkerMap.size() < MAX_WORKER_COUNT) {
-            nextTask = new RobotTask(this.getTaskId(), Command.CLONE, this.getTaskLocation());
-        } else {
-            nextTask = new RobotTask(this.getTaskId(), Command.BUILD, this.getTaskLocation());
-        }
-        Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
-    }
-
-    /**
-     * Helper method that will control the requests to the rocket and robots for loading the rocket. If the
-     * rocket cannot load the robot immediately, it will send a stall request to the unit.
-     * @param unitId The id of the unit who finished its task
-     */
-    private void sendRocketRequestHelper(int unitId) {
-        int rocketId = Player.gc.senseUnitAtLocation(this.getTaskLocation()).id();
-        if (Earth.earthRocketMap.get(rocketId).loadUnit(unitId)) {
-            RobotTask nextTask = new RobotTask(this.getTaskId(), Command.STALL, this.getTaskLocation());
-            if (Player.gc.unit(unitId).unitType() == UnitType.Worker) {
-                System.out.println("Setting  task to stall unit: " + unitId);
-                Earth.earthWorkerMap.get(unitId).setEmergencyTask(nextTask);
-            } else {
-                System.out.println("Setting  task to stall unit: " + unitId);
-                Earth.earthAttackerMap.get(unitId).setEmergencyTask(nextTask);
-            }
-            return;
-        }
-
-        RobotTask nextTask = new RobotTask(this.getTaskId(), Command.STALL, this.getTaskLocation());
-        if (Player.gc.unit(unitId).unitType() == UnitType.Worker) {
-            System.out.println("Setting emergency task to stall unit: " + unitId);
-            Earth.earthWorkerMap.get(unitId).setEmergencyTask(nextTask);
-        } else {
-            System.out.println("Setting emergency task to stall unit: " + unitId);
-            Earth.earthAttackerMap.get(unitId).setEmergencyTask(nextTask);
-        }
-    }
-    /**
-     * When the last command in the string of tasks is finished. Remove the task of all the rest of the units.
-     * If the task is still the top task of the task queue, remove it
-     */
-    private void finishedTask() {
-        for (int unitId: unitsOnTask) {
-            if (Earth.earthWorkerMap.containsKey(unitId)) {
-                Earth.earthWorkerMap.get(unitId).removeTask();
-            } else {
-                Earth.earthAttackerMap.get(unitId).removeTask();
-            }
-        }
-
-        if (Earth.earthTaskQueue.size() != 0 && Earth.earthTaskQueue.peek().getTaskId() == this.getTaskId()) {
-            Earth.earthTaskQueue.poll();
-        }
-    }
-
-    /**
-     * Helper method that will ensure that once the blueprint is created that any duplicate blueprint tasks
-     * are removed and the robots are given a new task
-     */
-    private void removeDuplicateTasks() {
-        for (int unitId: unitsOnTask) {
-            UnitInstance unit = Earth.earthWorkerMap.get(unitId);
-            if (unit.getCurrentTask().getCommand() == Command.BLUEPRINT_FACTORY ||
-                    unit.getCurrentTask().getCommand() == Command.BLUEPRINT_ROCKET) {
-                buildOrCloneHelper(unitId);
-            }
-        }
-    }
+//    /**
+//     * Helper method that will decide whether the next robot will build or clone as the next task
+//     * @param unitId The id of the robot who's next task you want to determine
+//     */
+//    private void buildOrCloneHelper(int unitId) {
+//        RobotTask nextTask;
+//        if (Earth.earthWorkerMap.size() < MAX_WORKER_COUNT) {
+//            nextTask = new RobotTask(this.getTaskId(), Command.CLONE, this.getTaskLocation());
+//        } else {
+//            nextTask = new RobotTask(this.getTaskId(), Command.BUILD, this.getTaskLocation());
+//        }
+//        Earth.earthWorkerMap.get(unitId).setCurrentTask(nextTask);
+//    }
+//
+//    /**
+//     * Helper method that will control the requests to the rocket and robots for loading the rocket. If the
+//     * rocket cannot load the robot immediately, it will send a stall request to the unit.
+//     * @param unitId The id of the unit who finished its task
+//     */
+//    private void sendRocketRequestHelper(int unitId) {
+//        int rocketId = Player.gc.senseUnitAtLocation(this.getTaskLocation()).id();
+//        if (Earth.earthRocketMap.get(rocketId).loadUnit(unitId)) {
+//            RobotTask nextTask = new RobotTask(this.getTaskId(), Command.STALL, this.getTaskLocation());
+//            if (Player.gc.unit(unitId).unitType() == UnitType.Worker) {
+//                System.out.println("Setting  task to stall unit: " + unitId);
+//                Earth.earthWorkerMap.get(unitId).setEmergencyTask(nextTask);
+//            } else {
+//                System.out.println("Setting  task to stall unit: " + unitId);
+//                Earth.earthAttackerMap.get(unitId).setEmergencyTask(nextTask);
+//            }
+//            return;
+//        }
+//
+//        RobotTask nextTask = new RobotTask(this.getTaskId(), Command.STALL, this.getTaskLocation());
+//        if (Player.gc.unit(unitId).unitType() == UnitType.Worker) {
+//            System.out.println("Setting emergency task to stall unit: " + unitId);
+//            Earth.earthWorkerMap.get(unitId).setEmergencyTask(nextTask);
+//        } else {
+//            System.out.println("Setting emergency task to stall unit: " + unitId);
+//            Earth.earthAttackerMap.get(unitId).setEmergencyTask(nextTask);
+//        }
+//    }
+//
+//    /**
+//     * When the last command in the string of tasks is finished. Remove the task of all the rest of the units.
+//     * If the task is still the top task of the task queue, remove it
+//     */
+//    private void finishedTask() {
+//        for (int unitId: unitsOnTask) {
+//            if (Earth.earthWorkerMap.containsKey(unitId)) {
+//                Earth.earthWorkerMap.get(unitId).removeTask();
+//            } else {
+//                Earth.earthAttackerMap.get(unitId).removeTask();
+//            }
+//        }
+//
+//        if (Earth.earthTaskQueue.size() != 0 && Earth.earthTaskQueue.peek().getTaskId() == this.getTaskId()) {
+//            Earth.earthTaskQueue.poll();
+//        }
+//    }
+//
+//    /**
+//     * Helper method that will ensure that once the blueprint is created that any duplicate blueprint tasks
+//     * are removed and the robots are given a new task
+//     */
+//    private void removeDuplicateTasks() {
+//        for (int unitId: unitsOnTask) {
+//            UnitInstance unit = Earth.earthWorkerMap.get(unitId);
+//            if (unit.getCurrentTask().getCommand() == Command.BLUEPRINT_FACTORY ||
+//                    unit.getCurrentTask().getCommand() == Command.BLUEPRINT_ROCKET) {
+//                buildOrCloneHelper(unitId);
+//            }
+//        }
+//    }
 }

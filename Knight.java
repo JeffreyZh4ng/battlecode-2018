@@ -31,7 +31,7 @@ public class Knight extends Attacker {
 
             if (closestDistanceToUnit > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {
-                    move(this.getId(), closestUnit.location().mapLocation());
+                    move(closestUnit.location().mapLocation());
                 }
             }
 

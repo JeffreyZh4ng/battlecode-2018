@@ -8,25 +8,15 @@ import java.util.LinkedList;
  */
 public abstract class Robot extends UnitInstance {
 
-    public Stack<MapLocation> movePathStack = null;
-
-    MapLocation wanderFromLocation = this.getLocation();
+    private Stack<MapLocation> movePathStack = null;
 
     public Robot(int id) {
         super(id);
     }
-
-    public Stack<MapLocation> getMovePathStack() {
-        return movePathStack;
-    }
-
-    public void setMovePathStack(Stack<MapLocation> movePathStack) {
-        this.movePathStack = movePathStack;
-    }
-
+    
     @Override
-    public void setCurrentTask(RobotTask currentTask) {
-        super.setCurrentTask(currentTask);
+    public void pollCurrentTask() {
+        super.pollCurrentTask();
         movePathStack = null;
     }
 
@@ -42,9 +32,8 @@ public abstract class Robot extends UnitInstance {
      * @return If the robot has completed the task or not
      */
     public boolean pathManager(MapLocation destinationLocation) {
-        if (move(this.getId(), destinationLocation)) {
+        if (move(destinationLocation)) {
             if (movePathStack == null) {
-                // System.out.println("Unit: " + this.getId() + " Reached destination");
                 return true;
             } else {
                 movePathStack.pop();
@@ -55,129 +44,121 @@ public abstract class Robot extends UnitInstance {
     }
 
     /**
-     * Move a robot
-     * @param robotId robot to move
+     * Method that will move the robot based on the top MapLocation in the robots move path stack
      * @param destinationLocation The destination location a unit
      * @return True if the robot was able to move
      */
-    public boolean move(int robotId, MapLocation destinationLocation) {
+    public boolean move(MapLocation destinationLocation) {
         if (!Player.gc.isMoveReady(this.getId())) {
             return false;
         }
 
-        // if path should be recalculated
-        if (movePathStack == null && Player.gc.getTimeLeftMs() > 1000) {
-            movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
-            // System.out.println("Unit: " + this.getId() + " Recalculated path");
-            if (movePathStack == null) {
-                // System.out.println("Cannot get to location: " + destinationLocation.toString());
-                return true;
-            }
-        }
+        // If the current path is null
+        if (movePathStack == null) {
+             movePathStack = getPathFromBFS(destinationLocation);
 
-        // If this robot is covering destination, try to move it to an adjacent square. If it moves it is done moving
-        if (Player.gc.unit(robotId).location().mapLocation().equals(destinationLocation)) {
+             // After calculating the path, if it is still null, the robot is unable to reach the location.
+            // If the robot is part of a global task, remove it from the task and the individual tasks it has.
+             if (movePathStack == null) {
+                 System.out.println("Unit: " + this.getId() + " cannot reach the desired location");
 
-            for (Direction direction : Player.getMoveDirections()) {
-                if (Player.gc.canMove(robotId, direction)) {
-                    Player.gc.moveRobot(robotId, direction);
-                    movePathStack = null;
-                    return true;
-                }
-            }
-
-            return false;
+                 int currentTaskId = this.getCurrentTask().getTaskId();
+                 if (currentTaskId != -1) {
+                     Earth.earthTaskMap.get(currentTaskId).removeWorkerFromList(this.getId());
+                 }
+                 return true;
+             }
         }
 
         // If adjacent to destination, the robot has finished moving
-        if (Player.gc.unit(robotId).location().mapLocation().isAdjacentTo(destinationLocation) || movePathStack == null) {
+        if (movePathStack.peek().equals(destinationLocation)) {
             movePathStack = null;
             return true;
         }
 
-        if (Player.gc.canMove(robotId, this.getLocation().directionTo(movePathStack.peek()))) {
-            try {
-                Player.gc.moveRobot(robotId, this.getLocation().directionTo(movePathStack.peek()));
-                // System.out.println("Unit: " + this.getId() + " Moved");
-                return true;
-            } catch (Exception e) {
-                // System.out.println(e);
-                // System.out.println("Unit: " + this.getId() + "Couldn't move for some reason!");
-                return false;
-            }
+        if (!Player.gc.canMove(this.getId(), this.getLocation().directionTo(movePathStack.peek()))) {
+            reroute();
+        }
+
+        if (Player.gc.canMove(this.getId(), this.getLocation().directionTo(movePathStack.peek()))) {
+            Player.gc.moveRobot(this.getId(), this.getLocation().directionTo(movePathStack.peek()));
+            return true;
         } else {
-            if (this.getUnitType() == UnitType.Worker) {
-                // System.out.println("Unit: " + this.getId() + " recalculating path");
-                movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
-            }
             return false;
         }
     }
 
     /**
-     * Uses BreadthFirstSearch algorithm to get the next location based on current map
-     * @param startingLocation Current location of object to move
+     * Uses BreadthFirstSearch algorithm to get the path of a unit to the given destination. The path returned does
+     * not include the starting position or the final position
      * @param destinationLocation The location that you want to move to
-     * @param map The map of earth or mars
-     * @return The next place to step
+     * @return A stack of MapLocations indicating the robots path to the destination
      */
-    private Stack<MapLocation> getPathFromBFS(MapLocation startingLocation, MapLocation destinationLocation, PlanetMap map) {
+    private Stack<MapLocation> getPathFromBFS(MapLocation destinationLocation) {
 
         Queue<MapLocation> frontier = new LinkedList<>();
-        frontier.add(startingLocation);
+        frontier.add(this.getLocation());
 
-        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
-        checkedLocations.put(startingLocation.toString(), startingLocation);
+        HashMap<String, Integer> checkedLocations = new HashMap<>();
+        checkedLocations.put(Player.mapLocationToString(this.getLocation()), 0);
 
+        int moveCounter = 1;
         while (!frontier.isEmpty()) {
 
             // Get next direction to check around
             MapLocation currentLocation = frontier.poll();
 
             // Check if locations around frontier location have already been added to came from and if they are empty
-            for (Direction nextDirection : Player.getMoveDirections()) {
+            for (Direction nextDirection: Player.getMoveDirections()) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if (Player.isLocationEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
+                if (Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(Player.mapLocationToString(nextLocation))) {
                     frontier.add(nextLocation);
-                    checkedLocations.put(nextLocation.toString(), currentLocation);
+                    checkedLocations.put(Player.mapLocationToString(nextLocation), moveCounter);
 
                     if (currentLocation.isAdjacentTo(destinationLocation)) {
                         frontier.clear();
+                        break;
                     }
                 }
             }
+
+            moveCounter++;
         }
 
-        //find shortest of paths to adjacent locations and save shortest one
-        MapLocation shortestNeighborLocation = null;
-        Stack<MapLocation> shortestPath = null;
+        checkedLocations.put(Player.mapLocationToString(destinationLocation), moveCounter);
 
-        for (Direction directionFromDestination : Player.getMoveDirections()) {
+        return backtrace(destinationLocation, checkedLocations);
+    }
 
-            MapLocation neighborLocation = destinationLocation.add(directionFromDestination);
-            if (checkedLocations.containsKey(neighborLocation.toString()) && Player.isLocationEmpty(map, neighborLocation)) {
+    /**
+     * Helper method that will backtrace the visited locations and will find the shortest path from the destination
+     * @param destinationLocation The destination that the unit wants to get to
+     * @param checkedLocations The HashMap of checked locations
+     * @return One of the shortest paths
+     */
+    private Stack<MapLocation> backtrace(MapLocation destinationLocation, HashMap<String, Integer> checkedLocations) {
+        Stack<MapLocation> shortestPath = new Stack<>();
+        shortestPath.add(destinationLocation);
 
-                Stack<MapLocation> currentPath = new Stack<>();
-                MapLocation currentTraceLocation = neighborLocation;
+        if (!checkedLocations.containsKey(Player.mapLocationToString(destinationLocation))) {
+            return null;
+        }
 
-                //trace back path
-                while (!currentTraceLocation.equals(startingLocation)) {
-                    currentPath.push(currentTraceLocation);
-                    currentTraceLocation = checkedLocations.get(currentTraceLocation.toString());
+        MapLocation checkingLocation = destinationLocation;
+        int movesToDestination = checkedLocations.get(Player.mapLocationToString(destinationLocation));
+        for (int i = movesToDestination; i > 0 ; i--) {
 
-                    if (currentTraceLocation == null) {
-                        break;
-                    }
-                    if (currentTraceLocation.isAdjacentTo(destinationLocation)) {
-                        currentPath.clear();
-                        currentPath.push(currentTraceLocation);
-                    }
-                }
+            for (Direction nextDirection: Player.getMoveDirections()) {
+                MapLocation nextLocation = checkingLocation.add(nextDirection);
 
-                if (shortestNeighborLocation == null || currentPath.size() < shortestPath.size()) {
-                    shortestPath = currentPath;
-                    shortestNeighborLocation = neighborLocation;
+                if (checkedLocations.containsKey(Player.mapLocationToString(nextLocation)) &&
+                        checkedLocations.get(Player.mapLocationToString(nextLocation)) == i-1) {
+
+                    shortestPath.add(nextLocation);
+                    checkingLocation = nextLocation;
+
+                    break;
                 }
             }
         }
@@ -186,116 +167,48 @@ public abstract class Robot extends UnitInstance {
     }
 
     /**
-     * Method that will set a robots task to wander within a certain radius
-     * @param radius
+     * Method that will try to reroute the units path. If the unit is surrounded, it will add the original path back
+     * and the robot will wait until it can move in the intended direction
      */
-    public void wanderWithinRadius(int radius) {
+    private void reroute() {
+        Stack<MapLocation> originalPath = new Stack<>();
 
-            ArrayList<Direction> moveDirections = Player.getMoveDirections();
-            MapLocation myLocation = this.getLocation();
-            for (Direction direction : moveDirections) {
-                if (Player.isOccupiable(myLocation.add(direction)) && this.wanderFromLocation.distanceSquaredTo(myLocation.add(direction)) < radius) {
-                    this.setCurrentTask(new RobotTask(-1, Command.MOVE, myLocation.add(direction)));
-                }
+        while (movePathStack.size() > 1) {
+            if (!Player.isOccupiable(movePathStack.peek())) {
+                originalPath.add(movePathStack.pop());
+            } else {
+                break;
             }
+        }
+
+        MapLocation nextOpenLocation = movePathStack.peek();
+        Stack<MapLocation> recalculatedPath = getPathFromBFS(nextOpenLocation);
+
+        if (recalculatedPath == null) {
+            while (!originalPath.empty()) {
+                movePathStack.add(originalPath.pop());
+            }
+
+        } else {
+            while (!recalculatedPath.empty()) {
+                movePathStack.add(recalculatedPath.pop());
+            }
+        }
     }
 
 //    /**
-//     * Sets emergency task to move robot to explore invisible territory
+//     * Method that will set a robots task to wander within a certain radius
+//     * @param radius The radius to wander in
 //     */
-//    public void explore() {
-//        ArrayList<MapLocation> wanderPath = getExplorePath(Player.gc.unit(this.getId()).location().mapLocation(),Player.gc.startingMap(Player.gc.planet()));
-//        if (wanderPath != null) {
-//            movePathStack = wanderPath;
-//            this.setEmergencyTask(new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1)));
-//        }
-//    }
+//    public void wanderWithinRadius(int radius) {
 //
-//    /**
-//     * For when a robot has nothing to do, should move around so that it finds tasks or gain information this method
-//     * finds a location to explore
-//     * @return A random location that seems good to be explored
-//     */
-//    public MapLocation getLocationToExplore() {
-//        PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
-//        MapLocation randomLocation = getRandomLocation(initialMap);
-//
-//        //give up after a certain number of tries
-//        int tries = 0;
-//        while (Player.gc.canSenseLocation(randomLocation) && !(initialMap.isPassableTerrainAt(randomLocation) > 0) && tries < 100) {
-//            randomLocation = getRandomLocation(initialMap);
-//            tries++;
-//        }
-//        return randomLocation;
-//    }
-//
-//    /**
-//     * Randomly chooses a location
-//     * @param map The map that the location should be on
-//     * @return A random location on the map
-//     */
-//    private static MapLocation getRandomLocation(PlanetMap map) {
-//        return new MapLocation(map.getPlanet(), (int)(Math.random()*map.getWidth()),(int)(Math.random()*map.getHeight()));
-//    }
-//
-//    /**
-//     * Fill this out john
-//     * @param startingLocation
-//     * @param map
-//     * @return
-//     */
-//    public ArrayList<MapLocation> getExplorePath(MapLocation startingLocation, PlanetMap map) {
-//
-//        ArrayList<Direction> moveDirections = Player.getMoveDirections();
-//
-//        //shuffle directions so that wandering doesn't gravitate towards a specific direction
-//
-//
-//        MapLocation destinationLocation = null;
-//        Queue<MapLocation> frontier = new LinkedList<>();
-//        frontier.add(startingLocation);
-//        HashMap<String, MapLocation> cameFrom = new HashMap<>();
-//        cameFrom.put(startingLocation.toString(), startingLocation);
-//
-//        while (!frontier.isEmpty()) {
-//
-//            // Get next direction to check around
-//            MapLocation currentLocation = frontier.poll();
-//            Collections.shuffle(moveDirections, new Random());
-//            // Check if locations around frontier location have already been added to came from and if they are empty
-//            for (Direction nextDirection : moveDirections) {
-//                MapLocation nextLocation = currentLocation.add(nextDirection);
-//
-//                if (doesLocationAppearEmpty(map, nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
-//                    frontier.add(nextLocation);
-//                    cameFrom.put(nextLocation.toString(), currentLocation);
-//                    if (!Player.gc.canSenseLocation(currentLocation)) {
-//                        frontier.clear();
-//                        destinationLocation = currentLocation;
-//                    }
+//            ArrayList<Direction> moveDirections = Player.getMoveDirections();
+//            MapLocation myLocation = this.getLocation();
+//            for (Direction direction : moveDirections) {
+//                if (Player.isOccupiable(myLocation.add(direction)) && this.wanderFromLocation.distanceSquaredTo(myLocation.add(direction)) < radius) {
+//                    this.addTaskToQueue(new RobotTask(-1, Command.MOVE, myLocation.add(direction)));
 //                }
 //            }
-//        }
-//
-//
-//        if (destinationLocation == null) {
-//            return null;
-//        }
-//        ArrayList<MapLocation> newPath = new ArrayList<>();
-//
-//        ArrayList<MapLocation> currentPath = new ArrayList<>();
-//        MapLocation currentTraceLocation = destinationLocation;
-//
-//        //trace back path
-//        while (!currentTraceLocation.equals(startingLocation)) {
-//            newPath.add(0, currentTraceLocation);
-//            currentTraceLocation = cameFrom.get(currentTraceLocation.toString());
-//            if (currentTraceLocation == null) {
-//                break;
-//            }
-//        }
-//
-//        return newPath;
 //    }
 //
 //    /**

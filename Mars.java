@@ -35,7 +35,7 @@ public class Mars {
         for (int i = 0; i < vecRocketLanding.size(); i++) {
             int rocketId = vecRocketLanding.get(i).getRocket_id();
             MapLocation rocketLocation = Player.gc.unit(rocketId).location().mapLocation();
-            Rocket landedRocket = new Rocket(rocketId, true, rocketLocation);
+            Rocket landedRocket = new Rocket(rocketId, true);
 
             marsRocketMap.put(rocketId, landedRocket);
         }

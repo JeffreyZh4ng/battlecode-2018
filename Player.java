@@ -29,29 +29,33 @@ public class Player {
                     System.runFinalization();
                     System.gc();
                 }
-                if (gc.planet() == Planet.Earth) {
+                if (gc.planet() == Planet.Earth && gc.team() == Team.Red) {
 
                     // System.out.println("Round number: " + gc.round());
                     // System.out.println("Time left: " + Player.gc.getTimeLeftMs());
+                    Unit unit = gc.senseUnitAtLocation(new MapLocation(Planet.Earth, 1, 1));
+                    UnitInstance unitInstance = new Worker(unit.id());
+                    unitInstance.run();
 
-                    if (gc.round() == 1) {
-                        setStructureLocations(0, 100);
-                        Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-                        Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-                        Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-                    }
-                    if (Earth.earthAttackerMap.size() > 6 && Earth.earthAttackTarget == null) {
-                        // System.out.println("Setting attack target!");
-                        Earth.earthAttackTarget = enemyPositions.peek();
-                        if (enemyPositions.size() != 0) {
-                            enemyPositions.poll();
-                        }
-                    }
-                    if (gc.round() % 75 == 0) {
-                        findPassableMarsThreeSquares();
-                        Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
-                    }
-                    Earth.execute();
+
+//                    if (gc.round() == 1) {
+//                        setStructureLocations(0, 100);
+//                        Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+//                        Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+//                        Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+//                    }
+//                    if (Earth.earthAttackerMap.size() > 6 && Earth.earthAttackTarget == null) {
+//                        // System.out.println("Setting attack target!");
+//                        Earth.earthAttackTarget = enemyPositions.peek();
+//                        if (enemyPositions.size() != 0) {
+//                            enemyPositions.poll();
+//                        }
+//                    }
+//                    if (gc.round() % 75 == 0) {
+//                        findPassableMarsThreeSquares();
+//                        Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
+//                    }
+//                    Earth.execute();
 
                     // System.out.println("");
                 } else {
@@ -107,32 +111,6 @@ public class Player {
         if (initialMap.onMap(mapLocation) && initialMap.isPassableTerrainAt(mapLocation) > 0) {
             if (gc.canSenseLocation(mapLocation)) {
                 return gc.isOccupiable(mapLocation) > 0;
-            } else {
-                return true;
-            }
-
-        }
-
-        return false;
-    }
-
-    /**
-     * Is occupiable for structures
-     * @param mapLocation The location you want to check
-     * @return If it is occupiable or not
-     */
-    public static boolean isOccupiableForStructure(MapLocation mapLocation) {
-        PlanetMap initialMap = gc.startingMap(mapLocation.getPlanet());
-        if (initialMap.onMap(mapLocation) && initialMap.isPassableTerrainAt(mapLocation) > 0) {
-            if (gc.canSenseLocation(mapLocation)) {
-                if (gc.hasUnitAtLocation(mapLocation)) {
-                    if (gc.senseUnitAtLocation(mapLocation).unitType() != UnitType.Factory ||
-                            gc.senseUnitAtLocation(mapLocation).unitType() != UnitType.Rocket) {
-                        return true;
-                    }
-                } else {
-                    return false;
-                }
             } else {
                 return true;
             }
@@ -214,29 +192,6 @@ public class Player {
         }
         return directions;
     }
-
-//    /**
-//     * Method that will check if a location appears empty. Checks if the location is onMap, passableTerrain,
-//     * and if it is not occupied by a factory or rocket. Return true if there is a robot there
-//     * @param map The map to check
-//     * @param location The location to check
-//     * @return If the location appears empty
-//     */
-//    public static boolean doesLocationAppearEmpty(PlanetMap map, MapLocation location) {
-//        if (map.onMap(location) && map.isPassableTerrainAt(location) > 0) {
-//            if (Player.gc.hasUnitAtLocation(location)) {
-//
-//                UnitType unit = Player.gc.senseUnitAtLocation(location).unitType();
-//                if (unit == UnitType.Factory || unit == UnitType.Rocket) {
-//                    return false;
-//                }
-//            }
-//
-//            return true;
-//        }
-//
-//        return false;
-//    }
 
     /**
      * Method that will convert a MapLocation into an easily recognizable string.
@@ -345,12 +300,12 @@ public class Player {
     /**
      * Method that will check if a location is empty. Checks if the location is onMap, passableTerrain,
      * and if it is not occupied by a factory or rocket. Return false if there is a robot there
-     * @param map The map to check
      * @param location The location to check
      * @return If the location appears empty
      */
-    public static boolean isLocationEmpty(PlanetMap map, MapLocation location) {
-        if (map.onMap(location) && map.isPassableTerrainAt(location) > 0) {
+    public static boolean isLocationEmpty(MapLocation location) {
+        PlanetMap planetMap = gc.startingMap(location.getPlanet());
+        if (planetMap.onMap(location) && planetMap.isPassableTerrainAt(location) > 0) {
             if (Player.gc.hasUnitAtLocation(location)) {
                 return false;
             }

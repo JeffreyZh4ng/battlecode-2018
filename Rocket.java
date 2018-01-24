@@ -2,14 +2,16 @@ import bc.*;
 
 import java.util.*;
 
-public class Rocket extends Structure {
+public class Rocket extends UnitInstance {
 
+    private boolean isBuilt;
     private boolean inFlight = false;
     private int garrisonCount = 0;
     private HashSet<Integer> garrison = new HashSet<>();
 
-    public Rocket(int id, boolean isBuilt, MapLocation rocketLocation) {
-        super(id, isBuilt, rocketLocation);
+    public Rocket(int id, boolean isBuilt) {
+        super(id);
+        this.isBuilt = isBuilt;
     }
 
     public boolean isInFlight() {
@@ -19,7 +21,7 @@ public class Rocket extends Structure {
 
     @Override
     public void run() {
-        if (this.isBuilt()) {
+        if (isBuilt) {
             if (this.getLocation().getPlanet() == Planet.Earth && !inFlight) {
                 if (garrisonCount == 0) {
                     MapLocation locationToLand = Player.getLandingLocation();
@@ -33,7 +35,6 @@ public class Rocket extends Structure {
         }
     }
 
-    @Override
     public void unload() {
         for (int i = 0; i < 8; i++) {
             Direction direction = Direction.swigToEnum(i);

@@ -58,7 +58,7 @@ public class Earth {
         }
 
         for (int workerId: earthWorkerMap.keySet()) {
-            if (earthWorkerMap.get(workerId).isIdle() || earthWorkerMap.get(workerId).getCurrentTask().getTaskId() == -1) {
+            if (!earthWorkerMap.get(workerId).hasTasks() || earthWorkerMap.get(workerId).getCurrentTask().getTaskId() == -1) {
 
                 GlobalTask globalTask = earthTaskQueue.peek();
                 int taskId = globalTask.getTaskId();
@@ -76,7 +76,7 @@ public class Earth {
                     System.out.println("Current workers on task: " + globalTask.getUnitsOnTask().size());
                 }
 
-                if (globalTask.getMinimumUnitsCount() == earthTaskMap.get(taskId).getUnitsOnTask().size()) {
+                if (2 == earthTaskMap.get(taskId).getUnitsOnTask().size()) {
                     earthTaskQueue.poll();
                     System.out.println("Task has enough workers! Polling: " + taskId);
                     if (earthTaskQueue.size() == 0) {
@@ -99,7 +99,7 @@ public class Earth {
             if (!earthTaskMap.containsKey(globalTask.getTaskId())) {
 
                 for (int workerId: earthWorkerMap.keySet()) {
-                    if (earthWorkerMap.get(workerId).isIdle()) {
+                    if (!earthWorkerMap.get(workerId).hasTasks()) {
                         globalTask.addWorkerToList(workerId);
                         break;
                     }
@@ -113,7 +113,7 @@ public class Earth {
                 int attackerId = Player.getNearestFriendlyAttacker(globalTask.getTaskLocation(), globalTask.getUnitsOnTask());
                 if (attackerId != -1) {
                     System.out.println("Getting attacker " + attackerId + " to load rocket!");
-                    globalTask.addAttackerToList(attackerId);
+                    // globalTask.addAttackerToList(attackerId);
                 } else {
                     break;
                 }
@@ -140,7 +140,7 @@ public class Earth {
         MapLocation globalTaskLocation = pickStructureLocation();
         System.out.println("Picked location: " + globalTaskLocation.toString());
 
-        earthTaskQueue.add(new GlobalTask(minimumUnits, command, globalTaskLocation));
+        earthTaskQueue.add(new GlobalTask(command, globalTaskLocation));
     }
 
     /**

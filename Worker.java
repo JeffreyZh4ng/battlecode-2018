@@ -34,6 +34,7 @@ public class Worker extends Robot {
 //            if(!karboniteHere) {
 //                wanderToMine();
 //            }
+            System.out.println("Worker: " + this.getId() + " Is supposed to find karbonite here");
         }
 
         mineKarbonite();
@@ -91,7 +92,7 @@ public class Worker extends Robot {
             case BLUEPRINT_ROCKET:
                 return blueprintStructure(commandLocation, UnitType.Rocket);
             case STALL:
-                return true;
+                return false;
             default:
                 System.out.println("Critical error occurred in Worker: " + this.getId());
                 return true;
@@ -149,10 +150,10 @@ public class Worker extends Robot {
             int structureId = Player.gc.senseUnitAtLocation(commandLocation).id();
 
             if (structureType == UnitType.Factory) {
-                UnitInstance newStructure = new Factory(structureId, false, commandLocation);
+                UnitInstance newStructure = new Factory(structureId, false);
                 Earth.earthFactoryMap.put(structureId, newStructure);
             } else {
-                Rocket newStructure = new Rocket(structureId, false, commandLocation);
+                Rocket newStructure = new Rocket(structureId, false);
                 Earth.earthRocketMap.put(structureId, newStructure);
             }
 
@@ -180,15 +181,15 @@ public class Worker extends Robot {
 
                 UnitType unitType = Player.gc.unit(structureId).unitType();
                 if (unitType == UnitType.Factory) {
-                    UnitInstance builtFactory = new Factory(structureId, true, commandLocation);
+                    UnitInstance builtFactory = new Factory(structureId, true);
                     Earth.earthFactoryMap.put(structureId, builtFactory);
                 } else {
-                    Rocket builtRocket = new Rocket(structureId, true, commandLocation);
+                    Rocket builtRocket = new Rocket(structureId, true);
                     Earth.earthFactoryMap.put(structureId, builtRocket);
                 }
 
                 // Set the global task variable hasBlueprinted to true
-                Earth.earthTaskMap.get(this.getCurrentTask().getTaskId()).structureHasBeenBlueprinted();
+                Earth.earthTaskMap.get(this.getCurrentTask().getTaskId()).structureHasBeenBuilt();
 
                 System.out.println("Worker: " + this.getId() + " Built structure");
                 return true;
