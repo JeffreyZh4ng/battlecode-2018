@@ -13,30 +13,32 @@ public class Worker extends Robot {
 
         if (this.getEmergencyTask() != null) {
             if (executeTask(this.getEmergencyTask())) {
-                System.out.println("Worker: " + this.getId() + " Finished emergency task!");
+                // System.out.println("Worker: " + this.getId() + " Finished emergency task!");
 
-                if (this.getCurrentTask() != null && this.getCurrentTask().getCommand() == Command.STALL) {
+                if (this.getCurrentTask() != null && this.getEmergencyTask().getCommand() == Command.STALL) {
                     GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
                     globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
                     return;
                 }
                 this.setEmergencyTask(null);
+                return;
             }
 
         } else if (!this.isIdle()) {
             if (executeTask(this.getCurrentTask())) {
-                System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+                // System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
                 if (this.getCurrentTask().getTaskId() != -1) {
                     GlobalTask globalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
                     globalTask.finishedTask(this.getId(), this.getCurrentTask().getCommand());
                     run();
+                    return;
                 } else {
                     this.removeTask();
                 }
             }
 
         } else if (Earth.earthTaskQueue.size() == 0) {
-            System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
+            // System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
 
             boolean karboniteHere = false;
             for (Direction direction : Direction.values()) {
@@ -48,7 +50,6 @@ public class Worker extends Robot {
                 wanderToMine();
             }
         }
-
         mineKarbonite();
     }
 
@@ -61,7 +62,7 @@ public class Worker extends Robot {
     private boolean executeTask(RobotTask robotTask) {
         Command robotCommand = robotTask.getCommand();
         MapLocation commandLocation = robotTask.getCommandLocation();
-        System.out.println("Worker: " + this.getId() + " " + robotCommand);
+        // System.out.println("Worker: " + this.getId() + " " + robotCommand);
 
         switch (robotCommand) {
             case MOVE:
@@ -74,8 +75,10 @@ public class Worker extends Robot {
                 return blueprintStructure(commandLocation, UnitType.Factory);
             case BLUEPRINT_ROCKET:
                 return blueprintStructure(commandLocation, UnitType.Rocket);
+            case STALL:
+                return true;
             default:
-                System.out.println("Critical error occurred in Worker: " + this.getId());
+                // System.out.println("Critical error occurred in Worker: " + this.getId());
                 return true;
         }
     }
@@ -105,8 +108,8 @@ public class Worker extends Robot {
 
                     Earth.earthStagingWorkerMap.put(clonedWorkerId, newWorker);
 
-                    System.out.println("Worker: " + this.getId() + " Cloned worker!");
-                    System.out.println("New worker has ID of: " + clonedWorkerId);
+                    // System.out.println("Worker: " + this.getId() + " Cloned worker!");
+                    // System.out.println("New worker has ID of: " + clonedWorkerId);
                     return true;
                 }
             }
@@ -140,7 +143,7 @@ public class Worker extends Robot {
                 Rocket newStructure = new Rocket(structureId, false, commandLocation);
                 Earth.earthRocketMap.put(structureId, newStructure);
             }
-            System.out.println("Worker: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
+            // System.out.println("Worker: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
             return true;
         }
 
@@ -157,13 +160,13 @@ public class Worker extends Robot {
         try {
             structureId = Player.senseUnitAtLocation(commandLocation).id();
         } catch (Exception e) {
-            System.out.println("Worker: " + this.getId() + " Was not able to sense the location!");
+            // System.out.println("Worker: " + this.getId() + " Was not able to sense the location!");
             return false;
         }
 
         if (Player.gc.canBuild(this.getId(), structureId) && this.getLocation().isAdjacentTo(commandLocation)) {
             Player.gc.build(this.getId(), structureId);
-            System.out.println("Worker: " + this.getId() + " ran build()");
+            // System.out.println("Worker: " + this.getId() + " ran build()");
 
             if (Player.gc.unit(structureId).structureIsBuilt() > 0) {
 
@@ -176,9 +179,12 @@ public class Worker extends Robot {
                     UnitInstance rocket = Earth.earthRocketMap.get(structureId);
                     UnitInstance builtRocket = new Rocket(rocket.getId(), true, commandLocation);
                     Earth.earthFactoryMap.put(rocket.getId(), builtRocket);
+
+                    GlobalTask loadRocket = new GlobalTask(8, Command.LOAD_ROCKET, commandLocation);
+                    Earth.earthTaskQueue.add(loadRocket);
                 }
 
-                System.out.println("Worker: " + this.getId() + " Built structure");
+                // System.out.println("Worker: " + this.getId() + " Built structure");
                 return true;
             }
         }
@@ -207,7 +213,7 @@ public class Worker extends Robot {
         MapLocation karboniteLocation = getPathToKarbonite(this.getLocation(), Player.gc.startingMap(Player.gc.planet()));
         if (karboniteLocation != null && this.getMovePathStack() != null) {
             this.setCurrentTask(new RobotTask(-1, Command.MOVE, karboniteLocation));
-            System.out.println("Setting the current task to go mine karbonite");
+            // System.out.println("Setting the current task to go mine karbonite");
         }
     }
 

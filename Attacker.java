@@ -84,6 +84,7 @@ public abstract class Attacker extends Robot {
                     GlobalTask globalTask = Earth.earthTaskMap.get(this.getEmergencyTask().getTaskId());
                     globalTask.finishedTask(this.getId(), this.getEmergencyTask().getCommand());
 
+                    System.out.println("Returning!!! " + this.getId());
                     return;
                 }
                 this.setEmergencyTask(null);
@@ -102,10 +103,10 @@ public abstract class Attacker extends Robot {
                     System.out.println("Attacker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
                     this.setCurrentTask(null);
                 }
-        }
-
+            }
         } else {
-            this.wanderWithinRadius(81);
+            System.out.println("Attacker: " + this.getId() + " Wandering!");
+            wander();
         }
     }
 
@@ -203,4 +204,18 @@ public abstract class Attacker extends Robot {
      * @return true if nothing to attack false if attacked or has enemy in range
      */
     public abstract boolean runBattleAction();
+
+    /**
+     * Make worker wander to a random location within its vision radius
+     */
+    private void wander() {
+        MapLocation currentLocation = Player.gc.unit(this.getId()).location().mapLocation();
+        VecMapLocation locations = Player.gc.allLocationsWithin(currentLocation, 50);
+        int randomLocation = (int)(Math.random()*locations.size());
+
+        MapLocation wanderLocation = locations.get(randomLocation);
+        RobotTask wanderTask = new RobotTask(-1, Command.MOVE, wanderLocation);
+
+        this.setEmergencyTask(wanderTask);
+    }
 }

@@ -49,7 +49,7 @@ public class Healer extends Attacker {
      */
     private Unit getLowestHealthFriendly(VecUnit units) {
         if (units.size() == 0) {
-            System.out.println("unit list was empty");
+            // System.out.println("unit list was empty");
             return null;
         }
         Unit weakestUnit = null;

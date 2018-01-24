@@ -44,7 +44,7 @@ public abstract class Robot extends UnitInstance {
     public boolean pathManager(MapLocation destinationLocation) {
         if (move(this.getId(), destinationLocation)) {
             if (movePathStack == null) {
-                System.out.println("Unit: " + this.getId() + " Reached destination");
+                // System.out.println("Unit: " + this.getId() + " Reached destination");
                 return true;
             } else {
                 movePathStack.pop();
@@ -68,9 +68,9 @@ public abstract class Robot extends UnitInstance {
         // if path should be recalculated
         if (movePathStack == null && Player.gc.getTimeLeftMs() > 1000) {
             movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
-            System.out.println("Unit: " + this.getId() + " Recalculated path");
+            // System.out.println("Unit: " + this.getId() + " Recalculated path");
             if (movePathStack == null) {
-                System.out.println("Cannot get to location: " + destinationLocation.toString());
+                // System.out.println("Cannot get to location: " + destinationLocation.toString());
                 return true;
             }
         }
@@ -90,7 +90,7 @@ public abstract class Robot extends UnitInstance {
         }
 
         // If adjacent to destination, the robot has finished moving
-        if (Player.gc.unit(robotId).location().mapLocation().isAdjacentTo(destinationLocation)) {
+        if (Player.gc.unit(robotId).location().mapLocation().isAdjacentTo(destinationLocation) || movePathStack == null) {
             movePathStack = null;
             return true;
         }
@@ -98,16 +98,16 @@ public abstract class Robot extends UnitInstance {
         if (Player.gc.canMove(robotId, this.getLocation().directionTo(movePathStack.peek()))) {
             try {
                 Player.gc.moveRobot(robotId, this.getLocation().directionTo(movePathStack.peek()));
-                System.out.println("Unit: " + this.getId() + " Moved");
+                // System.out.println("Unit: " + this.getId() + " Moved");
                 return true;
             } catch (Exception e) {
-                System.out.println(e);
-                System.out.println("Unit: " + this.getId() + "Couldn't move for some reason!");
+                // System.out.println(e);
+                // System.out.println("Unit: " + this.getId() + "Couldn't move for some reason!");
                 return false;
             }
         } else {
             if (this.getUnitType() == UnitType.Worker) {
-                System.out.println("Unit: " + this.getId() + " recalculating path");
+                // System.out.println("Unit: " + this.getId() + " recalculating path");
                 movePathStack = getPathFromBFS(this.getLocation(), destinationLocation, Player.gc.startingMap(Player.gc.planet()));
             }
             return false;
@@ -185,6 +185,10 @@ public abstract class Robot extends UnitInstance {
         return shortestPath;
     }
 
+    /**
+     * Method that will set a robots task to wander within a certain radius
+     * @param radius
+     */
     public void wanderWithinRadius(int radius) {
 
             ArrayList<Direction> moveDirections = Player.getMoveDirections();
@@ -303,7 +307,7 @@ public abstract class Robot extends UnitInstance {
 //            path = wanderPath;
 //            this.setCurrentTask(new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1)));
 //        }
-//        System.out.println("no wander Location");
+//        // System.out.println("no wander Location");
 //    }
 }
 

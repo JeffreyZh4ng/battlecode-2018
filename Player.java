@@ -16,50 +16,52 @@ public class Player {
         addStartingWorkersToEarthMap();
         Queue<MapLocation> enemyPositions = enemyLocations();
         gc.queueResearch(UnitType.Rocket);
-        gc.queueResearch(UnitType.Knight);
-        gc.queueResearch(UnitType.Knight);
-        gc.queueResearch(UnitType.Healer);
-        gc.queueResearch(UnitType.Healer);
-        gc.queueResearch(UnitType.Healer);
+        gc.queueResearch(UnitType.Ranger);
+        gc.queueResearch(UnitType.Ranger);
+        gc.queueResearch(UnitType.Mage);
+        gc.queueResearch(UnitType.Mage);
+        gc.queueResearch(UnitType.Mage);
+        gc.queueResearch(UnitType.Worker);
 
         while (true) {
-
-            if (gc.round() % 2 == 0) {
-                System.runFinalization();
-                System.gc();
-            }
-            if (gc.planet() == Planet.Earth) {
-
-                System.out.println("Round number: " + gc.round());
-                System.out.println("Time left: " + Player.gc.getTimeLeftMs());
-
-                if (gc.round() == 1) {
-                    setStructureLocations(0, 100);
-                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+            try {
+                if (gc.round() % 2 == 0) {
+                    System.runFinalization();
+                    System.gc();
                 }
-                if (Earth.earthAttackerMap.size() > 6 && Earth.earthAttackTarget == null) {
-                    System.out.println("Setting attack target!");
-                    Earth.earthAttackTarget = enemyPositions.peek();
-                    if (enemyPositions.size() != 0) {
-                        enemyPositions.poll();
+                if (gc.planet() == Planet.Earth) {
+
+                    // System.out.println("Round number: " + gc.round());
+                    // System.out.println("Time left: " + Player.gc.getTimeLeftMs());
+
+                    if (gc.round() == 1) {
+                        setStructureLocations(0, 100);
+                        Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+                        Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+                        Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                     }
-                }
-                if (gc.round() == 50) {
-                    findPassableMarsThreeSquares();
-                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
-                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
-                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
-                }
-                Earth.execute();
+                    if (Earth.earthAttackerMap.size() > 6 && Earth.earthAttackTarget == null) {
+                        // System.out.println("Setting attack target!");
+                        Earth.earthAttackTarget = enemyPositions.peek();
+                        if (enemyPositions.size() != 0) {
+                            enemyPositions.poll();
+                        }
+                    }
+                    if (gc.round() % 75 == 0) {
+                        findPassableMarsThreeSquares();
+                        Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
+                    }
+                    Earth.execute();
 
-                System.out.println("");
-            } else {
-                Mars.execute();
+                    // System.out.println("");
+                } else {
+                    Mars.execute();
+                }
+
+                gc.nextTurn();
+            } catch (Exception e) {
+                System.out.println(e);
             }
-
-            gc.nextTurn();
         }
     }
 
@@ -151,19 +153,19 @@ public class Player {
         if (initialMap.onMap(mapLocation)) {
             if (gc.canSenseLocation(mapLocation)) {
                 if (gc.hasUnitAtLocation(mapLocation)) {
-                    // System.out.println("Map Location: " + mapLocation.toString());
+                    // // System.out.println("Map Location: " + mapLocation.toString());
                     return gc.senseUnitAtLocation(mapLocation);
                 } else {
-                    System.out.println("NO UNIT AT LOCATION");
+                    // System.out.println("NO UNIT AT LOCATION");
                     return null;
                 }
             } else {
-                System.out.println("LOCATION IS NOT IN VIEW RANGE");
+                // System.out.println("LOCATION IS NOT IN VIEW RANGE");
                 return null;
             }
         }
 
-        System.out.println("LOCATION IS NOT ON THE MAP");
+        // System.out.println("LOCATION IS NOT ON THE MAP");
         return null;
     }
 
@@ -179,12 +181,12 @@ public class Player {
             if (gc.canSenseLocation(mapLocation)) {
                 return (int)(gc.karboniteAt(mapLocation));
             } else {
-                System.out.println("LOCATION IS NOT IN THE SENSE ZONE");
+                // System.out.println("LOCATION IS NOT IN THE SENSE ZONE");
                 return -1;
             }
         }
 
-        System.out.println("LOCATION IS NOT ON THE MAP");
+        // System.out.println("LOCATION IS NOT ON THE MAP");
         return -1;
     }
 
@@ -286,7 +288,7 @@ public class Player {
         int minDistance = -1;
         // find worker with smallest sum to other workers, implementation inefficnet but max 3 workers so not big concern
         VecUnit myWorkers = Player.gc.units();
-        // System.out.println(myWorkers);
+        // // System.out.println(myWorkers);
         for (int i = 0; i < myWorkers.size(); i ++) {
             int distanceSum = 0;
             MapLocation workerOneLocation = myWorkers.get(i).location().mapLocation();
@@ -300,7 +302,7 @@ public class Player {
                 minDistance = distanceSum;
             }
         }
-        // System.out.println(workerLocation);
+        // // System.out.println(workerLocation);
 
         VecMapLocation locationsToCheck = Player.gc.allLocationsWithin(workerLocation, radius);
         HashSet<String> chosenLocations = new HashSet<>();
@@ -400,52 +402,16 @@ public class Player {
      * @param locationNearTo the location t search around
      * @return the id of the closest robot, -1 if no robot found
      */
-    public static int getNearestFriendlyAttacker(MapLocation locationNearTo) {
-        VecUnit myUnits = Player.gc.units();
-        if (myUnits.size() == 0) {
-            return -1;
-        }
-        HashSet<String> unitLocationsStrings = new HashSet<>();
-        for (int i = 0; i < myUnits.size(); i++) {
-            unitLocationsStrings.add(myUnits.get(i).location().mapLocation().toString());
-        } {
-
-        }
-        ArrayList<Direction> moveDirections = Player.getMoveDirections();
-
-        MapLocation robotLocation = null;
-        int robotId = -1;
-
-        Queue<MapLocation> frontier = new LinkedList<>();
-        frontier.add(locationNearTo);
-
-        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
-        checkedLocations.put(locationNearTo.toString(), locationNearTo);
-
-        while (!frontier.isEmpty()) {
-            // Get next direction to check around
-            MapLocation currentLocation = frontier.poll();
-
-
-            Collections.shuffle(moveDirections, new Random());
-            // Check if locations around frontier location have already been added to came from and if they are empty
-            for (Direction nextDirection : moveDirections) {
-                MapLocation nextLocation = currentLocation.add(nextDirection);
-
-                if (Player.isLocationEmpty(Player.gc.startingMap(Player.gc.planet()), nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
-                    frontier.add(nextLocation);
-                    checkedLocations.put(nextLocation.toString(), currentLocation);
-                    if (unitLocationsStrings.contains(nextLocation.toString())) {
-                        frontier.clear();
-                        robotLocation = nextLocation;
-                        robotId = Player.gc.senseUnitAtLocation(nextLocation).id();
-                    }
+    public static int getNearestFriendlyAttacker(MapLocation locationNearTo, HashSet<Integer> unitsOnTask) {
+        for (int attackerId: Earth.earthAttackerMap.keySet()) {
+            if (gc.unit(attackerId).location().mapLocation().distanceSquaredTo(locationNearTo) <= 25) {
+                if (!unitsOnTask.contains(attackerId)) {
+                    return attackerId;
                 }
             }
         }
 
-        return robotId;
-
+        return -1;
     }
 }
 

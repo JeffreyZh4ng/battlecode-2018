@@ -16,25 +16,25 @@ public class Factory extends Structure {
     public void run() {
         if (this.isBuilt()) {
             UnitType unitToProduce = findUnitToProduce();
-            if (Player.gc.canProduceRobot(this.getId(), unitToProduce)) {
+            if (Player.gc.canProduceRobot(this.getId(), unitToProduce) && Player.gc.karbonite() > 80) {
                 Player.gc.produceRobot(this.getId(), unitToProduce);
 
                 switch (unitToProduce) {
                     case Knight:
                         Earth.knightCount++;
-                        System.out.println("Knight count + " + Earth.knightCount);
+                        System.out.println("Knight count " + Earth.knightCount);
                         break;
                     case Ranger:
                         Earth.rangerCount++;
-                        System.out.println("Ranger count + " + Earth.rangerCount);
+                        System.out.println("Ranger count " + Earth.rangerCount);
                         break;
                     case Healer:
                         Earth.healerCount++;
-                        System.out.println("Healer count + " + Earth.healerCount);
+                        System.out.println("Healer count " + Earth.healerCount);
                         break;
                     case Mage:
                         Earth.mageCount++;
-                        System.out.println("Mage count + " + Earth.mageCount);
+                        System.out.println("Mage count " + Earth.mageCount);
                         break;
                 }
             }
@@ -70,17 +70,13 @@ public class Factory extends Structure {
         int armySize = Earth.earthAttackerMap.size();
         if (armySize > 40 && Earth.mageCount < 5) {
             return UnitType.Mage;
-
-        } else if (Earth.earthAttackerMap.size() > 10 && Earth.healerCount < (armySize / 6)) {
-            return UnitType.Healer;
-
         } else {
-            int randomInt = (int)(Math.random() * 2);
-            if (randomInt == 0) {
-                return UnitType.Knight;
-            } else {
+//            int randomInt = (int)(Math.random() * 2);
+//            if (randomInt == 0) {
+//                return UnitType.Knight;
+//            } else {
                 return UnitType.Ranger;
-            }
+//            }
         }
     }
 }

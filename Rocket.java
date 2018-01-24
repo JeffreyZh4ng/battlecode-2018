@@ -5,6 +5,7 @@ import java.util.*;
 public class Rocket extends Structure {
 
     private boolean inFlight = false;
+    private int garrisonCount = 0;
     private HashSet<Integer> garrison = new HashSet<>();
 
     public Rocket(int id, boolean isBuilt, MapLocation rocketLocation) {
@@ -20,7 +21,7 @@ public class Rocket extends Structure {
     public void run() {
         if (this.isBuilt()) {
             if (this.getLocation().getPlanet() == Planet.Earth && !inFlight) {
-                if (garrison.size() == 8) {
+                if (garrisonCount == 0) {
                     MapLocation locationToLand = Player.getLandingLocation();
                     if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
                         Player.gc.launchRocket(this.getId(), locationToLand);
@@ -28,13 +29,7 @@ public class Rocket extends Structure {
                     }
                 }
             }
-
-            if (this.getLocation().getPlanet() == Planet.Mars) {
-                unload();
-                if (garrison.size() == 0) {
-                    Player.gc.disintegrateUnit(this.getId());
-                }
-            }
+            System.out.println("Rocket size: " + garrisonCount);
         }
     }
 
@@ -84,7 +79,7 @@ public class Rocket extends Structure {
     public boolean loadUnit(int unitId) {
         if (Player.gc.canLoad(this.getId(), unitId)) {
             Player.gc.load(this.getId(), unitId);
-            garrison.add(unitId);
+            garrisonCount++;
             Earth.earthGarrisonedUnits.add(unitId);
             System.out.println("Loaded unit " + unitId);
 

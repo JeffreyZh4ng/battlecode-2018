@@ -60,7 +60,7 @@ public class GlobalTask {
     public void addAttackerToList(int attackerId) {
         unitsOnTask.add(attackerId);
         RobotTask moveTask = new RobotTask(taskId, Command.MOVE, taskLocation);
-        Earth.earthStagingAttackerMap.get(attackerId).setCurrentTask(moveTask);
+        Earth.earthAttackerMap.get(attackerId).setCurrentTask(moveTask);
     }
 
     /**
@@ -153,13 +153,23 @@ public class GlobalTask {
     private void sendRocketRequestHelper(int unitId) {
         int rocketId = Player.gc.senseUnitAtLocation(this.getTaskLocation()).id();
         if (Earth.earthRocketMap.get(rocketId).loadUnit(unitId)) {
+            RobotTask nextTask = new RobotTask(this.getTaskId(), Command.STALL, this.getTaskLocation());
+            if (Player.gc.unit(unitId).unitType() == UnitType.Worker) {
+                System.out.println("Setting  task to stall unit: " + unitId);
+                Earth.earthWorkerMap.get(unitId).setEmergencyTask(nextTask);
+            } else {
+                System.out.println("Setting  task to stall unit: " + unitId);
+                Earth.earthAttackerMap.get(unitId).setEmergencyTask(nextTask);
+            }
             return;
         }
 
         RobotTask nextTask = new RobotTask(this.getTaskId(), Command.STALL, this.getTaskLocation());
         if (Player.gc.unit(unitId).unitType() == UnitType.Worker) {
+            System.out.println("Setting emergency task to stall unit: " + unitId);
             Earth.earthWorkerMap.get(unitId).setEmergencyTask(nextTask);
         } else {
+            System.out.println("Setting emergency task to stall unit: " + unitId);
             Earth.earthAttackerMap.get(unitId).setEmergencyTask(nextTask);
         }
     }
