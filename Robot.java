@@ -13,7 +13,7 @@ public abstract class Robot extends UnitInstance {
     public Robot(int id) {
         super(id);
     }
-    
+
     @Override
     public void pollCurrentTask() {
         super.pollCurrentTask();
@@ -174,7 +174,7 @@ public abstract class Robot extends UnitInstance {
         Stack<MapLocation> originalPath = new Stack<>();
 
         while (movePathStack.size() > 1) {
-            if (!Player.isOccupiable(movePathStack.peek())) {
+            if (!Player.isLocationEmpty(movePathStack.peek())) {
                 originalPath.add(movePathStack.pop());
             } else {
                 break;
@@ -195,33 +195,6 @@ public abstract class Robot extends UnitInstance {
             }
         }
     }
-
-//    /**
-//     * Method that will set a robots task to wander within a certain radius
-//     * @param radius The radius to wander in
-//     */
-//    public void wanderWithinRadius(int radius) {
-//
-//            ArrayList<Direction> moveDirections = Player.getMoveDirections();
-//            MapLocation myLocation = this.getLocation();
-//            for (Direction direction : moveDirections) {
-//                if (Player.isOccupiable(myLocation.add(direction)) && this.wanderFromLocation.distanceSquaredTo(myLocation.add(direction)) < radius) {
-//                    this.addTaskToQueue(new RobotTask(-1, Command.MOVE, myLocation.add(direction)));
-//                }
-//            }
-//    }
-//
-//    /**
-//     * Make worker wander to a random location within its vision radius
-//     */
-//    public void wander() {
-//        ArrayList<MapLocation> wanderPath = getWanderPath(Player.gc.unit(this.getId()).location().mapLocation(),Player.gc.startingMap(Player.gc.planet()));
-//        if (wanderPath != null) {
-//            path = wanderPath;
-//            this.setCurrentTask(new RobotTask(-1, Command.MOVE, wanderPath.get(wanderPath.size() - 1)));
-//        }
-//        // System.out.println("no wander Location");
-//    }
 }
 
 

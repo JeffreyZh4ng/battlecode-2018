@@ -99,28 +99,6 @@ public class Player {
     }
 
     /**
-     * Simplified method of isOccupiable that will handle any exceptions that the gc.isOccupiable method will
-     * throw. Check if the location is on the map then checks if it can see the location. If the location can
-     * be seen then return the default isOccupiable method. If we cant see the location then return true because
-     * the worst that can happen is there is an enemy unit there which we can destroy.
-     * @param mapLocation The location you want to check
-     * @return If it is occupiable or not
-     */
-    public static boolean isOccupiable(MapLocation mapLocation) {
-        PlanetMap initialMap = gc.startingMap(mapLocation.getPlanet());
-        if (initialMap.onMap(mapLocation) && initialMap.isPassableTerrainAt(mapLocation) > 0) {
-            if (gc.canSenseLocation(mapLocation)) {
-                return gc.isOccupiable(mapLocation) > 0;
-            } else {
-                return true;
-            }
-
-        }
-
-        return false;
-    }
-
-    /**
      * Simplified method of senseUnitAtLocation that will handle the exception of if the location is not visible.
      * Catches all errors.
      * @param mapLocation The location of the unit that you want to sense

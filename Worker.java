@@ -4,40 +4,33 @@ import java.util.*;
 
 public class Worker extends Robot {
 
+    private MapLocation spawnLocation;
+
     public Worker(int id) {
         super(id);
+        spawnLocation = Player.gc.unit(id).location().mapLocation();
     }
 
     @Override
     public void run() {
 
+        // The worker will always try to mine karbonite when it can
+        mineKarbonite();
+
         if (this.getEmergencyTask() != null) {
-            if (executeTask(this.getEmergencyTask())) {
-                System.out.println("Worker: " + this.getId() + " Finished emergency task!");
-                this.setEmergencyTask(null);
+            if (this.getEmergencyTask().getCommand() == Command.STALL) {
+                return;
+            } else {
+                executeEmergencyTask();
             }
         }
 
         if (this.hasTasks()) {
             checkTaskStatus();
             executeCurrentTask();
-
         } else {
-//            System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
-//
-//            boolean karboniteHere = false;
-//            for (Direction direction : Direction.values()) {
-//                if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(this.getLocation().add(direction)))) {
-//                    karboniteHere = true;
-//                }
-//            }
-//            if(!karboniteHere) {
-//                wanderToMine();
-//            }
-            System.out.println("Worker: " + this.getId() + " Is supposed to find karbonite here");
+            executeIdleActions();
         }
-
-        mineKarbonite();
     }
 
     /**
@@ -91,11 +84,33 @@ public class Worker extends Robot {
                 return blueprintStructure(commandLocation, UnitType.Factory);
             case BLUEPRINT_ROCKET:
                 return blueprintStructure(commandLocation, UnitType.Rocket);
-            case STALL:
-                return false;
             default:
                 System.out.println("Critical error occurred in Worker: " + this.getId());
                 return true;
+        }
+    }
+
+    /**
+     * Helper method that will control what the robot does when it has no current tasks
+     */
+    private void executeIdleActions() {
+        MapLocation newMoveLocation = getNearestKarboniteLocation();
+        if (newMoveLocation != null) {
+            this.addTaskToQueue(new RobotTask(-1, Command.MOVE, newMoveLocation));
+            System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
+        } else {
+            wanderWithinRadius(100);
+            System.out.println("Worker: " + this.getId() + " Wandering!");
+        }
+    }
+
+    /**
+     * Helper method that will control how the robot operates when it has an emergency task that is not STALL
+     */
+    private void executeEmergencyTask() {
+        if (executeTask(this.getEmergencyTask())) {
+            System.out.println("Worker: " + this.getId() + " Finished emergency task!");
+            this.setEmergencyTask(null);
         }
     }
 
@@ -213,77 +228,67 @@ public class Worker extends Robot {
         }
     }
 
-//    /**
-//     * Method that will set the robots current task to wander and mine karbonite
-//     */
-//    private void wanderToMine() {
-//        MapLocation karboniteLocation = getPathToKarbonite(this.getLocation(), Player.gc.startingMap(Player.gc.planet()));
-//        if (karboniteLocation != null && this.getMovePathStack() != null) {
-//            this.setCurrentTask(new RobotTask(-1, Command.MOVE, karboniteLocation));
-//            System.out.println("Setting the current task to go mine karbonite");
-//        }
-//    }
-//
-//    /**
-//     * Method that will get the path to the nearest karbonite deposit.
-//     * @param startingLocation The starting location of the robot
-//     * @param map The map the robot is on
-//     * @return The stack of path values to the karbonite deposit
-//     */
-//    private MapLocation getPathToKarbonite(MapLocation startingLocation, PlanetMap map) {
-//
-//        if (Earth.earthKarboniteMap.size() == 0) {
-//            return null;
-//        }
-//        ArrayList<Direction> moveDirections = Player.getMoveDirections();
-//
-//        //shuffle directions so that wandering doesn't gravitate towards a specific direction
-//        MapLocation destinationLocation = null;
-//
-//        Queue<MapLocation> frontier = new LinkedList<>();
-//        frontier.add(startingLocation);
-//
-//        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
-//        checkedLocations.put(startingLocation.toString(), startingLocation);
-//
-//        while (!frontier.isEmpty()) {
-//            // Get next direction to check around
-//            MapLocation currentLocation = frontier.poll();
-//
-//
-//            Collections.shuffle(moveDirections, new Random());
-//            // Check if locations around frontier location have already been added to came from and if they are empty
-//            for (Direction nextDirection : moveDirections) {
-//                MapLocation nextLocation = currentLocation.add(nextDirection);
-//
-//                if (Player.isLocationEmpty(map, nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
-//                    frontier.add(nextLocation);
-//                    checkedLocations.put(nextLocation.toString(), currentLocation);
-//                    if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(nextLocation))) {
-//                        frontier.clear();
-//                        destinationLocation = nextLocation;
-//                    }
-//                }
-//            }
-//        }
-//
-//        if (destinationLocation == null) {
-//            return null;
-//        }
-//        Stack<MapLocation> newPath = new Stack<>();
-//        MapLocation currentTraceLocation = destinationLocation;
-//
-//        // trace back path
-//        while (!currentTraceLocation.equals(startingLocation)) {
-//            newPath.push(currentTraceLocation);
-//            currentTraceLocation = checkedLocations.get(currentTraceLocation.toString());
-//            if (currentTraceLocation == null) {
-//                break;
-//            }
-//        }
-//        this.setMovePathStack(newPath);
-//
-//        return destinationLocation;
-//    }
+    /**
+     * Method that will get the nearest location of a karbonite deposit
+     * @return The MapLocation of the nearest karbonite deposit. Null if there is no karbonite on the map
+     */
+    private MapLocation getNearestKarboniteLocation() {
+
+        if (Earth.earthKarboniteMap.size() == 0) {
+            return null;
+        }
+
+        MapLocation destinationLocation = null;
+
+        Queue<MapLocation> frontier = new LinkedList<>();
+        frontier.add(this.getLocation());
+
+        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
+        checkedLocations.put(this.getLocation().toString(), this.getLocation());
+
+        while (!frontier.isEmpty()) {
+            MapLocation currentLocation = frontier.poll();
+
+            // Shuffle directions so that wandering doesn't gravitate towards a specific direction
+            ArrayList<Direction> moveDirections = Player.getMoveDirections();
+            Collections.shuffle(moveDirections, new Random());
+
+            // Check if locations around frontier location have already been added to came from and if they are empty
+            for (Direction nextDirection : moveDirections) {
+                MapLocation nextLocation = currentLocation.add(nextDirection);
+
+                if (Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
+                    checkedLocations.put(nextLocation.toString(), currentLocation);
+                    frontier.add(nextLocation);
+
+                    if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(nextLocation))) {
+                        destinationLocation = nextLocation;
+                        frontier.clear();
+                    }
+                }
+            }
+        }
+
+        return destinationLocation;
+    }
+
+    /**
+     * Method that will set a robots task to wander within a certain radius
+     * @param radius The radius to wander in
+     */
+    public void wanderWithinRadius(int radius) {
+        VecMapLocation mapLocations = Player.gc.allLocationsWithin(spawnLocation, radius);
+
+        MapLocation wanderLocation = null;
+        while (wanderLocation == null) {
+
+            int randomLocation = (int)(Math.random() * mapLocations.size());
+            if (Player.isLocationEmpty(mapLocations.get(randomLocation))) {
+                wanderLocation = mapLocations.get(randomLocation);
+            }
+        }
+
+        this.addTaskToQueue(new RobotTask(-1, Command.MOVE, wanderLocation));
+    }
 }
 
