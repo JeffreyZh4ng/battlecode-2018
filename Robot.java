@@ -14,16 +14,39 @@ public abstract class Robot extends UnitInstance {
         super(id);
     }
 
+    /**
+     * Overridden to set the path back to null if the task is completed
+     */
     @Override
     public void pollCurrentTask() {
         super.pollCurrentTask();
         movePathStack = null;
     }
 
+    /**
+     * Overridden to set the path back to null if the task is completed
+     */
     @Override
     public void setEmergencyTask(RobotTask emergencyTask) {
         super.setEmergencyTask(emergencyTask);
         movePathStack = null;
+    }
+
+    /**
+     * Method that a unit will call at the end of each stall task. Will check to see if the units movement heat
+     * is low enough to be loaded onto the rocket
+     * @param commandLocation The location of the rocket
+     * @return If the unit was loaded or not
+     */
+    public boolean requestUnitToLoad(MapLocation commandLocation) {
+        if (Player.gc.hasUnitAtLocation(commandLocation)) {
+            Unit rocket = Player.gc.senseUnitAtLocation(commandLocation);
+            Rocket rocketInstance = Earth.earthRocketMap.get(rocket.id());
+
+            return rocketInstance.loadUnit(this.getId());
+        }
+
+        return false;
     }
 
     /**

@@ -5,13 +5,18 @@ import java.util.*;
 public class Rocket extends UnitInstance {
 
     private boolean isBuilt;
-    private boolean inFlight = false;
-    private int garrisonCount = 0;
-    private HashSet<Integer> garrison = new HashSet<>();
+    private boolean inFlight;
+    private int garrisonCount;
 
     public Rocket(int id, boolean isBuilt) {
         super(id);
         this.isBuilt = isBuilt;
+        this.inFlight = false;
+        this.garrisonCount = 0;
+
+        if (isBuilt) {
+            Earth.createGlobalTask(Command.LOAD_ROCKET);
+        }
     }
 
     public boolean isInFlight() {
@@ -22,19 +27,25 @@ public class Rocket extends UnitInstance {
     @Override
     public void run() {
         if (isBuilt) {
-            if (this.getLocation().getPlanet() == Planet.Earth && !inFlight) {
-                if (garrisonCount == 0) {
-                    MapLocation locationToLand = Player.getLandingLocation();
-                    if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
-                        Player.gc.launchRocket(this.getId(), locationToLand);
-                        inFlight = true;
-                    }
+
+            if ((this.getLocation().getPlanet() == Planet.Earth && !inFlight && garrisonCount == 8) ||
+                    Player.gc.unit(this.getId()).health() < 100) {
+
+                MapLocation locationToLand = Player.getLandingLocation();
+                if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
+                    Player.gc.launchRocket(this.getId(), locationToLand);
+                    inFlight = true;
                 }
+
+            } else if (this.getLocation().getPlanet() == Planet.Mars) {
+                unload();
             }
-            System.out.println("Rocket size: " + garrisonCount);
         }
     }
 
+    /**
+     * Method will unload all the units it can when the rocket reaches mars.
+     */
     public void unload() {
         for (int i = 0; i < 8; i++) {
             Direction direction = Direction.swigToEnum(i);
@@ -43,7 +54,6 @@ public class Rocket extends UnitInstance {
 
                 MapLocation unloadLocation = this.getLocation().add(direction);
                 int unitId = Player.gc.senseUnitAtLocation(unloadLocation).id();
-                garrison.add(unitId);
 
                 UnitType unitType = Player.gc.unit(unitId).unitType();
                 UnitInstance unitInstance;
@@ -80,23 +90,9 @@ public class Rocket extends UnitInstance {
     public boolean loadUnit(int unitId) {
         if (Player.gc.canLoad(this.getId(), unitId)) {
             Player.gc.load(this.getId(), unitId);
-            garrisonCount++;
             Earth.earthGarrisonedUnits.add(unitId);
             System.out.println("Loaded unit " + unitId);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * When a rocket is empty, disintegrate it
-     * @return If the rocket was disintegrated or not
-     */
-    public boolean disintegrateRocket() {
-        if (garrison.size() >= 8) {
-            Player.gc.disintegrateUnit(this.getId());
+            garrisonCount++;
 
             return true;
         }

@@ -41,74 +41,68 @@ public abstract class Attacker extends Robot {
         }
     }
 
-    public static HashMap<String, MapLocation> mapToAttackTarget = null;
-
-//    public static void createMapToAttackTarget() {
-//        ArrayList<Direction> moveDirections = Player.getMoveDirections();
-//        MapLocation attackTarget = getAttackTarget();
-//        Queue<MapLocation> frontier = new LinkedList<>();
-//        frontier.add(attackTarget);
-//        HashMap<String, MapLocation> cameFrom = new HashMap<>();
-//        cameFrom.put(attackTarget.toString(), attackTarget);
-//
-//        while (!frontier.isEmpty()) {
-//
-//            // Get next direction to check around
-//            MapLocation currentLocation = frontier.poll();
-//
-//            // Check if locations around frontier location have already been added to came from and if they are empty
-//            for (Direction nextDirection : moveDirections) {
-//                MapLocation nextLocation = currentLocation.add(nextDirection);
-//
-//                if (Player.doesLocationAppearEmpty(Player.gc.startingMap(Player.gc.planet()), nextLocation) && !cameFrom.containsKey(nextLocation.toString())) {
-//                    frontier.add(nextLocation);
-//                    cameFrom.put(nextLocation.toString(), currentLocation);
-//                }
-//            }
-//        }
-//    }
-
     /**
      * If attacker is not in combat, it moves to and attacks the global attackTarget otherwise it attacks the closest enemy in range
      */
     public void runAttacker() {
 
-        updateTask();
-        senseForEnemyUnits();
-
         if (this.getEmergencyTask() != null) {
-            if (executeTask(this.getEmergencyTask())) {
-                System.out.println("Attacker: " + this.getId() + " Finished emergency task!");
-
-                if (this.getCurrentTask() != null && this.getEmergencyTask().getCommand() == Command.STALL) {
-                    GlobalTask globalTask = Earth.earthTaskMap.get(this.getEmergencyTask().getTaskId());
-                    // globalTask.finishedTask(this.getId(), this.getEmergencyTask().getCommand());
-
-                    System.out.println("Returning!!! " + this.getId());
-                    return;
-                }
-                this.setEmergencyTask(null);
+            if (this.getEmergencyTask().getCommand() == Command.STALL) {
+                return;
+            } else {
+                executeEmergencyTask();
             }
-
-        } else if (this.getCurrentTask() != null) {
-            if (executeTask(this.getCurrentTask())) {
-                if (this.getCurrentTask().getCommand() == Command.IN_COMBAT) {
-                    hasAttackLocationBeenChecked();
-                }
-
-                int taskId = this.getCurrentTask().getTaskId();
-                if (taskId != -1) {
-                    // Earth.earthTaskMap.get(taskId).finishedTask(this.getId(), this.getCurrentTask().getCommand());
-                } else {
-                    System.out.println("Attacker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
-                    // this.setCurrentTask(null);
-                }
-            }
-        } else {
-            System.out.println("Attacker: " + this.getId() + " Wandering!");
-            wander();
         }
+
+        if (this.hasTasks()) {
+            checkTaskStatus();
+            executeCurrentTask();
+        } else {
+            executeIdleActions();
+        }
+
+//        updateTask();
+//        senseForEnemyUnits();
+//
+//        if (this.getEmergencyTask() != null) {
+//            if (executeTask(this.getEmergencyTask())) {
+//                System.out.println("Attacker: " + this.getId() + " Finished emergency task!");
+//
+//                if (this.getCurrentTask() != null && this.getEmergencyTask().getCommand() == Command.STALL) {
+//                    GlobalTask globalTask = Earth.earthTaskMap.get(this.getEmergencyTask().getTaskId());
+//                    // globalTask.finishedTask(this.getId(), this.getEmergencyTask().getCommand());
+//
+//                    System.out.println("Returning!!! " + this.getId());
+//                    return;
+//                }
+//                this.setEmergencyTask(null);
+//            }
+//
+//        } else if (this.getCurrentTask() != null) {
+//            if (executeTask(this.getCurrentTask())) {
+//                if (this.getCurrentTask().getCommand() == Command.IN_COMBAT) {
+//                    hasAttackLocationBeenChecked();
+//                }
+//
+//                int taskId = this.getCurrentTask().getTaskId();
+//                if (taskId != -1) {
+//                    // Earth.earthTaskMap.get(taskId).finishedTask(this.getId(), this.getCurrentTask().getCommand());
+//                } else {
+//                    System.out.println("Attacker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+//                    // this.setCurrentTask(null);
+//                }
+//            }
+//        } else {
+//            System.out.println("Attacker: " + this.getId() + " Wandering!");
+//            wander();
+//        }
     }
+
+    /**
+     * Attacks the weakest enemy that it can, will move towards if unreachable
+     * @return true if nothing to attack false if attacked or has enemy in range
+     */
+    public abstract boolean runBattleAction();
 
     /**
      * Executes the task from the task queue
@@ -199,23 +193,17 @@ public abstract class Attacker extends Robot {
         return true;
     }
 
-    /**
-     * Attacks the weakest enemy that it can, will move towards if unreachable
-     * @return true if nothing to attack false if attacked or has enemy in range
-     */
-    public abstract boolean runBattleAction();
-
-    /**
-     * Make worker wander to a random location within its vision radius
-     */
-    private void wander() {
-        MapLocation currentLocation = Player.gc.unit(this.getId()).location().mapLocation();
-        VecMapLocation locations = Player.gc.allLocationsWithin(currentLocation, 50);
-        int randomLocation = (int)(Math.random()*locations.size());
-
-        MapLocation wanderLocation = locations.get(randomLocation);
-        RobotTask wanderTask = new RobotTask(-1, Command.MOVE, wanderLocation);
-
-        this.setEmergencyTask(wanderTask);
-    }
+//    /**
+//     * Make worker wander to a random location within its vision radius
+//     */
+//    private void wander() {
+//        MapLocation currentLocation = Player.gc.unit(this.getId()).location().mapLocation();
+//        VecMapLocation locations = Player.gc.allLocationsWithin(currentLocation, 50);
+//        int randomLocation = (int)(Math.random() * locations.size());
+//
+//        MapLocation wanderLocation = locations.get(randomLocation);
+//        RobotTask wanderTask = new RobotTask(-1, Command.MOVE, wanderLocation);
+//
+//        this.setEmergencyTask(wanderTask);
+//    }
 }

@@ -109,19 +109,15 @@ public class Player {
         if (initialMap.onMap(mapLocation)) {
             if (gc.canSenseLocation(mapLocation)) {
                 if (gc.hasUnitAtLocation(mapLocation)) {
-                    // // System.out.println("Map Location: " + mapLocation.toString());
                     return gc.senseUnitAtLocation(mapLocation);
                 } else {
-                    // System.out.println("NO UNIT AT LOCATION");
                     return null;
                 }
             } else {
-                // System.out.println("LOCATION IS NOT IN VIEW RANGE");
                 return null;
             }
         }
 
-        // System.out.println("LOCATION IS NOT ON THE MAP");
         return null;
     }
 
@@ -137,12 +133,10 @@ public class Player {
             if (gc.canSenseLocation(mapLocation)) {
                 return (int)(gc.karboniteAt(mapLocation));
             } else {
-                // System.out.println("LOCATION IS NOT IN THE SENSE ZONE");
                 return -1;
             }
         }
 
-        // System.out.println("LOCATION IS NOT ON THE MAP");
         return -1;
     }
 
@@ -215,6 +209,7 @@ public class Player {
      * Finds structure locations based on initial map locations.
      * @return the initially available structure locations
      */
+    // TODO: Redo
     public static void setStructureLocations(int maxNonPassable, int radius) {
 
         MapLocation workerLocation = null;
@@ -281,6 +276,7 @@ public class Player {
      * @param location The location to check
      * @return If the location appears empty
      */
+    // TODO: Redo
     public static boolean isLocationEmpty(MapLocation location) {
         PlanetMap planetMap = gc.startingMap(location.getPlanet());
         if (planetMap.onMap(location) && planetMap.isPassableTerrainAt(location) > 0) {
@@ -296,6 +292,7 @@ public class Player {
     /**
      * Method that will find locations on mars that will let rockets land
      */
+    // TODO: Redo
     public static void findPassableMarsThreeSquares() {
         ArrayList<MapLocation> availableLocations = new ArrayList<>();
         PlanetMap marsStartingMap = Player.gc.startingMap(Planet.Mars);
@@ -321,6 +318,7 @@ public class Player {
      * Gets a landing location for mars
      * @return The landing location
      */
+    // TODO: Redo
     public static MapLocation getLandingLocation() {
         if (availableLandingLocations.size() == 0) {
             return null;
@@ -332,19 +330,55 @@ public class Player {
 
     /**
      * Finds the nearest of friendly units to a given location and returns the id of that robot
-     * @param locationNearTo the location t search around
+     * @param centerLocation the location t search around
      * @return the id of the closest robot, -1 if no robot found
      */
-    public static int getNearestFriendlyAttacker(MapLocation locationNearTo, HashSet<Integer> unitsOnTask) {
-        for (int attackerId: Earth.earthAttackerMap.keySet()) {
-            if (gc.unit(attackerId).location().mapLocation().distanceSquaredTo(locationNearTo) <= 25) {
-                if (!unitsOnTask.contains(attackerId)) {
-                    return attackerId;
+    public static ArrayList<Integer> getNearestFriendlyUnit(MapLocation centerLocation, boolean isWorker, int numberRequested) {
+        HashMap<String, Integer> unitLocations = new HashMap<>();
+
+        if (isWorker) {
+            for (int unitId: Earth.earthWorkerMap.keySet()) {
+                unitLocations.put(mapLocationToString(Earth.earthWorkerMap.get(unitId).getLocation()), unitId);
+            }
+        } else {
+            for (int unitId: Earth.earthAttackerMap.keySet()) {
+                unitLocations.put(mapLocationToString(Earth.earthAttackerMap.get(unitId).getLocation()), unitId);
+            }
+        }
+
+        ArrayList<Direction> moveDirections = Player.getMoveDirections();
+        Collections.shuffle(moveDirections, new Random());
+
+        Queue<MapLocation> frontier = new LinkedList<>();
+        frontier.add(centerLocation);
+
+        HashSet<String> checkedLocations = new HashSet<>();
+        checkedLocations.add(mapLocationToString(centerLocation));
+
+        ArrayList<Integer> closestUnitIds = new ArrayList<>();
+        while (!frontier.isEmpty()) {
+            MapLocation currentLocation = frontier.poll();
+
+            for (Direction nextDirection : moveDirections) {
+                MapLocation nextMapLocation = currentLocation.add(nextDirection);
+                String nextLocation = mapLocationToString(currentLocation.add(nextDirection));
+
+                if (!checkedLocations.contains(nextLocation)) {
+                    checkedLocations.add(nextLocation);
+                    frontier.add(nextMapLocation);
+
+                    if (unitLocations.containsKey(nextLocation)) {
+                        closestUnitIds.add(unitLocations.get(nextLocation));
+
+                        if (closestUnitIds.size() == numberRequested) {
+                            return closestUnitIds;
+                        }
+                    }
                 }
             }
         }
 
-        return -1;
+        return closestUnitIds;
     }
 }
 

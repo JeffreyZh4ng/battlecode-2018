@@ -78,6 +78,28 @@ public class GlobalTask {
     }
 
     /**
+     * Method that will be used only when a rocket wants to be loaded. Adds the unit to the list and updates
+     * their tasks in their respective maps.
+     * @param unitId The id of the unit
+     */
+    public void addUnitToList(int unitId) {
+        unitsOnTask.add(unitId);
+        UnitInstance unit;
+
+        if (Player.gc.unit(unitId).unitType() == UnitType.Worker) {
+            unit = Earth.earthWorkerMap.get(unitId);
+        } else {
+            unit = Earth.earthAttackerMap.get(unitId);
+        }
+
+        RobotTask moveTask = new RobotTask(taskId, Command.MOVE, taskLocation);
+        unit.addTaskToQueue(moveTask);
+
+        RobotTask stallTask = new RobotTask(taskId, Command.STALL, taskLocation);
+        unit.addTaskToQueue(stallTask);
+    }
+
+    /**
      * Removes a worker from the list and at the same time tries to find another one to complete the tasks
      * @param workerId The id of the worker being removed
      */

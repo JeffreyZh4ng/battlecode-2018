@@ -19,6 +19,7 @@ public class Worker extends Robot {
 
         if (this.getEmergencyTask() != null) {
             if (this.getEmergencyTask().getCommand() == Command.STALL) {
+                executeEmergencyTask();
                 return;
             } else {
                 executeEmergencyTask();
@@ -84,6 +85,8 @@ public class Worker extends Robot {
                 return blueprintStructure(commandLocation, UnitType.Factory);
             case BLUEPRINT_ROCKET:
                 return blueprintStructure(commandLocation, UnitType.Rocket);
+            case STALL:
+                return this.requestUnitToLoad(commandLocation);
             default:
                 System.out.println("Critical error occurred in Worker: " + this.getId());
                 return true;
