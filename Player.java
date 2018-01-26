@@ -144,7 +144,7 @@ public class Player {
     public static ArrayList<Direction> getMoveDirections() {
         ArrayList<Direction> directions = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
-            directions.add( Direction.swigToEnum(i));
+            directions.add(Direction.swigToEnum(i));
         }
         return directions;
     }
@@ -312,13 +312,13 @@ public class Player {
     }
 
     /**
-     * Finds the nearest of friendly units to a given location and returns the id of that robot
-     * @param centerLocation the location t search around
-     * @return the id of the closest robot, -1 if no robot found
+     * Finds the nearest units to a given task that are not already on the task
+     * @param globalTask The global task of that is requesting units
+     * @return The list of closest idle workers to add to the global task
      */
-    public static ArrayList<Integer> getNearestFriendlyUnit(MapLocation centerLocation, boolean isWorker, int numberRequested) {
-        HashMap<String, Integer> unitLocations = new HashMap<>();
+    public static ArrayList<Integer> getNearestFriendlyUnit(GlobalTask globalTask, boolean isWorker, int numberRequested) {
 
+        HashMap<String, Integer> unitLocations = new HashMap<>();
         if (isWorker) {
             for (int unitId: Earth.earthWorkerMap.keySet()) {
                 unitLocations.put(locationToString(Earth.earthWorkerMap.get(unitId).getLocation()), unitId);
@@ -329,12 +329,21 @@ public class Player {
             }
         }
 
+        // Compile the list of units already on the task and remove them from the unitLocations list
+        for (int unitId: globalTask.getUnitsOnTask()) {
+            MapLocation unitLocation = Player.gc.unit(unitId).location().mapLocation();
+            unitLocations.remove(locationToString(unitLocation));
+        }
+
+        MapLocation centerLocation = globalTask.getTaskLocation();
         Queue<MapLocation> frontier = new LinkedList<>();
         frontier.add(centerLocation);
 
         HashSet<String> checkedLocations = new HashSet<>();
         checkedLocations.add(locationToString(centerLocation));
 
+        // Initializes the list of closest units and will check if there is a unit at the spot of the task
+        // Because we automatically add that into the checked locations list
         ArrayList<Integer> closestUnitIds = new ArrayList<>();
         PlanetMap planetMap = gc.startingMap(centerLocation.getPlanet());
         if (unitLocations.containsKey(locationToString(centerLocation))) {

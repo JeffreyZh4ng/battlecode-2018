@@ -100,15 +100,16 @@ public class Earth {
 
         ArrayList<Integer> unitSet = new ArrayList<>();
         if (unitsOnTaskCount < 1) {
-            unitSet.addAll(Player.getNearestFriendlyUnit(globalTask.getTaskLocation(), true, 1));
+            unitSet.addAll(Player.getNearestFriendlyUnit(globalTask, true, 1));
             unitsOnTaskCount++;
         }
 
-        unitSet.addAll(Player.getNearestFriendlyUnit(globalTask.getTaskLocation(), false,
+        unitSet.addAll(Player.getNearestFriendlyUnit(globalTask, false,
                 UNITS_ON_LOAD_TASK - unitsOnTaskCount));
 
         for (Integer unitId : unitSet) {
             globalTask.addUnitToList(unitId);
+            System.out.println("Added worker " + unitId + " to task " + globalTask.getTaskId());
         }
 
         return globalTask.getUnitsOnTask().size() >= UNITS_ON_LOAD_TASK;
@@ -128,14 +129,12 @@ public class Earth {
 
         int workersOnTaskCount = globalTask.getUnitsOnTask().size();
 
-        ArrayList<Integer> workerSet = Player.getNearestFriendlyUnit(globalTask.getTaskLocation(),
+        ArrayList<Integer> workerSet = Player.getNearestFriendlyUnit(globalTask,
                 true, WORKERS_ON_CONSTRUCT_TASK - workersOnTaskCount);
 
         for (Integer workerId : workerSet) {
-            if (!globalTask.getUnitsOnTask().contains(workerId)) {
-                globalTask.addWorkerToList(workerId);
-                System.out.println("Added worker " + workerId + " to task " + globalTask.getTaskId());
-            }
+            globalTask.addWorkerToList(workerId);
+            System.out.println("Added worker " + workerId + " to task " + globalTask.getTaskId());
         }
 
         return globalTask.getUnitsOnTask().size() >= WORKERS_ON_CONSTRUCT_TASK;

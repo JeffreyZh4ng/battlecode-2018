@@ -63,14 +63,19 @@ public class Worker extends Robot {
      * Helper method that will run the workers current tasks. If it finished one, it checks if it can start the next
      */
     private void executeCurrentTask() {
-        System.out.println("Worker " + this.getId() + " on task " + this.getCurrentTask().getCommand());
-        if (executeTask(this.getCurrentTask())) {
-            System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
-            this.pollCurrentTask();
+        if (this.hasTasks() || this.getEmergencyTask() != null) {
+            System.out.println("Worker " + this.getId() + " on task " + this.getCurrentTask().getCommand());
+        }
 
-            // If the worker has completed the current task, check if it can also complete the next one
-            if (this.hasTasks()) {
-                executeCurrentTask();
+        if (this.hasTasks() || this.getEmergencyTask() != null) {
+            if (executeTask(this.getCurrentTask())) {
+                System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+                this.pollCurrentTask();
+
+                // If the worker has completed the current task, check if it can also complete the next one
+                if (this.hasTasks()) {
+                    executeCurrentTask();
+                }
             }
         }
     }
@@ -244,6 +249,7 @@ public class Worker extends Robot {
             MapLocation newLocation = Player.gc.unit(this.getId()).location().mapLocation().add(direction);
             if (Player.gc.canHarvest(this.getId(), direction) && Player.karboniteAt(newLocation) > 0) {
                 Player.gc.harvest(this.getId(), direction);
+                System.out.println("Worker: " + this.getId() + " mined karbonite");
                 break;
             }
         }

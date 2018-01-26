@@ -53,7 +53,7 @@ public abstract class Attacker extends Robot {
         VecUnit enemyUnits = this.getEnemyUnitsInRange();
         if (enemyUnits != null && enemyUnits.size() > 0) {
 
-            if (this.getEmergencyTask().getCommand() != Command.IN_COMBAT) {
+            if (this.getEmergencyTask() == null || this.getEmergencyTask().getCommand() != Command.IN_COMBAT) {
 
                 // This checks if you were the first to see the enemy location. If you were, the broadcast the location
                 if (this.getCurrentTask().getCommand() != null && this.getCurrentTask().getCommand() != Command.ALERTED) {
@@ -68,9 +68,11 @@ public abstract class Attacker extends Robot {
 
             // If the robot does not sense any enemies, but it is still in combat, the enemy it was in combat
             // with has been killed
-            if (this.getEmergencyTask().getCommand() == Command.IN_COMBAT) {
+            if (this.getEmergencyTask() != null && this.getEmergencyTask().getCommand() == Command.IN_COMBAT) {
                 this.setEmergencyTask(null);
             }
+
+            System.out.println("Attacker: " + this.getId() + " Did not see any enemies");
         }
     }
 
@@ -79,6 +81,7 @@ public abstract class Attacker extends Robot {
      * in the task queue.
      */
     private void setEmergencyTaskToInCombat() {
+        System.out.println("Attacker: " + this.getId() + " setting emergency task to IN COMBAT!");
         this.setEmergencyTask(new RobotTask(-1, Command.IN_COMBAT, this.getLocation()));
         this.pollCurrentTask();
     }
@@ -102,6 +105,7 @@ public abstract class Attacker extends Robot {
                     friendlyAttacker.pollCurrentTask();
                 }
 
+                System.out.println("Attacker: " + this.getId() + " has alerted " + friendlyAttacker.getId());
                 friendlyAttacker.addTaskToQueue(new RobotTask(-1, Command.ALERTED, this.getLocation()));
             }
         }
@@ -120,6 +124,8 @@ public abstract class Attacker extends Robot {
                 int enemyUnitId = enemyUnits.get(i).id();
                 if (Earth.earthFocusedTargets.contains(enemyUnitId)) {
                     focusedTargetId = enemyUnitId;
+
+                    System.out.println("Attacker: " + this.getId() + " is targeting enemy unit: " + enemyUnitId);
                     return;
                 }
             }
@@ -127,6 +133,8 @@ public abstract class Attacker extends Robot {
             int enemyId = this.getClosestEnemy(enemyUnits).id();
             Earth.earthFocusedTargets.add(enemyId);
             focusedTargetId = enemyId;
+
+            System.out.println("Attacker: " + this.getId() + " creating new focused attack target: " + enemyId);
         }
 
     }
@@ -136,15 +144,19 @@ public abstract class Attacker extends Robot {
      * If any are found, set the emergency task to in combat and execute the attack command
      */
     private void executeCurrentTask() {
-        if (executeTask(this.getCurrentTask())) {
-            System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+        if (this.hasTasks()) {
+            System.out.println("Attacker: " + this.getId() + " on task " + this.getCurrentTask().getCommand());
+        }
+
+        if (this.hasTasks() && executeTask(this.getCurrentTask())) {
+            System.out.println("Attacker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
             this.pollCurrentTask();
 
             if (getEnemyUnitsInRange().size() > 0) {
                 updateTargets();
                 executeTask(this.getEmergencyTask());
             } else {
-                executeTask(this.getCurrentTask());
+                executeCurrentTask();
             }
         }
     }
@@ -181,6 +193,7 @@ public abstract class Attacker extends Robot {
         if (!Earth.earthMainAttackQueue.isEmpty()) {
             MapLocation attackLocation = Earth.earthMainAttackQueue.peek();
 
+            System.out.println("Attacker: " + this.getId() + " moving to global attack location!");
             this.addTaskToQueue(new RobotTask(-1, Command.MOVE, attackLocation));
 
         } else {
@@ -195,6 +208,7 @@ public abstract class Attacker extends Robot {
                 }
             }
 
+            System.out.println("Attacker: " + this.getId() + " wandering!");
             this.addTaskToQueue(new RobotTask(-1, Command.MOVE, wanderLocation));
         }
     }
