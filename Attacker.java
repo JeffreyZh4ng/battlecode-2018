@@ -27,9 +27,8 @@ public abstract class Attacker extends Robot {
         if (this.getEmergencyTask() != null) {
             if (this.getEmergencyTask().getCommand() == Command.STALL) {
                 return;
-            } else {
-                executeEmergencyTask();
             }
+            executeTask(this.getEmergencyTask());
 
         } else if (this.hasTasks()) {
             executeCurrentTask();
@@ -46,20 +45,11 @@ public abstract class Attacker extends Robot {
     public abstract boolean runBattleAction();
 
     /**
-     * Method that will set the emergency task to in combat. When it does this it also pops off the tops task
-     * in the task queue.
-     */
-    private void setEmergencyTaskToInCombat() {
-        this.setEmergencyTask(new RobotTask(-1, Command.IN_COMBAT, this.getLocation()));
-        this.pollCurrentTask();
-    }
-
-    /**
      * Senses nearby for enemy units. If any are found, set the emergency task to in combat. Will check if any
      * nearby units are in the global focused attack list. If not, it will pick the nearest unit and add it
      * to the global focused attack list. Will set its own focused target to the unit.
      */
-    private void updateTargets() {
+    public void updateTargets() {
         VecUnit enemyUnits = this.getEnemyUnitsInRange();
         if (enemyUnits != null && enemyUnits.size() > 0) {
 
@@ -82,6 +72,15 @@ public abstract class Attacker extends Robot {
                 this.setEmergencyTask(null);
             }
         }
+    }
+
+    /**
+     * Method that will set the emergency task to in combat. When it does this it also pops off the tops task
+     * in the task queue.
+     */
+    private void setEmergencyTaskToInCombat() {
+        this.setEmergencyTask(new RobotTask(-1, Command.IN_COMBAT, this.getLocation()));
+        this.pollCurrentTask();
     }
 
     /**
@@ -133,16 +132,6 @@ public abstract class Attacker extends Robot {
     }
 
     /**
-     * Helper method that will control how the robot operates when it has an emergency task that is not STALL
-     */
-    private void executeEmergencyTask() {
-        if (executeTask(this.getEmergencyTask())) {
-            System.out.println("Worker: " + this.getId() + " Finished emergency task!");
-            this.setEmergencyTask(null);
-        }
-    }
-
-    /**
      * Helper method that will run the workers current tasks. If it finished one, it will sense for enemy robots.
      * If any are found, set the emergency task to in combat and execute the attack command
      */
@@ -153,7 +142,7 @@ public abstract class Attacker extends Robot {
 
             if (getEnemyUnitsInRange().size() > 0) {
                 updateTargets();
-                executeEmergencyTask();
+                executeTask(this.getEmergencyTask());
             } else {
                 executeTask(this.getCurrentTask());
             }

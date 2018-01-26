@@ -4,6 +4,9 @@ import java.util.*;
 
 public class Worker extends Robot {
 
+    // TODO: create a method that will analyze the map and determine the number of workers needed
+    private static final int NUMBER_OF_WORKERS_NEEDED = 8;
+
     private MapLocation spawnLocation;
 
     public Worker(int id) {
@@ -14,9 +17,6 @@ public class Worker extends Robot {
     @Override
     public void run() {
 
-        // The worker will always try to mine karbonite when it can
-        mineKarbonite();
-
         if (this.getEmergencyTask() != null) {
             if (this.getEmergencyTask().getCommand() == Command.STALL) {
                 executeEmergencyTask();
@@ -24,14 +24,20 @@ public class Worker extends Robot {
             } else {
                 executeEmergencyTask();
             }
+        }
 
-        } else if (this.hasTasks()) {
+        if (this.hasTasks()) {
             checkTaskStatus();
             executeCurrentTask();
 
-        } else {
+        }
+
+        if (!this.hasTasks()) {
             executeIdleActions();
         }
+
+        // The worker will always try to mine karbonite when it can
+        mineKarbonite();
     }
 
     /**
@@ -42,6 +48,7 @@ public class Worker extends Robot {
 
             GlobalTask currentGlobalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
             if (currentGlobalTask.checkGlobalTaskStatus(this.getCurrentTask().getCommand())) {
+                System.out.println("Worker: " + this.getId() + " popped task " + this.getCurrentTask().getCommand());
                 this.pollCurrentTask();
 
                 // If the task was already completed, check if the next one was completed as well
@@ -56,12 +63,15 @@ public class Worker extends Robot {
      * Helper method that will run the workers current tasks. If it finished one, it checks if it can start the next
      */
     private void executeCurrentTask() {
+        System.out.println("Worker " + this.getId() + " on task " + this.getCurrentTask().getCommand());
         if (executeTask(this.getCurrentTask())) {
             System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
             this.pollCurrentTask();
 
             // If the worker has completed the current task, check if it can also complete the next one
-            executeCurrentTask();
+            if (this.hasTasks()) {
+                executeCurrentTask();
+            }
         }
     }
 
@@ -101,6 +111,7 @@ public class Worker extends Robot {
         if (newMoveLocation != null) {
             this.addTaskToQueue(new RobotTask(-1, Command.MOVE, newMoveLocation));
             System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
+
         } else {
             wanderWithinRadius(100);
             System.out.println("Worker: " + this.getId() + " Wandering!");
@@ -178,7 +189,7 @@ public class Worker extends Robot {
             // Set the global task variable hasBlueprinted to true
             Earth.earthTaskMap.get(this.getCurrentTask().getTaskId()).structureHasBeenBlueprinted();
 
-            System.out.println("Worker: " + this.getId() + " Blueprinted structure at " + commandLocation.toString());
+            System.out.println("Worker: " + this.getId() + " Blueprinted structure at " + Player.locationToString(commandLocation));
             return true;
         }
 
@@ -194,6 +205,13 @@ public class Worker extends Robot {
         int structureId = Player.senseUnitAtLocation(commandLocation).id();
         if (Player.gc.canBuild(this.getId(), structureId)) {
             Player.gc.build(this.getId(), structureId);
+            System.out.println("Worker: " + this.getId() + " is building structure " + structureId);
+
+            // Check if it can clone here because we know it has no path when it is building and while building
+            // Is when you need another worker the most
+            if (Player.gc.karbonite() > 60 && Earth.earthWorkerMap.size() < NUMBER_OF_WORKERS_NEEDED) {
+                executeTask(new RobotTask(-1, Command.CLONE, commandLocation));
+            }
 
             if (Player.gc.unit(structureId).structureIsBuilt() > 0) {
 
@@ -264,7 +282,7 @@ public class Worker extends Robot {
                     checkedLocations.put(nextLocation.toString(), currentLocation);
                     frontier.add(nextLocation);
 
-                    if (Earth.earthKarboniteMap.containsKey(Player.mapLocationToString(nextLocation))) {
+                    if (Earth.earthKarboniteMap.containsKey(Player.locationToString(nextLocation))) {
                         destinationLocation = nextLocation;
                         frontier.clear();
                     }

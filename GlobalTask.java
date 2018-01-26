@@ -6,7 +6,7 @@ import java.util.HashSet;
 public class GlobalTask {
 
     public static int taskIndex = 0;
-    private static final int MAX_WORKER_COUNT = 10;
+    private static final int MAX_WORKER_COUNT = 4;
 
     private int taskId;
     private boolean isBuilt;
@@ -33,8 +33,16 @@ public class GlobalTask {
         hasBlueprinted = true;
     }
 
+    public boolean hasBlueprinted() {
+        return hasBlueprinted;
+    }
+
     public void structureHasBeenBuilt() {
         isBuilt = true;
+    }
+
+    public boolean hasBuilt() {
+        return isBuilt;
     }
 
     public Command getCommand() {
@@ -68,12 +76,7 @@ public class GlobalTask {
         }
         worker.addTaskToQueue(blueprintTask);
 
-        if (Earth.earthWorkerMap.size() < MAX_WORKER_COUNT) {
-            RobotTask cloneTask = new RobotTask(taskId, Command.CLONE, taskLocation);
-            worker.addTaskToQueue(cloneTask);
-        }
-
-        RobotTask buildTask = new RobotTask(taskId, Command.MOVE, taskLocation);
+        RobotTask buildTask = new RobotTask(taskId, Command.BUILD, taskLocation);
         worker.addTaskToQueue(buildTask);
     }
 

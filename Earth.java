@@ -47,7 +47,6 @@ public class Earth {
         addStagingUnitsToMap();
     }
 
-
     /**
      * This method will be called when a factory or blueprint want to be constructed. This method will help
      * choose the location of the structure and add it to the global task list
@@ -79,12 +78,12 @@ public class Earth {
         if (globalTask.getCommand() == Command.LOAD_ROCKET) {
             if (getUnitsToLoadRocket(globalTask)) {
                 earthTaskQueue.poll();
-                System.out.println("Assigned units for task: " + globalTask.getTaskId());
+                System.out.println("Units have been assigned for task: " + globalTask.getTaskId());
                 updateTaskQueue();
             }
         } else {
             if (getWorkersToConstruct(globalTask)) {
-                System.out.println("Assigned units for task: " + globalTask.getTaskId());
+                System.out.println("Units have been assigned for task: " + globalTask.getTaskId());
                 earthTaskQueue.poll();
                 updateTaskQueue();
             }
@@ -121,13 +120,22 @@ public class Earth {
      * @return If workers have been assigned to complete the task return true
      */
     private static boolean getWorkersToConstruct(GlobalTask globalTask) {
+
+        // Before doing any searching, check if the task has been completed already
+        if (globalTask.hasBuilt()) {
+            return true;
+        }
+
         int workersOnTaskCount = globalTask.getUnitsOnTask().size();
 
         ArrayList<Integer> workerSet = Player.getNearestFriendlyUnit(globalTask.getTaskLocation(),
                 true, WORKERS_ON_CONSTRUCT_TASK - workersOnTaskCount);
 
         for (Integer workerId : workerSet) {
-            globalTask.addWorkerToList(workerId);
+            if (!globalTask.getUnitsOnTask().contains(workerId)) {
+                globalTask.addWorkerToList(workerId);
+                System.out.println("Added worker " + workerId + " to task " + globalTask.getTaskId());
+            }
         }
 
         return globalTask.getUnitsOnTask().size() >= WORKERS_ON_CONSTRUCT_TASK;
@@ -145,7 +153,7 @@ public class Earth {
             for (int y = 0; y < initialMap.getHeight(); y++) {
                 MapLocation location = new MapLocation(Player.gc.planet(), x, y);
                 if (initialMap.initialKarboniteAt(location) > 0) {
-                    initialKarboniteValues.put(Player.mapLocationToString(location), (int)initialMap.initialKarboniteAt(location));
+                    initialKarboniteValues.put(Player.locationToString(location), (int)initialMap.initialKarboniteAt(location));
                 }
             }
         }
@@ -159,7 +167,7 @@ public class Earth {
     private static void updateKarboniteMap() {
         ArrayList<String> toRemove = new ArrayList<>();
         for (Map.Entry<String, Integer> locationEntry : earthKarboniteMap.entrySet()) {
-            MapLocation location = Player.stringToMapLocation(locationEntry.getKey());
+            MapLocation location = Player.stringToLocation(locationEntry.getKey());
 
             if (Player.gc.canSenseLocation(location)) {
                 int karboniteAt = (int)Player.gc.karboniteAt(location);
@@ -202,6 +210,23 @@ public class Earth {
         availableStructureLocations.remove(closestLocation);
         return closestLocation;
     }
+
+//    /**
+//     * Method that will check if we need to send out a wave of clone emergency tasks. Checks if the worker
+//     * already has an emergency task. If it doesn't it will a receive a clone emergency task
+//     */
+//    private static void doWeNeedWorkers() {
+//        if (earthWorkerMap.size() < NUMBER_OF_WORKERS_NEEDED) {
+//            for (int workerId: earthWorkerMap.keySet()) {
+//
+//                UnitInstance worker = earthWorkerMap.get(workerId);
+//                if (worker.getEmergencyTask() == null) {
+//                    System.out.println("Worker " + workerId + " received a clone task!");
+//                    worker.setEmergencyTask(new RobotTask(-1, Command.CLONE, worker.getLocation()));
+//                }
+//            }
+//        }
+//    }
 
     /**
      * Update and remove launched rocket. Needs to be specific to for rockets because of their unique functionality

@@ -24,48 +24,32 @@ public class Player {
         gc.queueResearch(UnitType.Worker);
 
         while (true) {
-            try {
-                if (gc.round() % 2 == 0) {
-                    System.runFinalization();
-                    System.gc();
-                }
-                if (gc.planet() == Planet.Earth && gc.team() == Team.Red) {
-
-                    // System.out.println("Round number: " + gc.round());
-                    // System.out.println("Time left: " + Player.gc.getTimeLeftMs());
-                    Unit unit = gc.senseUnitAtLocation(new MapLocation(Planet.Earth, 1, 1));
-                    UnitInstance unitInstance = new Worker(unit.id());
-                    unitInstance.run();
-
-
-//                    if (gc.round() == 1) {
-//                        setStructureLocations(0, 100);
-//                        Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-//                        Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-//                        Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
-//                    }
-//                    if (Earth.earthAttackerMap.size() > 6 && Earth.earthAttackTarget == null) {
-//                        // System.out.println("Setting attack target!");
-//                        Earth.earthAttackTarget = enemyPositions.peek();
-//                        if (enemyPositions.size() != 0) {
-//                            enemyPositions.poll();
-//                        }
-//                    }
-//                    if (gc.round() % 75 == 0) {
-//                        findPassableMarsThreeSquares();
-//                        Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
-//                    }
-//                    Earth.execute();
-
-                    // System.out.println("");
-                } else {
-                    Mars.execute();
-                }
-
-                gc.nextTurn();
-            } catch (Exception e) {
-                System.out.println(e);
+            if (gc.round() % 2 == 0) {
+                System.runFinalization();
+                System.gc();
             }
+            if (gc.planet() == Planet.Earth && gc.team() == Team.Red) {
+                System.out.println("Round number: " + gc.round());
+                System.out.println("Karbonite: " + gc.karbonite());
+
+                if (gc.round() == 1) {
+                    setStructureLocations(0, 100);
+                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+                }
+
+//                if (gc.round() % 75 == 0) {
+//                    findPassableMarsThreeSquares();
+//                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
+//                }
+
+                Earth.execute();
+
+                System.out.println("");
+            } else {
+                // Mars.execute();
+            }
+
+            gc.nextTurn();
         }
     }
 
@@ -170,7 +154,7 @@ public class Player {
      * @param mapLocation The MapLocation that you want to convert
      * @return A string that represents the MapLocation
      */
-    public static String mapLocationToString(MapLocation mapLocation) {
+    public static String locationToString(MapLocation mapLocation) {
         StringBuilder convertedLocation = new StringBuilder();
 
         if (mapLocation.getPlanet() == Planet.Mars) {
@@ -188,7 +172,7 @@ public class Player {
      * @param location The MapLocation represented by the string
      * @return A MapLocation that represents the string
      */
-    public static MapLocation stringToMapLocation(String location) {
+    public static MapLocation stringToLocation(String location) {
         Planet mapPlanet;
         if (location.charAt(0) == ' ') {
             mapPlanet = Planet.Mars;
@@ -276,7 +260,6 @@ public class Player {
      * @param location The location to check
      * @return If the location appears empty
      */
-    // TODO: Redo
     public static boolean isLocationEmpty(MapLocation location) {
         PlanetMap planetMap = gc.startingMap(location.getPlanet());
         if (planetMap.onMap(location) && planetMap.isPassableTerrainAt(location) > 0) {
@@ -338,32 +321,35 @@ public class Player {
 
         if (isWorker) {
             for (int unitId: Earth.earthWorkerMap.keySet()) {
-                unitLocations.put(mapLocationToString(Earth.earthWorkerMap.get(unitId).getLocation()), unitId);
+                unitLocations.put(locationToString(Earth.earthWorkerMap.get(unitId).getLocation()), unitId);
             }
         } else {
             for (int unitId: Earth.earthAttackerMap.keySet()) {
-                unitLocations.put(mapLocationToString(Earth.earthAttackerMap.get(unitId).getLocation()), unitId);
+                unitLocations.put(locationToString(Earth.earthAttackerMap.get(unitId).getLocation()), unitId);
             }
         }
-
-        ArrayList<Direction> moveDirections = Player.getMoveDirections();
-        Collections.shuffle(moveDirections, new Random());
 
         Queue<MapLocation> frontier = new LinkedList<>();
         frontier.add(centerLocation);
 
         HashSet<String> checkedLocations = new HashSet<>();
-        checkedLocations.add(mapLocationToString(centerLocation));
+        checkedLocations.add(locationToString(centerLocation));
 
         ArrayList<Integer> closestUnitIds = new ArrayList<>();
-        while (!frontier.isEmpty()) {
+        PlanetMap planetMap = gc.startingMap(centerLocation.getPlanet());
+        if (unitLocations.containsKey(locationToString(centerLocation))) {
+            closestUnitIds.add(unitLocations.get(locationToString(centerLocation)));
+        }
+
+        int moveRadius = 0;
+        while (!frontier.isEmpty() && moveRadius < 8) {
             MapLocation currentLocation = frontier.poll();
 
-            for (Direction nextDirection : moveDirections) {
+            for (Direction nextDirection : getMoveDirections()) {
                 MapLocation nextMapLocation = currentLocation.add(nextDirection);
-                String nextLocation = mapLocationToString(currentLocation.add(nextDirection));
+                String nextLocation = locationToString(nextMapLocation);
 
-                if (!checkedLocations.contains(nextLocation)) {
+                if (planetMap.onMap(nextMapLocation) && !checkedLocations.contains(nextLocation)) {
                     checkedLocations.add(nextLocation);
                     frontier.add(nextMapLocation);
 
@@ -376,6 +362,8 @@ public class Player {
                     }
                 }
             }
+
+            moveRadius++;
         }
 
         return closestUnitIds;

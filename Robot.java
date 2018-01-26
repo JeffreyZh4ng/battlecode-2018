@@ -72,10 +72,6 @@ public abstract class Robot extends UnitInstance {
      * @return True if the robot was able to move
      */
     public boolean move(MapLocation destinationLocation) {
-        if (!Player.gc.isMoveReady(this.getId())) {
-            return false;
-        }
-
         // If the current path is null
         if (movePathStack == null) {
              movePathStack = getPathFromBFS(destinationLocation);
@@ -97,6 +93,12 @@ public abstract class Robot extends UnitInstance {
         if (movePathStack.peek().equals(destinationLocation)) {
             movePathStack = null;
             return true;
+        }
+
+        // The check for if the robot can move is here because we want to check if the worker is at the destination
+        // Immediately to return true before checking if it can move
+        if (!Player.gc.isMoveReady(this.getId())) {
+            return false;
         }
 
         if (!Player.gc.canMove(this.getId(), this.getLocation().directionTo(movePathStack.peek()))) {
@@ -123,7 +125,7 @@ public abstract class Robot extends UnitInstance {
         frontier.add(this.getLocation());
 
         HashMap<String, Integer> checkedLocations = new HashMap<>();
-        checkedLocations.put(Player.mapLocationToString(this.getLocation()), 0);
+        checkedLocations.put(Player.locationToString(this.getLocation()), 0);
 
         int moveCounter = 1;
         while (!frontier.isEmpty()) {
@@ -135,9 +137,9 @@ public abstract class Robot extends UnitInstance {
             for (Direction nextDirection: Player.getMoveDirections()) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if (Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(Player.mapLocationToString(nextLocation))) {
+                if (Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
                     frontier.add(nextLocation);
-                    checkedLocations.put(Player.mapLocationToString(nextLocation), moveCounter);
+                    checkedLocations.put(Player.locationToString(nextLocation), moveCounter);
 
                     if (currentLocation.isAdjacentTo(destinationLocation)) {
                         frontier.clear();
@@ -149,7 +151,7 @@ public abstract class Robot extends UnitInstance {
             moveCounter++;
         }
 
-        checkedLocations.put(Player.mapLocationToString(destinationLocation), moveCounter);
+        checkedLocations.put(Player.locationToString(destinationLocation), moveCounter);
 
         return backtrace(destinationLocation, checkedLocations);
     }
@@ -164,19 +166,19 @@ public abstract class Robot extends UnitInstance {
         Stack<MapLocation> shortestPath = new Stack<>();
         shortestPath.add(destinationLocation);
 
-        if (!checkedLocations.containsKey(Player.mapLocationToString(destinationLocation))) {
+        if (!checkedLocations.containsKey(Player.locationToString(destinationLocation))) {
             return null;
         }
 
         MapLocation checkingLocation = destinationLocation;
-        int movesToDestination = checkedLocations.get(Player.mapLocationToString(destinationLocation));
+        int movesToDestination = checkedLocations.get(Player.locationToString(destinationLocation));
         for (int i = movesToDestination; i > 0 ; i--) {
 
             for (Direction nextDirection: Player.getMoveDirections()) {
                 MapLocation nextLocation = checkingLocation.add(nextDirection);
 
-                if (checkedLocations.containsKey(Player.mapLocationToString(nextLocation)) &&
-                        checkedLocations.get(Player.mapLocationToString(nextLocation)) == i-1) {
+                if (checkedLocations.containsKey(Player.locationToString(nextLocation)) &&
+                        checkedLocations.get(Player.locationToString(nextLocation)) == i-1) {
 
                     shortestPath.add(nextLocation);
                     checkingLocation = nextLocation;

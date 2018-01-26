@@ -14,6 +14,11 @@ public class Healer extends Attacker {
     }
 
     @Override
+    public void updateTargets() {
+        super.updateTargets();
+    }
+
+    @Override
     public boolean runBattleAction() {
         VecUnit friendlyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getAttackRange(), Player.team);
 

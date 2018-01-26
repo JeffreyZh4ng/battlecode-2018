@@ -8,6 +8,7 @@ public class Ranger extends Attacker {
         super(id);
     }
 
+    @Override
     public void run() {
         runAttacker();
     }
