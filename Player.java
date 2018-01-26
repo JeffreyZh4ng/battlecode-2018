@@ -1,27 +1,33 @@
 import bc.*;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class Player {
+
+    public static final int NUMBER_OF_LOCATIONS_TO_CHECK = 200;
 
     public static final GameController gc = new GameController();
     // TODO: Need to go through code and find any instances of Player.gc.Team() and replace with this. Need to
     // TODO: reduce API calls because that is whats causing many timeout errors
     public static final Team team = gc.team();
 
-    private static ArrayList<MapLocation> availableLandingLocations = null;
+    public static ArrayList<MapLocation> enemyStartingLocations;
+
+
 
     public static void main(String[] args) {
 
         addStartingWorkersToEarthMap();
-        Queue<MapLocation> enemyPositions = enemyLocations();
-        gc.queueResearch(UnitType.Rocket);
-        gc.queueResearch(UnitType.Ranger);
-        gc.queueResearch(UnitType.Ranger);
-        gc.queueResearch(UnitType.Mage);
-        gc.queueResearch(UnitType.Mage);
-        gc.queueResearch(UnitType.Mage);
-        gc.queueResearch(UnitType.Worker);
+        enemyStartingLocations = enemyLocations();
+
+//        gc.queueResearch(UnitType.Rocket);
+//        gc.queueResearch(UnitType.Ranger);
+//        gc.queueResearch(UnitType.Ranger);
+//        gc.queueResearch(UnitType.Mage);
+//        gc.queueResearch(UnitType.Mage);
+//        gc.queueResearch(UnitType.Mage);
+//        gc.queueResearch(UnitType.Worker);
 
         while (true) {
             if (gc.round() % 2 == 0) {
@@ -33,7 +39,6 @@ public class Player {
                 System.out.println("Karbonite: " + gc.karbonite());
 
                 if (gc.round() == 1) {
-                    setStructureLocations(0, 100);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                 }
 
@@ -57,11 +62,11 @@ public class Player {
      * Method that will get the starting locations of all the enemy workers created when the game has started
      * @return An array of enemy locations
      */
-    public static Queue<MapLocation> enemyLocations() {
+    public static ArrayList<MapLocation> enemyLocations() {
         int mapCenterX = (int)((gc.startingMap(Planet.Earth).getWidth()) / 2);
         int mapCenterY = (int)((gc.startingMap(Planet.Earth).getHeight()) / 2);
 
-        Queue<MapLocation> enemyLocations = new LinkedList<>();
+        ArrayList<MapLocation> enemyLocations = new ArrayList<>();
         for (int workerId: Earth.earthWorkerMap.keySet()) {
             MapLocation mapLocation = Earth.earthWorkerMap.get(workerId).getLocation();
             int xDistance = mapCenterX - mapLocation.getX();
@@ -190,71 +195,6 @@ public class Player {
     }
 
     /**
-     * Finds structure locations based on initial map locations.
-     * @return the initially available structure locations
-     */
-    // TODO: Redo
-    public static void setStructureLocations(int maxNonPassable, int radius) {
-
-        MapLocation workerLocation = null;
-        int minDistance = -1;
-        // find worker with smallest sum to other workers, implementation inefficnet but max 3 workers so not big concern
-        VecUnit myWorkers = Player.gc.units();
-        // // System.out.println(myWorkers);
-        for (int i = 0; i < myWorkers.size(); i ++) {
-            int distanceSum = 0;
-            MapLocation workerOneLocation = myWorkers.get(i).location().mapLocation();
-            for (int j = 0; j < myWorkers.size(); j ++) {
-                if (i != j) {
-                    distanceSum += workerOneLocation.distanceSquaredTo(myWorkers.get(j).location().mapLocation());
-                }
-            }
-            if (minDistance == -1 || distanceSum < minDistance) {
-                workerLocation = workerOneLocation;
-                minDistance = distanceSum;
-            }
-        }
-        // // System.out.println(workerLocation);
-
-        VecMapLocation locationsToCheck = Player.gc.allLocationsWithin(workerLocation, radius);
-        HashSet<String> chosenLocations = new HashSet<>();
-        ArrayList<MapLocation> clearLocations = new ArrayList<>();
-
-        for (int i = 0; i < locationsToCheck.size(); i++) {
-            //location to test is the center location
-            MapLocation locationToTest = locationsToCheck.get(i);
-            int nonPassableCount = 0;
-            boolean clear = true;
-            if (!Player.gc.startingMap(Player.gc.planet()).onMap(locationToTest) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest) == 0) {
-                clear = false;
-            }
-            for (Direction direction : Direction.values()) {
-                if (!clear) {
-                    break;
-                }
-                if (chosenLocations.contains(locationToTest.add(direction).toString())) {
-                    clear = false;
-                    break;
-                }
-                //is not passable terrain
-                if (!Player.gc.startingMap(Player.gc.planet()).onMap(locationToTest.add(direction)) || Player.gc.startingMap(Player.gc.planet()).isPassableTerrainAt(locationToTest.add(direction)) == 0) {
-                    nonPassableCount++;
-                    if (nonPassableCount > maxNonPassable) {
-                        clear = false;
-                        break;
-                    }
-                }
-            }
-            if (clear) {
-                clearLocations.add(locationToTest);
-                chosenLocations.add(locationToTest.toString());
-            }
-
-        }
-        Earth.availableStructureLocations = clearLocations;
-    }
-
-    /**
      * Method that will check if a location is empty. Checks if the location is onMap, passableTerrain,
      * and if it is not occupied by a factory or rocket. Return false if there is a robot there
      * @param location The location to check
@@ -273,43 +213,72 @@ public class Player {
     }
 
     /**
-     * Method that will find locations on mars that will let rockets land
+     * Method that will check if a location is empty. Checks if the location is onMap, passableTerrain,
+     * and if it is not occupied by a structure
+     * @param location The location to check
+     * @return If the location appears empty
      */
-    // TODO: Redo
-    public static void findPassableMarsThreeSquares() {
-        ArrayList<MapLocation> availableLocations = new ArrayList<>();
-        PlanetMap marsStartingMap = Player.gc.startingMap(Planet.Mars);
-        for (int x = 1; x < marsStartingMap.getWidth() - 1; x++) {
-            for (int y = 1; y < marsStartingMap.getHeight() -1; y++) {
-                MapLocation location = new MapLocation(Planet.Mars, x, y);
-                boolean isClear = true;
-                for (Direction direction : Direction.values()) {
-                    if (availableLocations.contains(location.add(direction)) || marsStartingMap.isPassableTerrainAt(location.add(direction)) == 0) {
-                        isClear = false;
-                        break;
-                    }
-                }
-                if (isClear) {
-                    availableLocations.add(location);
-                }
+    public static boolean isLocationEmptyForStructure(MapLocation location) {
+        PlanetMap planetMap = gc.startingMap(location.getPlanet());
+        if (planetMap.onMap(location) && planetMap.isPassableTerrainAt(location) > 0) {
+            if (Player.gc.hasUnitAtLocation(location)) {
+                Unit unit = Player.gc.senseUnitAtLocation(location);
+                return unit.unitType() != UnitType.Factory && unit.unitType() != UnitType.Rocket;
             }
+            return true;
         }
-        availableLandingLocations = availableLocations;
+
+        return false;
     }
 
     /**
-     * Gets a landing location for mars
-     * @return The landing location
+     * Helper method to see if a location is on the map and passable.
+     * @param mapLocation The location you want to check
+     * @return If the location is on the map and passable
      */
-    // TODO: Redo
-    public static MapLocation getLandingLocation() {
-        if (availableLandingLocations.size() == 0) {
-            return null;
-        }
-        MapLocation location = availableLandingLocations.get(0);
-        availableLandingLocations.remove(0);
-        return location;
+    public static boolean isOnMap(MapLocation mapLocation) {
+        PlanetMap planetMap = gc.startingMap(mapLocation.getPlanet());
+        return planetMap.onMap(mapLocation) && planetMap.isPassableTerrainAt(mapLocation) > 0;
     }
+
+//    /**
+//     * Method that will find locations on mars that will let rockets land
+//     */
+//    // TODO: Redo
+//    public static void findPassableMarsThreeSquares() {
+//        ArrayList<MapLocation> availableLocations = new ArrayList<>();
+//        PlanetMap marsStartingMap = Player.gc.startingMap(Planet.Mars);
+//        for (int x = 1; x < marsStartingMap.getWidth() - 1; x++) {
+//            for (int y = 1; y < marsStartingMap.getHeight() -1; y++) {
+//                MapLocation location = new MapLocation(Planet.Mars, x, y);
+//                boolean isClear = true;
+//                for (Direction direction : Direction.values()) {
+//                    if (availableLocations.contains(location.add(direction)) || marsStartingMap.isPassableTerrainAt(location.add(direction)) == 0) {
+//                        isClear = false;
+//                        break;
+//                    }
+//                }
+//                if (isClear) {
+//                    availableLocations.add(location);
+//                }
+//            }
+//        }
+//        availableLandingLocations = availableLocations;
+//    }
+//
+//    /**
+//     * Gets a landing location for mars
+//     * @return The landing location
+//     */
+//    // TODO: Redo
+//    public static MapLocation getLandingLocation() {
+//        if (availableLandingLocations.size() == 0) {
+//            return null;
+//        }
+//        MapLocation location = availableLandingLocations.get(0);
+//        availableLandingLocations.remove(0);
+//        return location;
+//    }
 
     /**
      * Finds the nearest units to a given task that are not already on the task
@@ -351,7 +320,7 @@ public class Player {
         }
 
         int moveRadius = 0;
-        while (!frontier.isEmpty() && moveRadius < 8) {
+        while (!frontier.isEmpty() && moveRadius < NUMBER_OF_LOCATIONS_TO_CHECK) {
             MapLocation currentLocation = frontier.poll();
 
             for (Direction nextDirection : getMoveDirections()) {

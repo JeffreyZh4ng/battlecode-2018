@@ -271,7 +271,7 @@ public class Worker extends Robot {
         frontier.add(this.getLocation());
 
         HashMap<String, MapLocation> checkedLocations = new HashMap<>();
-        checkedLocations.put(this.getLocation().toString(), this.getLocation());
+        checkedLocations.put(Player.locationToString(this.getLocation()), this.getLocation());
 
         while (!frontier.isEmpty()) {
             MapLocation currentLocation = frontier.poll();
@@ -284,8 +284,8 @@ public class Worker extends Robot {
             for (Direction nextDirection : moveDirections) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if (Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(nextLocation.toString())) {
-                    checkedLocations.put(nextLocation.toString(), currentLocation);
+                if (Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
+                    checkedLocations.put(Player.locationToString(nextLocation), nextLocation);
                     frontier.add(nextLocation);
 
                     if (Earth.earthKarboniteMap.containsKey(Player.locationToString(nextLocation))) {

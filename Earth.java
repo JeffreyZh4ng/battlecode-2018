@@ -6,6 +6,7 @@ public class Earth {
 
     private static final int WORKERS_ON_CONSTRUCT_TASK = 4;
     private static final int UNITS_ON_LOAD_TASK = 8;
+    private static final int SAFE_STRUCTURE_DISTANCE = 100;
 
     public static int knightCount = 0;
     public static int rangerCount = 0;
@@ -28,7 +29,6 @@ public class Earth {
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
 
     public static HashMap<String, Integer> earthKarboniteMap = initializeKarboniteMap();
-    public static ArrayList<MapLocation> availableStructureLocations = null;
 
     public static void execute() {
         updateKarboniteMap();
@@ -185,47 +185,159 @@ public class Earth {
 
     /**
      * Method that will pick the best MapLocation to build a structure
-     * @return The MapLocation of the best place to build a structure or null if no locations exist or no available workers exist
+     * @return The MapLocation of the best place to build a structure or null if no locations exist.
      */
-    // TODO: Rework
     private static MapLocation pickStructureLocation() {
-        MapLocation closestLocation = null;
-        long shortestDistance = 100000;
+        MapLocation startingLocation = Earth.earthWorkerMap.get(getBestWorkerId()).getLocation();
+        if (isGoodLocation(startingLocation)) {
+            return startingLocation;
+        }
 
-        //choose best location from list
-        for (MapLocation location : availableStructureLocations) {
-            for (int workerId : earthWorkerMap.keySet()) {
-                MapLocation workerLocation = Player.gc.unit(workerId).location().mapLocation();
-                if (closestLocation == null) {
-                    closestLocation = location;
-                    shortestDistance = location.distanceSquaredTo(workerLocation);
+        Queue<MapLocation> frontier = new LinkedList<>();
+        frontier.add(startingLocation);
 
-                } else if (location.distanceSquaredTo(workerLocation) < shortestDistance) {
-                    closestLocation = location;
-                    shortestDistance = location.distanceSquaredTo(workerLocation);
+        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
+        checkedLocations.put(Player.locationToString(startingLocation), startingLocation);
+
+        while (!frontier.isEmpty()) {
+            MapLocation currentLocation = frontier.poll();
+
+            // Shuffle directions so that wandering doesn't gravitate towards a specific direction
+            ArrayList<Direction> moveDirections = Player.getMoveDirections();
+            Collections.shuffle(moveDirections, new Random());
+
+            // Check if locations around frontier location have already been added to came from and if they are empty
+            for (Direction nextDirection : moveDirections) {
+                MapLocation nextLocation = currentLocation.add(nextDirection);
+
+                if (Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
+                    checkedLocations.put(Player.locationToString(nextLocation), nextLocation);
+                    frontier.add(nextLocation);
+
+                    if (isGoodLocation(nextLocation)) {
+                        return nextLocation;
+                    }
                 }
             }
         }
-        availableStructureLocations.remove(closestLocation);
-        return closestLocation;
+
+        return null;
     }
 
-//    /**
-//     * Method that will check if we need to send out a wave of clone emergency tasks. Checks if the worker
-//     * already has an emergency task. If it doesn't it will a receive a clone emergency task
-//     */
-//    private static void doWeNeedWorkers() {
-//        if (earthWorkerMap.size() < NUMBER_OF_WORKERS_NEEDED) {
-//            for (int workerId: earthWorkerMap.keySet()) {
-//
-//                UnitInstance worker = earthWorkerMap.get(workerId);
-//                if (worker.getEmergencyTask() == null) {
-//                    System.out.println("Worker " + workerId + " received a clone task!");
-//                    worker.setEmergencyTask(new RobotTask(-1, Command.CLONE, worker.getLocation()));
-//                }
-//            }
-//        }
-//    }
+    /**
+     * Finds id of the best worker to build a structure next to. Calculates the total distance to other workers.
+     * The worker with the smallest total distance to the others will be returned.
+     * @return The id of the worker with the smallest total distance to others
+     */
+    private static int getBestWorkerId() {
+        VecUnit units = Player.gc.units();
+        ArrayList<Unit> workerList = new ArrayList<>();
+        for (int i = 0; i < units.size(); i++) {
+            if (units.get(i).unitType() == UnitType.Worker) {
+                workerList.add(units.get(i));
+            }
+        }
+
+        // If there is only one worker, return it. Else find the best worker
+        if (workerList.size() == 1) {
+            return workerList.get(0).id();
+        }
+
+        // Sets the index corresponding to the worker to its total distance
+        int[] workerDistances = new int[workerList.size()];
+        for (int i = 0; i < workerList.size(); i++) {
+            MapLocation workerLocation = workerList.get(i).location().mapLocation();
+            int totalDistance = 0;
+
+            for (Unit worker: workerList) {
+                totalDistance += workerLocation.distanceSquaredTo(worker.location().mapLocation());
+            }
+
+            workerDistances[i] = totalDistance;
+        }
+
+        int smallestDistance = workerDistances[0];
+        int indexOfSmallestDistance = 0;
+        for (int i = 0; i < workerDistances.length; i++) {
+            if (workerDistances[i] < smallestDistance) {
+                indexOfSmallestDistance = i;
+            }
+        }
+
+        return workerList.get(indexOfSmallestDistance).id();
+    }
+
+    /**
+     * Helper method that will determine if a location is a good place to build a structure. Will check if it
+     * is a good distance away from the enemy starting locations, if it isn't blocking any paths and if it isn't
+     * adjacent to any other structures
+     * @param mapLocation The location that you want to check
+     * @return If the location is a good place to build a structure
+     */
+    private static boolean isGoodLocation(MapLocation mapLocation) {
+
+        // Check if location is too close to the enemy starting positions
+        for (MapLocation enemyLocation: Player.enemyStartingLocations) {
+            if (mapLocation.distanceSquaredTo(enemyLocation) < SAFE_STRUCTURE_DISTANCE) {
+                return false;
+            }
+        }
+
+        ArrayList<MapLocation> openLocations = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            MapLocation newLocation = mapLocation.add(Direction.swigToEnum(i));
+
+            // If North, South, East, or West is not on map, need to check if the opposite position is on the map.
+            // If it is not on the map, the location is not suitable.
+            switch (i) {
+                case 0:
+                    if (!Player.isOnMap(newLocation)) {
+                        MapLocation adjacentLocation = mapLocation.add(Direction.swigToEnum(4));
+                        if (!Player.isOnMap(adjacentLocation)) {
+                            return false;
+                        }
+                    }
+                    break;
+                case 2:
+                    if (!Player.isOnMap(newLocation)) {
+                        MapLocation adjacentLocation = mapLocation.add(Direction.swigToEnum(6));
+                        if (!Player.isOnMap(adjacentLocation)) {
+                            return false;
+                        }
+                    }
+                    break;
+                case 4:
+                    if (!Player.isOnMap(newLocation)) {
+                        MapLocation adjacentLocation = mapLocation.add(Direction.swigToEnum(0));
+                        if (!Player.isOnMap(adjacentLocation)) {
+                            return false;
+                        }
+                    }
+                    break;
+                case 6:
+                    if (!Player.isOnMap(newLocation)) {
+                        MapLocation adjacentLocation = mapLocation.add(Direction.swigToEnum(2));
+                        if (!Player.isOnMap(adjacentLocation)) {
+                            return false;
+                        }
+                    }
+                    break;
+            }
+
+            if (Player.isOnMap(newLocation)) {
+                if (Player.isLocationEmptyForStructure(newLocation)) {
+                    openLocations.add(newLocation);
+                }
+            }
+        }
+
+        // Check if there are more than four open adjacent positions to the center location
+        if (openLocations.size() < 4) {
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * Update and remove launched rocket. Needs to be specific to for rockets because of their unique functionality
