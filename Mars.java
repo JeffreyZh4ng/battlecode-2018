@@ -45,18 +45,9 @@ public class Mars {
      * Update and remove launched rocket. Needs to be specific to for rockets because of their unique functionality
      */
     private static void runRocketMap() {
-        ArrayList<Integer> rocketRemoveList = new ArrayList<>();
-
         for (int rocketId: marsRocketMap.keySet()) {
             Rocket rocket = marsRocketMap.get(rocketId);
             rocket.run();
-            if (rocket.disintegrateRocket()) {
-                rocketRemoveList.add(rocketId);
-            }
-        }
-
-        for (int rocketId: rocketRemoveList) {
-            marsRocketMap.remove(rocketId);
         }
     }
 

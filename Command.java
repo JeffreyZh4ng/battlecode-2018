@@ -12,6 +12,7 @@ public enum Command {
     BLUEPRINT_ROCKET,
     LOAD_ROCKET,
     IN_COMBAT,
+    ALERTED,
     BUILD,
     CLONE,
     MOVE,

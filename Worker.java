@@ -24,11 +24,11 @@ public class Worker extends Robot {
             } else {
                 executeEmergencyTask();
             }
-        }
 
-        if (this.hasTasks()) {
+        } else if (this.hasTasks()) {
             checkTaskStatus();
             executeCurrentTask();
+
         } else {
             executeIdleActions();
         }
@@ -279,7 +279,7 @@ public class Worker extends Robot {
      * Method that will set a robots task to wander within a certain radius
      * @param radius The radius to wander in
      */
-    public void wanderWithinRadius(int radius) {
+    private void wanderWithinRadius(int radius) {
         VecMapLocation mapLocations = Player.gc.allLocationsWithin(spawnLocation, radius);
 
         MapLocation wanderLocation = null;

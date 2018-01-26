@@ -12,7 +12,8 @@ public class Earth {
     public static int mageCount = 0;
     public static int healerCount = 0;
 
-    public static MapLocation earthAttackTarget = null;
+    public static Queue<MapLocation> earthMainAttackQueue = new LinkedList<>();
+    public static HashSet<Integer> earthFocusedTargets = new HashSet<>();
 
     public static Queue<GlobalTask> earthTaskQueue = new LinkedList<>();
     public static HashMap<Integer, GlobalTask> earthTaskMap = new HashMap<>();
@@ -205,10 +206,10 @@ public class Earth {
     /**
      * Update and remove launched rocket. Needs to be specific to for rockets because of their unique functionality
      */
-    // TODO: Rework
     private static void runRocketMap() {
         ArrayList<Integer> rocketRemoveList = new ArrayList<>();
 
+        // Loops through and checks if the rocket can take off. If it takes off, remove it from the rocket list
         for (int rocketId: earthRocketMap.keySet()) {
             Rocket rocket = earthRocketMap.get(rocketId);
             rocket.run();

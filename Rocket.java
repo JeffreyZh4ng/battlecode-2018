@@ -23,7 +23,6 @@ public class Rocket extends UnitInstance {
         return inFlight;
     }
 
-
     @Override
     public void run() {
         if (isBuilt) {

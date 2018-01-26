@@ -69,35 +69,29 @@ public abstract class UnitInstance {
 
     /**
      * Gets all the enemy units in the range of this unit instance with the given range
-     * @param range The range of the unit
      * @return A vecUnit of all the enemy units in range
      */
-    public VecUnit getEnemyUnitsInRange(int range) {
+    public VecUnit getEnemyUnitsInRange() {
         Team otherTeam = Player.gc.team() == Team.Blue ? Team.Red : Team.Blue;
-        return Player.gc.senseNearbyUnitsByTeam(this.getLocation(), range, otherTeam);
+        return Player.gc.senseNearbyUnitsByTeam(this.getLocation(), this.getVisionRange(), otherTeam);
     }
 
     /**
-     * Finds the closest unit from units outside of given range
-     * @param minSquaredRadius the radius to check outside of -1 if want to consider all
-     * @param units the units to check
-     * @return the closest unit, null if no units outside of radius
+     * Helper method that will get the id of the closest enemy unit
+     * @param enemyUnits The list of all enemy units in vision range
+     * @return The id of the closest enemy unit
      */
-    public Unit getClosestUnit(int minSquaredRadius, VecUnit units) {
-        if (units.size() == 0) {
-            System.out.println("unit list was empty");
-            return null;
-        }
-        Unit minDistanceUnit = null;
-        int closestDistanceToUnit = -1;
-        for (int i = 0; i < units.size(); i++) {
-            int distanceToUnit = (int)(this.getLocation().distanceSquaredTo(units.get(i).location().mapLocation()));
-            if ((minDistanceUnit == null && minSquaredRadius < distanceToUnit) ||
-                    (minDistanceUnit != null && distanceToUnit < closestDistanceToUnit)) {
-                closestDistanceToUnit = distanceToUnit;
-                minDistanceUnit = units.get(i);
+    public Unit getClosestEnemy(VecUnit enemyUnits) {
+        Unit closestEnemy = enemyUnits.get(0);
+        int closestDistance = (int)(this.getLocation().distanceSquaredTo(enemyUnits.get(0).location().mapLocation()));
+
+        for (int i = 0; i < enemyUnits.size(); i++) {
+            MapLocation enemyUnitLocation = enemyUnits.get(i).location().mapLocation();
+            if (this.getLocation().distanceSquaredTo(enemyUnitLocation) < closestDistance) {
+                closestEnemy = enemyUnits.get(i);
             }
         }
-        return minDistanceUnit;
+
+        return closestEnemy;
     }
 }
