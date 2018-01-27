@@ -18,29 +18,29 @@ public class Factory extends UnitInstance {
     @Override
     public void run() {
         if (isBuilt) {
-//            UnitType unitToProduce = findUnitToProduce();
-//            if (Player.gc.canProduceRobot(this.getId(), unitToProduce) && Player.gc.karbonite() > 80) {
-//                Player.gc.produceRobot(this.getId(), unitToProduce);
-//
-//                switch (unitToProduce) {
-//                    case Knight:
-//                        Earth.knightCount++;
-//                        System.out.println("Knight count " + Earth.knightCount);
-//                        break;
-//                    case Ranger:
-//                        Earth.rangerCount++;
-//                        System.out.println("Ranger count " + Earth.rangerCount);
-//                        break;
-//                    case Healer:
-//                        Earth.healerCount++;
-//                        System.out.println("Healer count " + Earth.healerCount);
-//                        break;
-//                    case Mage:
-//                        Earth.mageCount++;
-//                        System.out.println("Mage count " + Earth.mageCount);
-//                        break;
-//                }
-//            }
+            UnitType unitToProduce = findUnitToProduce();
+            if (Player.gc.canProduceRobot(this.getId(), unitToProduce) && Player.gc.karbonite() > 80) {
+                Player.gc.produceRobot(this.getId(), unitToProduce);
+
+                switch (unitToProduce) {
+                    case Knight:
+                        Earth.knightCount++;
+                        System.out.println("Knight count " + Earth.knightCount);
+                        break;
+                    case Ranger:
+                        Earth.rangerCount++;
+                        System.out.println("Ranger count " + Earth.rangerCount);
+                        break;
+                    case Healer:
+                        Earth.healerCount++;
+                        System.out.println("Healer count " + Earth.healerCount);
+                        break;
+                    case Mage:
+                        Earth.mageCount++;
+                        System.out.println("Mage count " + Earth.mageCount);
+                        break;
+                }
+            }
         }
 
         unload();

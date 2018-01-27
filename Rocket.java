@@ -15,7 +15,7 @@ public class Rocket extends UnitInstance {
         this.garrisonCount = 0;
 
         if (isBuilt) {
-            Earth.createGlobalTask(Command.LOAD_ROCKET);
+            Earth.createGlobalTask(Command.LOAD_ROCKET, this.getLocation());
         }
     }
 
@@ -91,8 +91,8 @@ public class Rocket extends UnitInstance {
         if (Player.gc.canLoad(this.getId(), unitId)) {
             Player.gc.load(this.getId(), unitId);
             Earth.earthGarrisonedUnits.add(unitId);
-            System.out.println("Loaded unit " + unitId);
             garrisonCount++;
+            System.out.println("Rocket: " + this.getId() + " loaded unit " + unitId);
 
             return true;
         }

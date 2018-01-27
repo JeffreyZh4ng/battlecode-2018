@@ -20,17 +20,15 @@ public class Worker extends Robot {
         System.out.println("Worker: " + this.getId() + " location: " + Player.locationToString(this.getLocation()));
 
         if (this.getEmergencyTask() != null) {
-            if (this.getEmergencyTask().getCommand() == Command.STALL) {
-                executeEmergencyTask();
-                return;
-            } else {
-                executeEmergencyTask();
-            }
+            executeEmergencyTask();
         }
 
         if (this.hasTasks()) {
             checkTaskStatus();
             executeCurrentTask();
+            if (this.hasTasks() && this.getCurrentTask().getCommand() == Command.STALL) {
+                return;
+            }
 
         } else if (!this.hasTasks()) {
             executeIdleActions();
@@ -56,6 +54,16 @@ public class Worker extends Robot {
                     checkTaskStatus();
                 }
             }
+        }
+    }
+
+    /**
+     * Helper method that will control how the robot operates when it has an emergency task that is not STALL
+     */
+    private void executeEmergencyTask() {
+        if (executeTask(this.getEmergencyTask())) {
+            System.out.println("Worker: " + this.getId() + " Finished emergency task!");
+            this.setEmergencyTask(null);
         }
     }
 
@@ -104,7 +112,8 @@ public class Worker extends Robot {
             case BLUEPRINT_ROCKET:
                 return blueprintStructure(commandLocation, UnitType.Rocket);
             case STALL:
-                return this.requestUnitToLoad(commandLocation);
+                this.requestUnitToLoad(commandLocation);
+                return false;
             default:
                 System.out.println("Critical error occurred in Worker: " + this.getId());
                 return true;
@@ -123,16 +132,6 @@ public class Worker extends Robot {
         } else {
             wanderWithinRadius(100);
             System.out.println("Worker: " + this.getId() + " Wandering!");
-        }
-    }
-
-    /**
-     * Helper method that will control how the robot operates when it has an emergency task that is not STALL
-     */
-    private void executeEmergencyTask() {
-        if (executeTask(this.getEmergencyTask())) {
-            System.out.println("Worker: " + this.getId() + " Finished emergency task!");
-            this.setEmergencyTask(null);
         }
     }
 

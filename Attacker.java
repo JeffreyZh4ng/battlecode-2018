@@ -25,16 +25,16 @@ public abstract class Attacker extends Robot {
         updateTargets();
 
         if (this.getEmergencyTask() != null) {
-            if (this.getEmergencyTask().getCommand() == Command.STALL) {
-                return;
-            }
-            executeTask(this.getEmergencyTask());
+            executeEmergencyTask();
 
         } else if (this.hasTasks()) {
             executeCurrentTask();
+//            if (this.hasTasks() && this.getCurrentTask().getCommand() == Command.STALL) {
+//                return;
+//            }
 
         } else {
-            // wanderToGlobalAttack();
+            wanderToGlobalAttack();
         }
     }
 
@@ -140,6 +140,17 @@ public abstract class Attacker extends Robot {
     }
 
     /**
+     * Helper method that will run the emergency task for this unit. If it is the stall command, it will not
+     * get rid of the emergency task.
+     */
+    private void executeEmergencyTask() {
+        if (executeTask(this.getEmergencyTask())) {
+            System.out.println("Worker: " + this.getId() + " Finished emergency task!");
+            this.setEmergencyTask(null);
+        }
+    }
+
+    /**
      * Helper method that will run the workers current tasks. If it finished one, it will sense for enemy robots.
      * If any are found, set the emergency task to in combat and execute the attack command
      */
@@ -180,6 +191,7 @@ public abstract class Attacker extends Robot {
             case IN_COMBAT:
                 return runBattleAction();
             case STALL:
+                this.requestUnitToLoad(this.getLocation());
                 return false;
             default:
                 System.out.println("Critical error occurred in attacker: " + this.getId());

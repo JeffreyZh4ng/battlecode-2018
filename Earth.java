@@ -52,11 +52,18 @@ public class Earth {
      * choose the location of the structure and add it to the global task list
      * @param command The command of the task that you want to be added to the global list
      */
-    public static void createGlobalTask(Command command) {
-        MapLocation globalTaskLocation = pickStructureLocation();
-        System.out.println("Picked location: " + globalTaskLocation.toString());
+    public static void createGlobalTask(Command command, MapLocation rocketLocation) {
+        if (command == Command.LOAD_ROCKET) {
+            System.out.println("Creating new global task for loading rocket at " + Player.locationToString(rocketLocation));
 
-        earthTaskQueue.add(new GlobalTask(command, globalTaskLocation));
+            earthTaskQueue.add(new GlobalTask(Command.LOAD_ROCKET, rocketLocation));
+
+        } else {
+            MapLocation globalTaskLocation = pickStructureLocation();
+            System.out.println("Picked location: " + globalTaskLocation + " for task: " + command);
+
+            earthTaskQueue.add(new GlobalTask(command, globalTaskLocation));
+        }
     }
 
     /**
@@ -76,12 +83,14 @@ public class Earth {
         }
 
         if (globalTask.getCommand() == Command.LOAD_ROCKET) {
+            System.out.println("Trying to assign units to load rocket. Task: " + globalTask.getTaskId());
             if (getUnitsToLoadRocket(globalTask)) {
                 earthTaskQueue.poll();
                 System.out.println("Units have been assigned for task: " + globalTask.getTaskId());
                 updateTaskQueue();
             }
         } else {
+            System.out.println("Trying to assign units to construct. Task: " + globalTask.getTaskId());
             if (getWorkersToConstruct(globalTask)) {
                 System.out.println("Units have been assigned for task: " + globalTask.getTaskId());
                 earthTaskQueue.poll();
@@ -109,7 +118,7 @@ public class Earth {
 
         for (Integer unitId : unitSet) {
             globalTask.addUnitToList(unitId);
-            System.out.println("Added worker " + unitId + " to task " + globalTask.getTaskId());
+            System.out.println("Added unit " + unitId + " to task (load rocket) " + globalTask.getTaskId());
         }
 
         return globalTask.getUnitsOnTask().size() >= UNITS_ON_LOAD_TASK;
@@ -134,7 +143,7 @@ public class Earth {
 
         for (Integer workerId : workerSet) {
             globalTask.addWorkerToList(workerId);
-            System.out.println("Added worker " + workerId + " to task " + globalTask.getTaskId());
+            System.out.println("Added worker " + workerId + " to task (construct) " + globalTask.getTaskId());
         }
 
         return globalTask.getUnitsOnTask().size() >= WORKERS_ON_CONSTRUCT_TASK;
@@ -325,15 +334,18 @@ public class Earth {
             }
 
             if (Player.isOnMap(newLocation)) {
-                if (Player.isLocationEmptyForStructure(newLocation)) {
-                    openLocations.add(newLocation);
-                }
+                openLocations.add(newLocation);
             }
         }
 
-        // Check if there are more than four open adjacent positions to the center location
-        if (openLocations.size() < 4) {
+        if (openLocations.size() < 5) {
             return false;
+        }
+
+        for (MapLocation location: openLocations) {
+            if (!Player.isLocationEmptyForStructure(location)) {
+                return false;
+            }
         }
 
         return true;

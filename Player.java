@@ -39,11 +39,11 @@ public class Player {
                 System.out.println("Karbonite: " + gc.karbonite());
 
                 if (gc.round() == 1) {
-                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
+                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
                 }
 
                 if (gc.round() == 75) {
-                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
+                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
                 }
 
                 Earth.execute();
@@ -297,10 +297,16 @@ public class Player {
             }
         }
 
-        // Compile the list of units already on the task and remove them from the unitLocations list
+        // Compile the list of units already on the task and remove them from the unitLocations list. Check if the
+        // Unit is not in a garrison before removing its location
         for (int unitId: globalTask.getUnitsOnTask()) {
-            MapLocation unitLocation = Player.gc.unit(unitId).location().mapLocation();
-            unitLocations.remove(locationToString(unitLocation));
+            if (!gc.unit(unitId).location().isInGarrison()) {
+
+                MapLocation unitLocation = Player.gc.unit(unitId).location().mapLocation();
+                if (unitLocations.containsKey(locationToString(unitLocation))) {
+                    unitLocations.remove(locationToString(unitLocation));
+                }
+            }
         }
 
         MapLocation centerLocation = globalTask.getTaskLocation();

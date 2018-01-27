@@ -190,6 +190,7 @@ public abstract class Robot extends UnitInstance {
      * and the robot will wait until it can move in the intended direction
      */
     private void reroute() {
+        System.out.println("Worker: " + this.getId() + " rerouting");
         Stack<MapLocation> originalPath = new Stack<>();
 
         while (movePathStack.size() > 1) {
@@ -201,6 +202,7 @@ public abstract class Robot extends UnitInstance {
         }
 
         MapLocation nextOpenLocation = movePathStack.peek();
+        System.out.println("Next open location " + nextOpenLocation.toString());
         Stack<MapLocation> recalculatedPath = getPathFromBFS(nextOpenLocation);
 
         if (recalculatedPath == null) {
