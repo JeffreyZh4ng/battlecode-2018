@@ -103,7 +103,7 @@ public abstract class Attacker extends Robot {
             if (this.getEmergencyTask() == null || this.getEmergencyTask().getCommand() != Command.IN_COMBAT) {
 
                 // This checks if you were the first to see the enemy location. If you were, the broadcast the location
-                if (this.getCurrentTask().getCommand() != null && this.getCurrentTask().getCommand() != Command.ALERTED) {
+                if (this.hasTasks() && this.getCurrentTask().getCommand() != Command.ALERTED) {
                     broadcastFocusedTarget();
                 }
                 setEmergencyTaskToInCombat();
@@ -144,20 +144,21 @@ public abstract class Attacker extends Robot {
      * enemy.
      */
     private void broadcastFocusedTarget() {
-        VecUnit nearbyUnits = Player.gc.senseNearbyUnits(this.getLocation(), 20);
-        Team team = Player.gc.team();
+        VecUnit nearbyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), 20, Player.team);
 
         for (int i = 0; i < nearbyUnits.size(); i++) {
 
             // Checks if the nearby unit is not a worker, healer, or itself.
             Unit nearbyUnit = nearbyUnits.get(i);
-            if (nearbyUnit.team() == team && nearbyUnit.unitType() != UnitType.Worker && nearbyUnit.unitType() != UnitType.Healer &&
-                    nearbyUnit.id() != this.getId()) {
 
-                // If the current nearby units task is not already alerted, and if the task isn't part of a global task, poll it
+            if (nearbyUnit.team() == Player.team && nearbyUnit.unitType() != UnitType.Worker && nearbyUnit.unitType() != UnitType.Healer &&
+                    nearbyUnit.unitType() != UnitType.Factory && nearbyUnit.unitType() != UnitType.Rocket && nearbyUnit.id() != this.getId()) {
+
+                // If the current nearby unit's task is not already ALERTED, and if the task isn't part of a global task, poll it
                 UnitInstance friendlyAttacker = Earth.earthAttackerMap.get(nearbyUnit.id());
                 if (friendlyAttacker.hasTasks() && friendlyAttacker.getCurrentTask().getCommand() != Command.ALERTED &&
                         friendlyAttacker.getCurrentTask().getTaskId() == -1) {
+
                     friendlyAttacker.pollCurrentTask();
                 }
 
@@ -288,7 +289,7 @@ public abstract class Attacker extends Robot {
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, attackLocation));
 
         } else {
-            VecMapLocation mapLocations = Player.gc.allLocationsWithin(this.getLocation(), this.getVisionRange());
+            VecMapLocation mapLocations = Player.gc.allLocationsWithin(this.getLocation(), this.getAttackRange());
 
             MapLocation wanderLocation = null;
             while (wanderLocation == null) {

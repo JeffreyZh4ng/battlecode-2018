@@ -127,7 +127,7 @@ public class Worker extends Robot {
         MapLocation newMoveLocation = getNearestKarboniteLocation();
         if (newMoveLocation != null) {
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, newMoveLocation));
-            // System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
+            System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
 
         } else {
             wanderWithinRadius(100);
@@ -209,7 +209,15 @@ public class Worker extends Robot {
      * @return If the structure finished building
      */
     private boolean buildStructure(MapLocation commandLocation) {
-        int structureId = Player.senseUnitAtLocation(commandLocation).id();
+        int structureId;
+        if (Player.gc.hasUnitAtLocation(commandLocation)) {
+            structureId = Player.senseUnitAtLocation(commandLocation).id();
+        } else {
+
+            // If for some reason the factory at the given location disappeared, return true to pop the task
+            return true;
+        }
+
         if (Player.gc.canBuild(this.getId(), structureId)) {
             Player.gc.build(this.getId(), structureId);
             System.out.println("Worker: " + this.getId() + " is building structure " + structureId);
@@ -251,7 +259,7 @@ public class Worker extends Robot {
             MapLocation newLocation = Player.gc.unit(this.getId()).location().mapLocation().add(direction);
             if (Player.gc.canHarvest(this.getId(), direction) && Player.karboniteAt(newLocation) > 0) {
                 Player.gc.harvest(this.getId(), direction);
-                // System.out.println("Worker: " + this.getId() + " mined karbonite");
+                System.out.println("Worker: " + this.getId() + " mined karbonite");
                 break;
             }
         }
