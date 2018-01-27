@@ -5,7 +5,7 @@ import java.util.*;
 public class Worker extends Robot {
 
     // TODO: create a method that will analyze the map and determine the number of workers needed
-    private static final int NUMBER_OF_WORKERS_NEEDED = 8;
+    private static final int NUMBER_OF_WORKERS_NEEDED = 4;
 
     private MapLocation spawnLocation;
 
@@ -16,6 +16,8 @@ public class Worker extends Robot {
 
     @Override
     public void run() {
+
+        System.out.println("Worker: " + this.getId() + " location: " + Player.locationToString(this.getLocation()));
 
         if (this.getEmergencyTask() != null) {
             if (this.getEmergencyTask().getCommand() == Command.STALL) {
@@ -30,9 +32,7 @@ public class Worker extends Robot {
             checkTaskStatus();
             executeCurrentTask();
 
-        }
-
-        if (!this.hasTasks()) {
+        } else if (!this.hasTasks()) {
             executeIdleActions();
         }
 
@@ -64,7 +64,8 @@ public class Worker extends Robot {
      */
     private void executeCurrentTask() {
         if (this.hasTasks() || this.getEmergencyTask() != null) {
-            System.out.println("Worker " + this.getId() + " on task " + this.getCurrentTask().getCommand());
+            System.out.println("Worker " + this.getId() + " on task " + this.getCurrentTask().getCommand() +
+                    " in global task: " + this.getCurrentTask().getTaskId() + " at " + Player.locationToString(this.getCurrentTask().getCommandLocation()));
         }
 
         if (this.hasTasks() || this.getEmergencyTask() != null) {
@@ -92,6 +93,8 @@ public class Worker extends Robot {
         switch (robotCommand) {
             case MOVE:
                 return this.pathManager(commandLocation);
+            case WANDER:
+                return this.pathManager(commandLocation);
             case CLONE:
                 return cloneWorker(commandLocation);
             case BUILD:
@@ -114,8 +117,8 @@ public class Worker extends Robot {
     private void executeIdleActions() {
         MapLocation newMoveLocation = getNearestKarboniteLocation();
         if (newMoveLocation != null) {
-            this.addTaskToQueue(new RobotTask(-1, Command.MOVE, newMoveLocation));
-            System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
+            this.addTaskToQueue(new RobotTask(-1, Command.WANDER, newMoveLocation));
+            // System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
 
         } else {
             wanderWithinRadius(100);
@@ -249,7 +252,7 @@ public class Worker extends Robot {
             MapLocation newLocation = Player.gc.unit(this.getId()).location().mapLocation().add(direction);
             if (Player.gc.canHarvest(this.getId(), direction) && Player.karboniteAt(newLocation) > 0) {
                 Player.gc.harvest(this.getId(), direction);
-                System.out.println("Worker: " + this.getId() + " mined karbonite");
+                // System.out.println("Worker: " + this.getId() + " mined karbonite");
                 break;
             }
         }
@@ -285,7 +288,7 @@ public class Worker extends Robot {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
                 if (Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
-                    checkedLocations.put(Player.locationToString(nextLocation), nextLocation);
+                    checkedLocations.put(Player.locationToString(nextLocation), currentLocation);
                     frontier.add(nextLocation);
 
                     if (Earth.earthKarboniteMap.containsKey(Player.locationToString(nextLocation))) {
@@ -315,7 +318,7 @@ public class Worker extends Robot {
             }
         }
 
-        this.addTaskToQueue(new RobotTask(-1, Command.MOVE, wanderLocation));
+        this.addTaskToQueue(new RobotTask(-1, Command.WANDER, wanderLocation));
     }
 }
 

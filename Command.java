@@ -13,6 +13,7 @@ public enum Command {
     LOAD_ROCKET,
     IN_COMBAT,
     ALERTED,
+    WANDER,
     BUILD,
     CLONE,
     MOVE,

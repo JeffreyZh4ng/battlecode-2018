@@ -73,6 +73,7 @@ public abstract class Robot extends UnitInstance {
      * @return True if the robot was able to move
      */
     public boolean move(MapLocation destinationLocation) {
+
         // If the current path is null
         if (movePathStack == null) {
              movePathStack = getPathFromBFS(destinationLocation);
@@ -120,19 +121,24 @@ public abstract class Robot extends UnitInstance {
      * @param destinationLocation The location that you want to move to
      * @return A stack of MapLocations indicating the robots path to the destination
      */
-    private Stack<MapLocation> getPathFromBFS(MapLocation destinationLocation) {
+    public Stack<MapLocation> getPathFromBFS(MapLocation destinationLocation) {
 
         Queue<MapLocation> frontier = new LinkedList<>();
         frontier.add(this.getLocation());
 
-        HashMap<String, Integer> checkedLocations = new HashMap<>();
-        checkedLocations.put(Player.locationToString(this.getLocation()), 0);
+        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
+        checkedLocations.put(Player.locationToString(this.getLocation()), this.getLocation());
 
-        int moveCounter = 1;
         while (!frontier.isEmpty()) {
 
-            // Get next direction to check around
+            // Get next direction to check around. Will put in the checked location a pair with the key as the
+            // Next location with the value as the current location.
             MapLocation currentLocation = frontier.poll();
+            if (currentLocation.isAdjacentTo(destinationLocation)) {
+                checkedLocations.put(Player.locationToString(destinationLocation), currentLocation);
+                frontier.clear();
+                break;
+            }
 
             // Check if locations around frontier location have already been added to came from and if they are empty
             for (Direction nextDirection: Player.getMoveDirections()) {
@@ -140,19 +146,10 @@ public abstract class Robot extends UnitInstance {
 
                 if (Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
                     frontier.add(nextLocation);
-                    checkedLocations.put(Player.locationToString(nextLocation), moveCounter);
-
-                    if (currentLocation.isAdjacentTo(destinationLocation)) {
-                        frontier.clear();
-                        break;
-                    }
+                    checkedLocations.put(Player.locationToString(nextLocation), currentLocation);
                 }
             }
-
-            moveCounter++;
         }
-
-        checkedLocations.put(Player.locationToString(destinationLocation), moveCounter);
 
         return backtrace(destinationLocation, checkedLocations);
     }
@@ -163,30 +160,26 @@ public abstract class Robot extends UnitInstance {
      * @param checkedLocations The HashMap of checked locations
      * @return One of the shortest paths
      */
-    private Stack<MapLocation> backtrace(MapLocation destinationLocation, HashMap<String, Integer> checkedLocations) {
-        Stack<MapLocation> shortestPath = new Stack<>();
-        shortestPath.add(destinationLocation);
+    private Stack<MapLocation> backtrace(MapLocation destinationLocation, HashMap<String, MapLocation> checkedLocations) {
 
+        // Checks if the destination location is in checked locations map first. If not, the position is unreachable
         if (!checkedLocations.containsKey(Player.locationToString(destinationLocation))) {
             return null;
         }
 
-        MapLocation checkingLocation = destinationLocation;
-        int movesToDestination = checkedLocations.get(Player.locationToString(destinationLocation));
-        for (int i = movesToDestination; i > 0 ; i--) {
+        Stack<MapLocation> shortestPath = new Stack<>();
+        MapLocation currentLocation = destinationLocation;
 
-            for (Direction nextDirection: Player.getMoveDirections()) {
-                MapLocation nextLocation = checkingLocation.add(nextDirection);
+        // If the checked destinations is 1, that means you are adjacent to the location
+        if (this.getLocation().equals(destinationLocation)) {
+            shortestPath.push(destinationLocation);
+            shortestPath.push(checkedLocations.get(Player.locationToString(destinationLocation)));
+            return shortestPath;
+        }
 
-                if (checkedLocations.containsKey(Player.locationToString(nextLocation)) &&
-                        checkedLocations.get(Player.locationToString(nextLocation)) == i-1) {
-
-                    shortestPath.add(nextLocation);
-                    checkingLocation = nextLocation;
-
-                    break;
-                }
-            }
+        while (!currentLocation.equals(checkedLocations.get(Player.locationToString(currentLocation)))) {
+            shortestPath.push(currentLocation);
+            currentLocation = checkedLocations.get(Player.locationToString(currentLocation));
         }
 
         return shortestPath;

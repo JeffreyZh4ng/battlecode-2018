@@ -65,6 +65,12 @@ public class GlobalTask {
         unitsOnTask.add(workerId);
         UnitInstance worker = Earth.earthWorkerMap.get(workerId);
 
+        // If the worker currently is wandering, then poll the task
+        if (worker.hasTasks() && worker.getCurrentTask().getCommand() == Command.WANDER) {
+            System.out.println("Worker: " + worker.getId() + " removed its wander task");
+            worker.pollCurrentTask();
+        }
+
         RobotTask moveTask = new RobotTask(taskId, Command.MOVE, taskLocation);
         worker.addTaskToQueue(moveTask);
 
@@ -93,6 +99,12 @@ public class GlobalTask {
             unit = Earth.earthWorkerMap.get(unitId);
         } else {
             unit = Earth.earthAttackerMap.get(unitId);
+        }
+
+        // If the unit is currently wandering, remove the task
+        if (unit.hasTasks() && unit.getCurrentTask().getCommand() == Command.WANDER) {
+            System.out.println("Unit: " + unit.getId() + " removed its wander task");
+            unit.pollCurrentTask();
         }
 
         RobotTask moveTask = new RobotTask(taskId, Command.MOVE, taskLocation);

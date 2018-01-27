@@ -34,7 +34,7 @@ public abstract class Attacker extends Robot {
             executeCurrentTask();
 
         } else {
-            wanderToGlobalAttack();
+            // wanderToGlobalAttack();
         }
     }
 
@@ -173,6 +173,8 @@ public abstract class Attacker extends Robot {
         switch (robotCommand) {
             case MOVE:
                 return this.pathManager(commandLocation);
+            case WANDER:
+                return this.pathManager(commandLocation);
             case ALERTED:
                 return this.pathManager(commandLocation);
             case IN_COMBAT:
@@ -194,7 +196,7 @@ public abstract class Attacker extends Robot {
             MapLocation attackLocation = Earth.earthMainAttackQueue.peek();
 
             System.out.println("Attacker: " + this.getId() + " moving to global attack location!");
-            this.addTaskToQueue(new RobotTask(-1, Command.MOVE, attackLocation));
+            this.addTaskToQueue(new RobotTask(-1, Command.WANDER, attackLocation));
 
         } else {
             VecMapLocation mapLocations = Player.gc.allLocationsWithin(this.getLocation(), this.getVisionRange());
@@ -209,7 +211,7 @@ public abstract class Attacker extends Robot {
             }
 
             System.out.println("Attacker: " + this.getId() + " wandering!");
-            this.addTaskToQueue(new RobotTask(-1, Command.MOVE, wanderLocation));
+            this.addTaskToQueue(new RobotTask(-1, Command.WANDER, wanderLocation));
         }
     }
 }

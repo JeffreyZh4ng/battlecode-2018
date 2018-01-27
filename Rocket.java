@@ -30,7 +30,8 @@ public class Rocket extends UnitInstance {
             if ((this.getLocation().getPlanet() == Planet.Earth && !inFlight && garrisonCount == 8) ||
                     Player.gc.unit(this.getId()).health() < 100) {
 
-                MapLocation locationToLand = Player.getLandingLocation();
+                // TODO: Dont forget about changing the location
+                MapLocation locationToLand = new MapLocation(Planet.Mars, 10, 10);
                 if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
                     Player.gc.launchRocket(this.getId(), locationToLand);
                     inFlight = true;

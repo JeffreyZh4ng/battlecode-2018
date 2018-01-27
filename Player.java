@@ -21,7 +21,7 @@ public class Player {
         addStartingWorkersToEarthMap();
         enemyStartingLocations = enemyLocations();
 
-//        gc.queueResearch(UnitType.Rocket);
+        gc.queueResearch(UnitType.Rocket);
 //        gc.queueResearch(UnitType.Ranger);
 //        gc.queueResearch(UnitType.Ranger);
 //        gc.queueResearch(UnitType.Mage);
@@ -42,10 +42,9 @@ public class Player {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY);
                 }
 
-//                if (gc.round() % 75 == 0) {
-//                    findPassableMarsThreeSquares();
-//                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
-//                }
+                if (gc.round() == 75) {
+                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET);
+                }
 
                 Earth.execute();
 
