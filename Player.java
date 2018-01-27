@@ -195,7 +195,7 @@ public class Player {
 
     /**
      * Method that will check if a location is empty. Checks if the location is onMap, passableTerrain,
-     * and if it is not occupied by a factory or rocket. Return false if there is a robot there
+     * and if it is not occupied by a unit.
      * @param location The location to check
      * @return If the location appears empty
      */

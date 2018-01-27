@@ -209,6 +209,7 @@ public abstract class Robot extends UnitInstance {
             }
 
         } else {
+            movePathStack.pop();
             while (!recalculatedPath.empty()) {
                 movePathStack.add(recalculatedPath.pop());
             }
