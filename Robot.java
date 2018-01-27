@@ -200,16 +200,16 @@ public abstract class Robot extends UnitInstance {
             }
         }
 
-        MapLocation nextOpenLocation = movePathStack.peek();
+        MapLocation nextOpenLocation = movePathStack.pop();
         Stack<MapLocation> recalculatedPath = getPathFromBFS(nextOpenLocation);
 
         if (recalculatedPath == null) {
+            movePathStack.add(nextOpenLocation);
             while (!originalPath.empty()) {
                 movePathStack.add(originalPath.pop());
             }
 
         } else {
-            movePathStack.pop();
             while (!recalculatedPath.empty()) {
                 movePathStack.add(recalculatedPath.pop());
             }
