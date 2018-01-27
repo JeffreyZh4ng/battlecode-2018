@@ -297,6 +297,26 @@ public class Player {
 //    }
 
     /**
+     * Temp helper method that will get a location on mars for the rocket to land
+     * @return The location the rocket can land
+     */
+    // TODO: Temp method redo
+    public static MapLocation getRandomLocationToLandOnMars() {
+        PlanetMap map = gc.startingMap(Planet.Mars);
+        int width = (int)(map.getWidth());
+        int height = (int)(map.getHeight());
+        while (true) {
+            int randomX = (int)(Math.random() * width);
+            int randomY = (int)(Math.random() * height);
+
+            MapLocation landingLocation = new MapLocation(Planet.Mars, randomX, randomY);
+            if (Player.isLocationEmpty(landingLocation)) {
+                return landingLocation;
+            }
+        }
+    }
+
+    /**
      * Finds the nearest units to a given task that are not already on the task
      * @param globalTask The global task of that is requesting units
      * @return The list of closest idle workers to add to the global task
