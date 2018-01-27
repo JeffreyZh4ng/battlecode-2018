@@ -34,9 +34,9 @@ public class Mars {
         VecRocketLanding vecRocketLanding = landingInfo.landingsOn(Player.gc.round());
         for (int i = 0; i < vecRocketLanding.size(); i++) {
             int rocketId = vecRocketLanding.get(i).getRocket_id();
-            MapLocation rocketLocation = Player.gc.unit(rocketId).location().mapLocation();
-            Rocket landedRocket = new Rocket(rocketId, true, rocketLocation);
+            Rocket landedRocket = new Rocket(rocketId, true);
 
+            System.out.println("Added rocket " + rocketId + " To the rocket map!");
             marsRocketMap.put(rocketId, landedRocket);
         }
     }
@@ -45,18 +45,9 @@ public class Mars {
      * Update and remove launched rocket. Needs to be specific to for rockets because of their unique functionality
      */
     private static void runRocketMap() {
-        ArrayList<Integer> rocketRemoveList = new ArrayList<>();
-
         for (int rocketId: marsRocketMap.keySet()) {
             Rocket rocket = marsRocketMap.get(rocketId);
             rocket.run();
-            if (rocket.disintegrateRocket()) {
-                rocketRemoveList.add(rocketId);
-            }
-        }
-
-        for (int rocketId: rocketRemoveList) {
-            marsRocketMap.remove(rocketId);
         }
     }
 

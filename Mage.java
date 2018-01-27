@@ -34,7 +34,7 @@ public class Mage extends Attacker{
 
             if (distanceToMostSurroundedUnit > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {
-                    move(this.getId(), mostSurroundedUnit.location().mapLocation());
+                    move(mostSurroundedUnit.location().mapLocation());
                 }
             }
 

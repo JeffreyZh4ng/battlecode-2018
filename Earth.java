@@ -4,12 +4,17 @@ import java.util.*;
 
 public class Earth {
 
+    private static final int WORKERS_ON_CONSTRUCT_TASK = 4;
+    private static final int UNITS_ON_LOAD_TASK = 8;
+    private static final int SAFE_STRUCTURE_DISTANCE = 100;
+
     public static int knightCount = 0;
     public static int rangerCount = 0;
     public static int mageCount = 0;
     public static int healerCount = 0;
 
-    public static MapLocation earthAttackTarget = null;
+    public static Queue<MapLocation> earthMainAttackQueue = new LinkedList<>();
+    public static HashSet<Integer> earthFocusedTargets = new HashSet<>();
 
     public static Queue<GlobalTask> earthTaskQueue = new LinkedList<>();
     public static HashMap<Integer, GlobalTask> earthTaskMap = new HashMap<>();
@@ -20,19 +25,12 @@ public class Earth {
     public static HashMap<Integer, UnitInstance> earthFactoryMap = new HashMap<>();
 
     public static HashSet<Integer> earthGarrisonedUnits = new HashSet<>();
-
     public static HashMap<Integer, UnitInstance> earthStagingWorkerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
-    public static HashSet<Integer> earthFinishedTasks = new HashSet<>();
-
-    public static HashMap<String, Integer> earthKarboniteMap = initializeKarboniteMap();
-    public static ArrayList<MapLocation> availableStructureLocations = null;
 
     public static void execute() {
-        updateKarboniteMap();
         updateDeadUnits();
 
-        updateLoadRocketTask();
         updateTaskQueue();
 
         runRocketMap();
@@ -41,10 +39,28 @@ public class Earth {
         runUnitMap(earthAttackerMap);
         runUnitMap(earthFactoryMap);
 
-        removeFinishedTasks();
         removeGarrisonedUnits();
 
         addStagingUnitsToMap();
+    }
+
+    /**
+     * This method will be called when a factory or blueprint want to be constructed. This method will help
+     * choose the location of the structure and add it to the global task list
+     * @param command The command of the task that you want to be added to the global list
+     */
+    public static void createGlobalTask(Command command, MapLocation rocketLocation) {
+        if (command == Command.LOAD_ROCKET) {
+            System.out.println("Creating new global task for loading rocket at " + Player.locationToString(rocketLocation));
+
+            earthTaskQueue.add(new GlobalTask(Command.LOAD_ROCKET, rocketLocation));
+
+        } else {
+            MapLocation globalTaskLocation = pickStructureLocation();
+            System.out.println("Picked location: " + globalTaskLocation + " for task: " + command);
+
+            earthTaskQueue.add(new GlobalTask(command, globalTaskLocation));
+        }
     }
 
     /**
@@ -53,172 +69,241 @@ public class Earth {
      */
     private static void updateTaskQueue() {
         if (earthTaskQueue.size() == 0) {
-            // System.out.println("Queue size is zero!");
+            System.out.println("Queue size is zero!");
             return;
         }
 
-        for (int workerId: earthWorkerMap.keySet()) {
-            if (earthWorkerMap.get(workerId).isIdle() || earthWorkerMap.get(workerId).getCurrentTask().getTaskId() == -1) {
-
-                GlobalTask globalTask = earthTaskQueue.peek();
-                int taskId = globalTask.getTaskId();
-
-                if (!earthTaskMap.containsKey(globalTask.getTaskId())) {
-                    globalTask.addWorkerToList(workerId);
-
-                    // System.out.println("Workers on task: " + globalTask.getTaskId() + " is " + globalTask.getUnitsOnTask().size());
-
-                    earthTaskMap.put(taskId, globalTask);
-                } else {
-                    earthTaskMap.get(taskId);
-                    globalTask.addWorkerToList(workerId);
-                    // System.out.println("Added worker: " + workerId + " to task: " + taskId);
-                    // System.out.println("Current workers on task: " + globalTask.getUnitsOnTask().size());
-                }
-
-                if (globalTask.getMinimumUnitsCount() == earthTaskMap.get(taskId).getUnitsOnTask().size()) {
-                    earthTaskQueue.poll();
-                    // System.out.println("Task has enough workers! Polling: " + taskId);
-                    if (earthTaskQueue.size() == 0) {
-                        return;
-                    }
-                }
-            }
+        GlobalTask globalTask = earthTaskQueue.peek();
+        if (!earthTaskMap.containsKey(globalTask.getTaskId())) {
+            earthTaskMap.put(globalTask.getTaskId(), globalTask);
+            System.out.println("Adding task: " + globalTask.getTaskId() + " to the map!");
         }
-    }
 
-    /**
-     * Helper method for the update task queue method that will update the special case of lading units into
-     * rockets. This is a special case because the task requires unit types other than workers
-     */
-    private static void updateLoadRocketTask() {
-        if (earthTaskQueue.size() != 0 && earthTaskQueue.peek().getCommand() == Command.LOAD_ROCKET) {
-            GlobalTask globalTask = earthTaskQueue.peek();
-            int taskId = globalTask.getTaskId();
-
-            if (!earthTaskMap.containsKey(globalTask.getTaskId())) {
-
-                for (int workerId: earthWorkerMap.keySet()) {
-                    if (earthWorkerMap.get(workerId).isIdle()) {
-                        globalTask.addWorkerToList(workerId);
-                        break;
-                    }
-                }
-
-                // System.out.println("Units on task: " + globalTask.getTaskId() + " is " + globalTask.getUnitsOnTask().size());
-                earthTaskMap.put(taskId, globalTask);
-            }
-
-            while (globalTask.getUnitsOnTask().size() < 8) {
-                int attackerId = Player.getNearestFriendlyAttacker(globalTask.getTaskLocation(), globalTask.getUnitsOnTask());
-                if (attackerId != -1) {
-                    // System.out.println("Getting attacker " + attackerId + " to load rocket!");
-                    globalTask.addAttackerToList(attackerId);
-                } else {
-                    break;
-                }
-
-            }
-
-            if (globalTask.getUnitsOnTask().size() == 8) {
+        if (globalTask.getCommand() == Command.LOAD_ROCKET) {
+            System.out.println("Trying to assign units to load rocket. Task: " + globalTask.getTaskId());
+            if (getUnitsToLoadRocket(globalTask)) {
                 earthTaskQueue.poll();
-                // System.out.println("Task has enough workers! Polling: " + taskId);
-                if (earthTaskQueue.size() == 0) {
-                    return;
-                }
+                System.out.println("Units have been assigned for task: " + globalTask.getTaskId());
+                updateTaskQueue();
+            }
+        } else {
+            System.out.println("Trying to assign units to construct. Task: " + globalTask.getTaskId());
+            if (getWorkersToConstruct(globalTask)) {
+                System.out.println("Units have been assigned for task: " + globalTask.getTaskId());
+                earthTaskQueue.poll();
+                updateTaskQueue();
             }
         }
     }
 
     /**
-     * This method will be called when a factory or blueprint want to be constructed. This method will help
-     * choose the location of the structure and add it to the global task list
-     * @param command The command of the task that you want to be added to the global list
+     * Helper method that will manage assigning tasks to units for loading rockets
+     * @param globalTask The current global task that is at the top of the queue
+     * @return If the units have been assigned to load the rocket have been assigned tasks
      */
-    public static void createGlobalTask(Command command) {
-        int minimumUnits = (command == Command.LOAD_ROCKET) ? 8 : 4;
-        MapLocation globalTaskLocation = pickStructureLocation();
-        // System.out.println("Picked location: " + globalTaskLocation.toString());
+    private static boolean getUnitsToLoadRocket(GlobalTask globalTask) {
+        int unitsOnTaskCount = globalTask.getUnitsOnTask().size();
 
-        earthTaskQueue.add(new GlobalTask(minimumUnits, command, globalTaskLocation));
+        ArrayList<Integer> unitSet = new ArrayList<>();
+        if (unitsOnTaskCount < 1) {
+            unitSet.addAll(Player.getNearestFriendlyUnit(globalTask, true, 1));
+            unitsOnTaskCount++;
+        }
+
+        unitSet.addAll(Player.getNearestFriendlyUnit(globalTask, false,
+                UNITS_ON_LOAD_TASK - unitsOnTaskCount));
+
+        for (Integer unitId : unitSet) {
+            globalTask.addUnitToList(unitId);
+            System.out.println("Added unit " + unitId + " to task (load rocket) " + globalTask.getTaskId());
+        }
+
+        return globalTask.getUnitsOnTask().size() >= UNITS_ON_LOAD_TASK;
     }
 
     /**
-     * finds all initial karbonite locations
-     * @return a HashMap of locations with karbonite initially
+     * Helper method that will manage assigning tasks to workers for constructing structures
+     * @param globalTask The current global task that is at the top of the queue
+     * @return If workers have been assigned to complete the task return true
      */
-    private static HashMap<String, Integer> initializeKarboniteMap() {
-        PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
-        HashMap<String, Integer> initialKarboniteValues = new HashMap<>();
-        for (int x = 0; x < initialMap.getWidth(); x++) {
-            for (int y = 0; y < initialMap.getHeight(); y++) {
-                MapLocation location = new MapLocation(Player.gc.planet(), x, y);
-                if (initialMap.initialKarboniteAt(location) > 0) {
-                    initialKarboniteValues.put(Player.mapLocationToString(location), (int)initialMap.initialKarboniteAt(location));
-                }
-            }
+    private static boolean getWorkersToConstruct(GlobalTask globalTask) {
+
+        // Before doing any searching, check if the task has been completed already
+        if (globalTask.hasBuilt()) {
+            return true;
         }
-        return initialKarboniteValues;
+
+        int workersOnTaskCount = globalTask.getUnitsOnTask().size();
+
+        ArrayList<Integer> workerSet = Player.getNearestFriendlyUnit(globalTask,
+                true, WORKERS_ON_CONSTRUCT_TASK - workersOnTaskCount);
+
+        for (Integer workerId : workerSet) {
+            globalTask.addWorkerToList(workerId);
+            System.out.println("Added worker " + workerId + " to task (construct) " + globalTask.getTaskId());
+        }
+
+        return globalTask.getUnitsOnTask().size() >= WORKERS_ON_CONSTRUCT_TASK;
     }
 
-    /**
-     * Method that will update the karbonite values on the map at the beginning of each round.
-     */
-    private static void updateKarboniteMap() {
-
-        ArrayList<String> toRemove = new ArrayList<>();
-        for (Map.Entry<String, Integer> locationEntry : earthKarboniteMap.entrySet()) {
-            MapLocation location = Player.stringToMapLocation(locationEntry.getKey());
-
-            if (Player.gc.canSenseLocation(location)) {
-                int karboniteAt = (int)Player.gc.karboniteAt(location);
-                if (karboniteAt == 0) {
-                    toRemove.add(locationEntry.getKey());
-                } else if (karboniteAt != locationEntry.getValue()) {
-                    earthKarboniteMap.put(locationEntry.getKey(), karboniteAt);
-                }
-
-            }
-        }
-        for (String location : toRemove) {
-            earthKarboniteMap.remove(location);
-        }
-    }
 
     /**
      * Method that will pick the best MapLocation to build a structure
-     * @return The MapLocation of the best place to build a structure or null if no locations exist or no available workers exist
+     * @return The MapLocation of the best place to build a structure or null if no locations exist.
      */
     private static MapLocation pickStructureLocation() {
-        MapLocation closestLocation = null;
-        long shortestDistance = 100000;
+        MapLocation startingLocation = Earth.earthWorkerMap.get(getBestWorkerId()).getLocation();
+        if (isGoodLocation(startingLocation)) {
+            return startingLocation;
+        }
 
-        //choose best location from list
-        for (MapLocation location : availableStructureLocations) {
-            for (int workerId : earthWorkerMap.keySet()) {
-                MapLocation workerLocation = Player.gc.unit(workerId).location().mapLocation();
-                if (closestLocation == null) {
-                    closestLocation = location;
-                    shortestDistance = location.distanceSquaredTo(workerLocation);
+        Queue<MapLocation> frontier = new LinkedList<>();
+        frontier.add(startingLocation);
 
-                } else if (location.distanceSquaredTo(workerLocation) < shortestDistance) {
-                    closestLocation = location;
-                    shortestDistance = location.distanceSquaredTo(workerLocation);
+        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
+        checkedLocations.put(Player.locationToString(startingLocation), startingLocation);
+
+        while (!frontier.isEmpty()) {
+            MapLocation currentLocation = frontier.poll();
+
+            // Shuffle directions so that wandering doesn't gravitate towards a specific direction
+            ArrayList<Direction> moveDirections = Player.getMoveDirections();
+            Collections.shuffle(moveDirections, new Random());
+
+            // Check if locations around frontier location have already been added to came from and if they are empty
+            for (Direction nextDirection : moveDirections) {
+                MapLocation nextLocation = currentLocation.add(nextDirection);
+
+                if (Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
+                    checkedLocations.put(Player.locationToString(nextLocation), nextLocation);
+                    frontier.add(nextLocation);
+
+                    if (isGoodLocation(nextLocation)) {
+                        return nextLocation;
+                    }
                 }
             }
         }
-        availableStructureLocations.remove(closestLocation);
-        return closestLocation;
+
+        return null;
     }
 
     /**
-     * That that will run the execute() command for all the units in the given HashMap
-     * @param searchMap The HashMap of units
+     * Finds id of the best worker to build a structure next to. Calculates the total distance to other workers.
+     * The worker with the smallest total distance to the others will be returned.
+     * @return The id of the worker with the smallest total distance to others
      */
-    private static void runUnitMap(HashMap<Integer, UnitInstance> searchMap) {
-        for (int unitId: searchMap.keySet()) {
-            searchMap.get(unitId).run();
+    private static int getBestWorkerId() {
+        VecUnit units = Player.gc.units();
+        ArrayList<Unit> workerList = new ArrayList<>();
+        for (int i = 0; i < units.size(); i++) {
+            if (units.get(i).unitType() == UnitType.Worker) {
+                workerList.add(units.get(i));
+            }
         }
+
+        // If there is only one worker, return it. Else find the best worker
+        if (workerList.size() == 1) {
+            return workerList.get(0).id();
+        }
+
+        // Sets the index corresponding to the worker to its total distance
+        int[] workerDistances = new int[workerList.size()];
+        for (int i = 0; i < workerList.size(); i++) {
+            MapLocation workerLocation = workerList.get(i).location().mapLocation();
+            int totalDistance = 0;
+
+            for (Unit worker: workerList) {
+                totalDistance += workerLocation.distanceSquaredTo(worker.location().mapLocation());
+            }
+
+            workerDistances[i] = totalDistance;
+        }
+
+        int smallestDistance = workerDistances[0];
+        int indexOfSmallestDistance = 0;
+        for (int i = 0; i < workerDistances.length; i++) {
+            if (workerDistances[i] < smallestDistance) {
+                indexOfSmallestDistance = i;
+            }
+        }
+
+        return workerList.get(indexOfSmallestDistance).id();
+    }
+
+    /**
+     * Helper method that will determine if a location is a good place to build a structure. Will check if it
+     * is a good distance away from the enemy starting locations, if it isn't blocking any paths and if it isn't
+     * adjacent to any other structures
+     * @param mapLocation The location that you want to check
+     * @return If the location is a good place to build a structure
+     */
+    private static boolean isGoodLocation(MapLocation mapLocation) {
+
+        // Check if location is too close to the enemy starting positions
+        for (MapLocation enemyLocation: Player.enemyStartingLocations) {
+            if (mapLocation.distanceSquaredTo(enemyLocation) < SAFE_STRUCTURE_DISTANCE) {
+                return false;
+            }
+        }
+
+        ArrayList<MapLocation> openLocations = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            MapLocation newLocation = mapLocation.add(Direction.swigToEnum(i));
+
+            // If North, South, East, or West is not on map, need to check if the opposite position is on the map.
+            // If it is not on the map, the location is not suitable.
+            switch (i) {
+                case 0:
+                    if (!Player.isOnMap(newLocation)) {
+                        MapLocation adjacentLocation = mapLocation.add(Direction.swigToEnum(4));
+                        if (!Player.isOnMap(adjacentLocation)) {
+                            return false;
+                        }
+                    }
+                    break;
+                case 2:
+                    if (!Player.isOnMap(newLocation)) {
+                        MapLocation adjacentLocation = mapLocation.add(Direction.swigToEnum(6));
+                        if (!Player.isOnMap(adjacentLocation)) {
+                            return false;
+                        }
+                    }
+                    break;
+                case 4:
+                    if (!Player.isOnMap(newLocation)) {
+                        MapLocation adjacentLocation = mapLocation.add(Direction.swigToEnum(0));
+                        if (!Player.isOnMap(adjacentLocation)) {
+                            return false;
+                        }
+                    }
+                    break;
+                case 6:
+                    if (!Player.isOnMap(newLocation)) {
+                        MapLocation adjacentLocation = mapLocation.add(Direction.swigToEnum(2));
+                        if (!Player.isOnMap(adjacentLocation)) {
+                            return false;
+                        }
+                    }
+                    break;
+            }
+
+            if (Player.isOnMap(newLocation)) {
+                openLocations.add(newLocation);
+            }
+        }
+
+        if (openLocations.size() < 5) {
+            return false;
+        }
+
+        for (MapLocation location: openLocations) {
+            if (!Player.isLocationEmptyForStructure(location)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -227,6 +312,7 @@ public class Earth {
     private static void runRocketMap() {
         ArrayList<Integer> rocketRemoveList = new ArrayList<>();
 
+        // Loops through and checks if the rocket can take off. If it takes off, remove it from the rocket list
         for (int rocketId: earthRocketMap.keySet()) {
             Rocket rocket = earthRocketMap.get(rocketId);
             rocket.run();
@@ -237,6 +323,16 @@ public class Earth {
 
         for (int rocketId: rocketRemoveList) {
             earthRocketMap.remove(rocketId);
+        }
+    }
+
+    /**
+     * That that will run the execute() command for all the units in the given HashMap
+     * @param searchMap The HashMap of units
+     */
+    private static void runUnitMap(HashMap<Integer, UnitInstance> searchMap) {
+        for (int unitId: searchMap.keySet()) {
+            searchMap.get(unitId).run();
         }
     }
 
@@ -276,18 +372,41 @@ public class Earth {
                 UnitInstance unit = searchMap.get(unitId);
                 if (unit.getCurrentTask() != null && unit.getCurrentTask().getTaskId() != -1) {
                     int globalTaskId = unit.getCurrentTask().getTaskId();
-                    // System.out.println("Removing unit from task: " + globalTaskId);
+                    System.out.println("Removing unit from task: " + globalTaskId);
                     earthTaskMap.get(globalTaskId).removeWorkerFromList(unitId);
                 }
             }
         }
 
         for (int unitId: deadUnits) {
-            // System.out.println("Removing unit: " + unitId);
+            System.out.println("Removing unit: " + unitId);
             searchMap.remove(unitId);
         }
 
         return searchMap;
+    }
+
+    /**
+     * Helper method for the updateDeadUnits method that will decrement all the values of the current attacking units
+     * @param unitSet The set of units returned by the Game Controller
+     */
+    private static void decrementAttackCounts(HashSet<Integer> unitSet) {
+        for (int unitId: earthAttackerMap.keySet()) {
+            if (!unitSet.contains(unitId)) {
+
+                switch (earthAttackerMap.get(unitId).getUnitType()) {
+                    case Knight:
+                        knightCount--;
+                    case Ranger:
+                        System.out.println("Decremented ranger count!");
+                        rangerCount--;
+                    case Mage:
+                        mageCount--;
+                    case Healer:
+                        healerCount--;
+                }
+            }
+        }
     }
 
     /**
@@ -306,52 +425,18 @@ public class Earth {
     }
 
     /**
-     * Helper method for the updateDeadUnits method that will decrement all the values of the current attacking units
-     * @param unitSet The set of units returned by the Game Controller
-     */
-    private static void decrementAttackCounts(HashSet<Integer> unitSet) {
-        for (int unitId: earthAttackerMap.keySet()) {
-            if (!unitSet.contains(unitId)) {
-
-                switch (earthAttackerMap.get(unitId).getUnitType()) {
-                    case Knight:
-                        knightCount--;
-                    case Ranger:
-                        // System.out.println("Decremented ranger count!");
-                        rangerCount--;
-                    case Mage:
-                        mageCount--;
-                    case Healer:
-                        healerCount--;
-                }
-            }
-        }
-    }
-
-    /**
-     * Method that will remove the completed tasks from the global current earth tasks
-     */
-    private static void removeFinishedTasks() {
-        for (int taskId: earthFinishedTasks) {
-            earthTaskMap.remove(taskId);
-            // System.out.println("Deleting task " + taskId);
-        }
-        earthFinishedTasks.clear();
-    }
-
-    /**
      * Method that will add all the robots created this round to their indicated unit map
      */
     private static void addStagingUnitsToMap() {
         for (int unitId : earthStagingWorkerMap.keySet()) {
             earthWorkerMap.put(unitId, earthStagingWorkerMap.get(unitId));
-            // System.out.println("Added unit: " + unitId + " To the worker list");
+            System.out.println("Added unit: " + unitId + " To the worker list");
         }
         earthStagingWorkerMap.clear();
 
         for (int unitId : earthStagingAttackerMap.keySet()) {
             earthAttackerMap.put(unitId, earthStagingAttackerMap.get(unitId));
-            // System.out.println("Added unit: " + unitId + " To the attacker list");
+            System.out.println("Added unit: " + unitId + " To the attacker list");
         }
         earthStagingAttackerMap.clear();
     }

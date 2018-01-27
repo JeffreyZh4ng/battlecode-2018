@@ -3,10 +3,13 @@ import bc.MapLocation;
 import bc.Planet;
 import bc.UnitType;
 
-public class Factory extends Structure {
+public class Factory extends UnitInstance {
 
-    public Factory(int id, boolean isBuilt, MapLocation factoryLocation) {
-        super(id, isBuilt, factoryLocation);
+    private boolean isBuilt;
+
+    public Factory(int id, boolean isBuilt) {
+        super(id);
+        this.isBuilt = isBuilt;
     }
 
     /**
@@ -14,7 +17,7 @@ public class Factory extends Structure {
      */
     @Override
     public void run() {
-        if (this.isBuilt()) {
+        if (isBuilt) {
             UnitType unitToProduce = findUnitToProduce();
             if (Player.gc.canProduceRobot(this.getId(), unitToProduce) && Player.gc.karbonite() > 80) {
                 Player.gc.produceRobot(this.getId(), unitToProduce);
@@ -46,7 +49,6 @@ public class Factory extends Structure {
     /**
      * Method that will unload units inside its garrison when it can
      */
-    @Override
     public void unload() {
         for (int i = 0; i < 8; i++) {
             Direction direction = Direction.swigToEnum(i);

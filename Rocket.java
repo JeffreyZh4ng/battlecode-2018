@@ -2,47 +2,60 @@ import bc.*;
 
 import java.util.*;
 
-public class Rocket extends Structure {
+public class Rocket extends UnitInstance {
 
-    private boolean inFlight = false;
-    private int garrisonCount = 0;
-    private HashSet<Integer> garrison = new HashSet<>();
+    private boolean isBuilt;
+    private boolean inFlight;
 
-    public Rocket(int id, boolean isBuilt, MapLocation rocketLocation) {
-        super(id, isBuilt, rocketLocation);
+    public Rocket(int id, boolean isBuilt) {
+        super(id);
+        this.isBuilt = isBuilt;
+        this.inFlight = false;
+
+        if (isBuilt) {
+            Earth.createGlobalTask(Command.LOAD_ROCKET, this.getLocation());
+        }
     }
 
     public boolean isInFlight() {
         return inFlight;
     }
 
-
     @Override
     public void run() {
-        if (this.isBuilt()) {
-            if (this.getLocation().getPlanet() == Planet.Earth && !inFlight) {
-                if (garrisonCount == 0) {
-                    MapLocation locationToLand = Player.getLandingLocation();
-                    if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
-                        Player.gc.launchRocket(this.getId(), locationToLand);
-                        inFlight = true;
-                    }
+        if (isBuilt) {
+
+            if (!inFlight && this.getLocation().getPlanet() == Planet.Earth && Player.gc.unit(this.getId()).structureGarrison().size() == 8) {
+
+                // TODO: Don't forget about changing the location
+                MapLocation locationToLand = new MapLocation(Planet.Mars, 10, 10);
+                System.out.println("Rocket: " + this.getId() + " Trying to launch");
+
+                if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
+                    Player.gc.launchRocket(this.getId(), locationToLand);
+
+                    System.out.println("Rocket: " + this.getId() + " launched!");
+                    inFlight = true;
                 }
+
+            } else if (this.getLocation().getPlanet() == Planet.Mars) {
+                unload();
             }
-            System.out.println("Rocket size: " + garrisonCount);
         }
     }
 
-    @Override
+    /**
+     * Method will unload all the units it can when the rocket reaches mars.
+     */
     public void unload() {
         for (int i = 0; i < 8; i++) {
+
             Direction direction = Direction.swigToEnum(i);
             if (Player.gc.canUnload(this.getId(), direction)) {
                 Player.gc.unload(this.getId(), direction);
 
                 MapLocation unloadLocation = this.getLocation().add(direction);
                 int unitId = Player.gc.senseUnitAtLocation(unloadLocation).id();
-                garrison.add(unitId);
 
                 UnitType unitType = Player.gc.unit(unitId).unitType();
                 UnitInstance unitInstance;
@@ -79,24 +92,9 @@ public class Rocket extends Structure {
     public boolean loadUnit(int unitId) {
         if (Player.gc.canLoad(this.getId(), unitId)) {
             Player.gc.load(this.getId(), unitId);
-            garrisonCount++;
             Earth.earthGarrisonedUnits.add(unitId);
-            System.out.println("Loaded unit " + unitId);
 
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * When a rocket is empty, disintegrate it
-     * @return If the rocket was disintegrated or not
-     */
-    public boolean disintegrateRocket() {
-        if (garrison.size() >= 8) {
-            Player.gc.disintegrateUnit(this.getId());
-
+            System.out.println("Rocket: " + this.getId() + " loaded unit " + unitId);
             return true;
         }
 
