@@ -124,7 +124,10 @@ public class Worker extends Robot {
      * Helper method that will control what the robot does when it has no current tasks
      */
     private void executeIdleActions() {
+        System.out.println("This is causing the leak?");
         MapLocation newMoveLocation = getNearestKarboniteLocation();
+        System.out.println("This is causing the leak?");
+
         if (newMoveLocation != null) {
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, newMoveLocation));
             System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
@@ -266,21 +269,25 @@ public class Worker extends Robot {
     }
 
     /**
-     * Method that will get the nearest location of a karbonite deposit
+     * Method that will get the nearest location of a karbonite deposit. POTENTIAL MEM LEAK IF RUNS TOO MUCH
      * @return The MapLocation of the nearest karbonite deposit. Null if there is no karbonite on the map
      */
-    // TODO: Check
+    // TODO: Change this so that is senses all locations within a radius of x. If is finds any within the radius
+    // TODO: Of the unit, THEN start the search algorithm.
     private MapLocation getNearestKarboniteLocation() {
 
         MapLocation destinationLocation = null;
 
+        MapLocation myLocation = this.getLocation();
+
         Queue<MapLocation> frontier = new LinkedList<>();
-        frontier.add(this.getLocation());
+        frontier.add(myLocation);
 
         HashMap<String, MapLocation> checkedLocations = new HashMap<>();
-        checkedLocations.put(Player.locationToString(this.getLocation()), this.getLocation());
+        checkedLocations.put(Player.locationToString(myLocation), myLocation);
 
-        while (!frontier.isEmpty()) {
+        int counter = 0;
+        while (!frontier.isEmpty() && counter < 100) {
 
             // Get next direction to check around. Will put in the checked location a pair with the key as the
             // Next location with the value as the current location.
@@ -299,11 +306,13 @@ public class Worker extends Robot {
             for (Direction nextDirection: moveDirections) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if (Player.gc.canSenseLocation(nextLocation) && Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
+                if (Player.gc.canSenseLocation(nextLocation) && Player.isLocationEmpty(nextLocation) &&
+                        !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
                     frontier.add(nextLocation);
                     checkedLocations.put(Player.locationToString(nextLocation), currentLocation);
                 }
             }
+            counter++;
         }
 
         return destinationLocation;
@@ -314,7 +323,9 @@ public class Worker extends Robot {
      * @param radius The radius to wander in
      */
     private void wanderWithinRadius(int radius) {
+        System.out.println("This is causing the leak?1");
         VecMapLocation mapLocations = Player.gc.allLocationsWithin(spawnLocation, radius);
+        System.out.println("This is causing the leak?1");
 
         MapLocation wanderLocation = null;
         while (wanderLocation == null) {

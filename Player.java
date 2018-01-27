@@ -24,7 +24,7 @@ public class Player {
                 System.runFinalization();
                 System.gc();
             }
-            if (gc.planet() == Planet.Earth) {
+            if (gc.planet() == Planet.Earth && gc.team() == Team.Blue) {
                 System.out.println("Round number: " + gc.round());
                 System.out.println("Time left: " + gc.getTimeLeftMs());
                 System.out.println("Karbonite: " + gc.karbonite());
@@ -101,7 +101,6 @@ public class Player {
         gc.queueResearch(UnitType.Mage);
         gc.queueResearch(UnitType.Worker);
     }
-
 
     /**
      * Simplified method of senseUnitAtLocation that will handle the exception of if the location is not visible.

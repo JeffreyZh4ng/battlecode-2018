@@ -118,9 +118,10 @@ public abstract class Attacker extends Robot {
             // with has been killed
             if (this.getEmergencyTask() != null && this.getEmergencyTask().getCommand() == Command.IN_COMBAT) {
                 System.out.println("Attacker has left combat. Checking if a global attack location has been seen");
-                checkGlobalAttackLocation();
                 this.setEmergencyTask(null);
             }
+
+            checkGlobalAttackLocation();
         }
     }
 
@@ -207,7 +208,7 @@ public abstract class Attacker extends Robot {
      * attack location.
      */
     private void checkGlobalAttackLocation() {
-        if (Earth.earthMainAttackStack.empty()) {
+        if (!Earth.earthMainAttackStack.empty()) {
 
             MapLocation location = Earth.earthMainAttackStack.peek();
             if (this.getLocation().distanceSquaredTo(location) < this.getVisionRange()) {
@@ -293,6 +294,7 @@ public abstract class Attacker extends Robot {
 
             MapLocation wanderLocation = null;
             while (wanderLocation == null) {
+                System.out.println("Attacker: " + this.getId() + " trying to find a random location!");
                 int randomLocation = (int)(Math.random() * mapLocations.size());
 
                 if (Player.isLocationEmpty(mapLocations.get(randomLocation))) {
@@ -300,7 +302,7 @@ public abstract class Attacker extends Robot {
                 }
             }
 
-            System.out.println("Attacker: " + this.getId() + " wandering!");
+            System.out.println("Attacker: " + this.getId() + " wandering to random location!");
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, wanderLocation));
         }
     }

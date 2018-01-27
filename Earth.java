@@ -160,7 +160,9 @@ public class Earth {
      * @return The MapLocation of the best place to build a structure or null if no locations exist.
      */
     private static MapLocation pickStructureLocation() {
-        MapLocation startingLocation = Earth.earthWorkerMap.get(getBestWorkerId()).getLocation();
+        int workerId = getBestWorkerId();
+
+        MapLocation startingLocation = Earth.earthWorkerMap.get(workerId).getLocation();
         if (isGoodLocation(startingLocation)) {
             structureLocations.add(Player.locationToString(startingLocation));
             return startingLocation;
@@ -204,7 +206,7 @@ public class Earth {
      * @return The id of the worker with the smallest total distance to others
      */
     private static int getBestWorkerId() {
-        VecUnit units = Player.gc.units();
+        VecUnit units = Player.gc.myUnits();
         ArrayList<Unit> workerList = new ArrayList<>();
         for (int i = 0; i < units.size(); i++) {
             if (units.get(i).unitType() == UnitType.Worker) {
