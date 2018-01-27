@@ -102,7 +102,6 @@ public abstract class Robot extends UnitInstance {
         if (!Player.gc.isMoveReady(this.getId())) {
             return false;
         }
-
         if (!Player.gc.canMove(this.getId(), this.getLocation().directionTo(movePathStack.peek()))) {
             reroute();
         }
@@ -200,19 +199,23 @@ public abstract class Robot extends UnitInstance {
                 break;
             }
         }
-
-        MapLocation nextOpenLocation = movePathStack.peek();
-        System.out.println("Next open location " + nextOpenLocation.toString());
+        
+        MapLocation nextOpenLocation = movePathStack.pop();
         Stack<MapLocation> recalculatedPath = getPathFromBFS(nextOpenLocation);
 
         if (recalculatedPath == null) {
+            movePathStack.add(nextOpenLocation);
             while (!originalPath.empty()) {
                 movePathStack.add(originalPath.pop());
             }
 
         } else {
+            Stack<MapLocation> flippedRecalculatedPath = new Stack<>();
             while (!recalculatedPath.empty()) {
-                movePathStack.add(recalculatedPath.pop());
+                flippedRecalculatedPath.add(recalculatedPath.pop());
+            }
+            while (!flippedRecalculatedPath.empty()) {
+                movePathStack.add(flippedRecalculatedPath.pop());
             }
         }
     }
