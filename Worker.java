@@ -262,11 +262,8 @@ public class Worker extends Robot {
      * Method that will get the nearest location of a karbonite deposit
      * @return The MapLocation of the nearest karbonite deposit. Null if there is no karbonite on the map
      */
+    // TODO: Check
     private MapLocation getNearestKarboniteLocation() {
-
-        if (Earth.earthKarboniteMap.size() == 0) {
-            return null;
-        }
 
         MapLocation destinationLocation = null;
 
@@ -277,24 +274,27 @@ public class Worker extends Robot {
         checkedLocations.put(Player.locationToString(this.getLocation()), this.getLocation());
 
         while (!frontier.isEmpty()) {
+
+            // Get next direction to check around. Will put in the checked location a pair with the key as the
+            // Next location with the value as the current location.
             MapLocation currentLocation = frontier.poll();
+            if (Player.gc.canSenseLocation(currentLocation) && Player.gc.karboniteAt(currentLocation) > 0) {
+                destinationLocation = currentLocation;
+                //checkedLocations.put(Player.locationToString(destinationLocation), currentLocation);
+                frontier.clear();
+                break;
+            }
 
-            // Shuffle directions so that wandering doesn't gravitate towards a specific direction
+            // shuffle makes stay more in a general area rather than constantly gravitate northward then
             ArrayList<Direction> moveDirections = Player.getMoveDirections();
-            Collections.shuffle(moveDirections, new Random());
-
+            Collections.shuffle(moveDirections);
             // Check if locations around frontier location have already been added to came from and if they are empty
-            for (Direction nextDirection : moveDirections) {
+            for (Direction nextDirection: moveDirections) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if (Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
-                    checkedLocations.put(Player.locationToString(nextLocation), currentLocation);
+                if (Player.gc.canSenseLocation(nextLocation) && Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
                     frontier.add(nextLocation);
-
-                    if (Earth.earthKarboniteMap.containsKey(Player.locationToString(nextLocation))) {
-                        destinationLocation = nextLocation;
-                        frontier.clear();
-                    }
+                    checkedLocations.put(Player.locationToString(nextLocation), currentLocation);
                 }
             }
         }

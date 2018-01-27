@@ -28,10 +28,7 @@ public class Earth {
     public static HashMap<Integer, UnitInstance> earthStagingWorkerMap = new HashMap<>();
     public static HashMap<Integer, UnitInstance> earthStagingAttackerMap = new HashMap<>();
 
-    public static HashMap<String, Integer> earthKarboniteMap = initializeKarboniteMap();
-
     public static void execute() {
-        updateKarboniteMap();
         updateDeadUnits();
 
         updateTaskQueue();
@@ -140,48 +137,6 @@ public class Earth {
         return globalTask.getUnitsOnTask().size() >= WORKERS_ON_CONSTRUCT_TASK;
     }
 
-    /**
-     * finds all initial karbonite locations
-     * @return a HashMap of locations with karbonite initially
-     */
-    // TODO: This should go in the Player class
-    private static HashMap<String, Integer> initializeKarboniteMap() {
-        PlanetMap initialMap = Player.gc.startingMap(Player.gc.planet());
-        HashMap<String, Integer> initialKarboniteValues = new HashMap<>();
-        for (int x = 0; x < initialMap.getWidth(); x++) {
-            for (int y = 0; y < initialMap.getHeight(); y++) {
-                MapLocation location = new MapLocation(Player.gc.planet(), x, y);
-                if (initialMap.initialKarboniteAt(location) > 0) {
-                    initialKarboniteValues.put(Player.locationToString(location), (int)initialMap.initialKarboniteAt(location));
-                }
-            }
-        }
-        return initialKarboniteValues;
-    }
-
-    /**
-     * Method that will update the karbonite values on the map at the beginning of each round.
-     */
-    // TODO: Rework
-    private static void updateKarboniteMap() {
-        ArrayList<String> toRemove = new ArrayList<>();
-        for (Map.Entry<String, Integer> locationEntry : earthKarboniteMap.entrySet()) {
-            MapLocation location = Player.stringToLocation(locationEntry.getKey());
-
-            if (Player.gc.canSenseLocation(location)) {
-                int karboniteAt = (int)Player.gc.karboniteAt(location);
-                if (karboniteAt == 0) {
-                    toRemove.add(locationEntry.getKey());
-                } else if (karboniteAt != locationEntry.getValue()) {
-                    earthKarboniteMap.put(locationEntry.getKey(), karboniteAt);
-                }
-
-            }
-        }
-        for (String location : toRemove) {
-            earthKarboniteMap.remove(location);
-        }
-    }
 
     /**
      * Method that will pick the best MapLocation to build a structure

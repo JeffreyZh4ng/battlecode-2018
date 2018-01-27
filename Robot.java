@@ -102,7 +102,6 @@ public abstract class Robot extends UnitInstance {
         if (!Player.gc.isMoveReady(this.getId())) {
             return false;
         }
-
         if (!Player.gc.canMove(this.getId(), this.getLocation().directionTo(movePathStack.peek()))) {
             reroute();
         }
@@ -210,8 +209,12 @@ public abstract class Robot extends UnitInstance {
             }
 
         } else {
+            Stack<MapLocation> flippedRecalculatedPath = new Stack<>();
             while (!recalculatedPath.empty()) {
-                movePathStack.add(recalculatedPath.pop());
+                flippedRecalculatedPath.add(recalculatedPath.pop());
+            }
+            while (!flippedRecalculatedPath.empty()) {
+                movePathStack.add(flippedRecalculatedPath.pop());
             }
         }
     }
