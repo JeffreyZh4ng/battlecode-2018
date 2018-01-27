@@ -28,7 +28,7 @@ public class Rocket extends UnitInstance {
             if (!inFlight && this.getLocation().getPlanet() == Planet.Earth && Player.gc.unit(this.getId()).structureGarrison().size() == 8) {
 
                 // TODO: Don't forget about changing the location
-                MapLocation locationToLand = new MapLocation(Planet.Mars, 10, 10);
+                MapLocation locationToLand = Player.getRandomLocationToLandOnMars();
                 System.out.println("Rocket: " + this.getId() + " Trying to launch");
 
                 if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
