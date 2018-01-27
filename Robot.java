@@ -81,9 +81,8 @@ public abstract class Robot extends UnitInstance {
              if (movePathStack == null) {
                  System.out.println("Unit: " + this.getId() + " cannot reach the desired location");
 
-                 int currentTaskId = this.getCurrentTask().getTaskId();
-                 if (currentTaskId != -1) {
-                     Earth.earthTaskMap.get(currentTaskId).removeWorkerFromList(this.getId());
+                 if (this.hasTasks() && this.getCurrentTask().getTaskId() != -1) {
+                     Earth.earthTaskMap.get(this.getCurrentTask().getTaskId()).removeWorkerFromList(this.getId());
                  }
                  return true;
              }

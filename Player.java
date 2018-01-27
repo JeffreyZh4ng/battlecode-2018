@@ -21,36 +21,44 @@ public class Player {
         addStartingWorkersToEarthMap();
         enemyStartingLocations = enemyLocations();
 
+        gc.queueResearch(UnitType.Ranger);
+        gc.queueResearch(UnitType.Ranger);
         gc.queueResearch(UnitType.Rocket);
-//        gc.queueResearch(UnitType.Ranger);
-//        gc.queueResearch(UnitType.Ranger);
-//        gc.queueResearch(UnitType.Mage);
-//        gc.queueResearch(UnitType.Mage);
-//        gc.queueResearch(UnitType.Mage);
-//        gc.queueResearch(UnitType.Worker);
+        gc.queueResearch(UnitType.Mage);
+        gc.queueResearch(UnitType.Mage);
+        gc.queueResearch(UnitType.Mage);
+        gc.queueResearch(UnitType.Worker);
 
         while (true) {
             if (gc.round() % 2 == 0) {
                 System.runFinalization();
                 System.gc();
             }
-            if (gc.planet() == Planet.Earth && gc.team() == Team.Red) {
+            if (gc.planet() == Planet.Earth) {
                 System.out.println("Round number: " + gc.round());
                 System.out.println("Time left: " + gc.getTimeLeftMs());
                 System.out.println("Karbonite: " + gc.karbonite());
 
                 if (gc.round() == 1) {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
+                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
+                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
                 }
 
-                if (gc.round() == 75) {
+                if (gc.round() == 500) {
+                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
+                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
+                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
+                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
+                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
+                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
                     Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
                 }
 
                 Earth.execute();
 
                 System.out.println("");
-            } else if (gc.team() == Team.Red) {
+            } else {
                 Mars.execute();
                 System.out.println("");
             }

@@ -57,6 +57,10 @@ public class GlobalTask {
         return taskLocation;
     }
 
+    public void setTaskLocation(MapLocation taskLocation) {
+        this.taskLocation = taskLocation;
+    }
+
     /**
      * Adds a worker to the task list and send the worker the set of commands it needs to complete the global task
      * @param workerId The id of the worker being added
@@ -128,7 +132,8 @@ public class GlobalTask {
 
         // Assign the task to another worker. If none are found, it stops trying to find another unit
         for (int unitId: Earth.earthWorkerMap.keySet()) {
-            if (Earth.earthWorkerMap.get(unitId).getCurrentTask().getTaskId() == -1) {
+            UnitInstance unit = Earth.earthWorkerMap.get(unitId);
+            if (!unit.hasTasks() || (unit.hasTasks() && unit.getCurrentTask().getTaskId() == -1)) {
                 addWorkerToList(unitId);
                 break;
             }

@@ -35,6 +35,7 @@ public class Rocket extends UnitInstance {
                     Player.gc.launchRocket(this.getId(), locationToLand);
 
                     System.out.println("Rocket: " + this.getId() + " launched!");
+                    Earth.structureLocations.remove(Player.locationToString(this.getLocation()));
                     inFlight = true;
                 }
 

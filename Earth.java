@@ -12,6 +12,7 @@ public class Earth {
     public static int rangerCount = 0;
     public static int mageCount = 0;
     public static int healerCount = 0;
+    public static HashSet<String> structureLocations = new HashSet<>();
 
     public static Queue<MapLocation> earthMainAttackQueue = new LinkedList<>();
     public static HashSet<Integer> earthFocusedTargets = new HashSet<>();
@@ -56,10 +57,7 @@ public class Earth {
             earthTaskQueue.add(new GlobalTask(Command.LOAD_ROCKET, rocketLocation));
 
         } else {
-            MapLocation globalTaskLocation = pickStructureLocation();
-            System.out.println("Picked location: " + globalTaskLocation + " for task: " + command);
-
-            earthTaskQueue.add(new GlobalTask(command, globalTaskLocation));
+            earthTaskQueue.add(new GlobalTask(command, null));
         }
     }
 
@@ -75,6 +73,11 @@ public class Earth {
 
         GlobalTask globalTask = earthTaskQueue.peek();
         if (!earthTaskMap.containsKey(globalTask.getTaskId())) {
+
+            MapLocation globalTaskLocation = pickStructureLocation();
+            System.out.println("Picked location: " + globalTaskLocation + " for task: " + globalTask.getCommand());
+            globalTask.setTaskLocation(globalTaskLocation);
+
             earthTaskMap.put(globalTask.getTaskId(), globalTask);
             System.out.println("Adding task: " + globalTask.getTaskId() + " to the map!");
         }
@@ -82,6 +85,7 @@ public class Earth {
         if (globalTask.getCommand() == Command.LOAD_ROCKET) {
             System.out.println("Trying to assign units to load rocket. Task: " + globalTask.getTaskId());
             if (getUnitsToLoadRocket(globalTask)) {
+
                 earthTaskQueue.poll();
                 System.out.println("Units have been assigned for task: " + globalTask.getTaskId());
                 updateTaskQueue();
@@ -89,6 +93,7 @@ public class Earth {
         } else {
             System.out.println("Trying to assign units to construct. Task: " + globalTask.getTaskId());
             if (getWorkersToConstruct(globalTask)) {
+
                 System.out.println("Units have been assigned for task: " + globalTask.getTaskId());
                 earthTaskQueue.poll();
                 updateTaskQueue();
@@ -139,8 +144,11 @@ public class Earth {
                 true, WORKERS_ON_CONSTRUCT_TASK - workersOnTaskCount);
 
         for (Integer workerId : workerSet) {
-            globalTask.addWorkerToList(workerId);
-            System.out.println("Added worker " + workerId + " to task (construct) " + globalTask.getTaskId());
+            UnitInstance unit = Earth.earthWorkerMap.get(workerId);
+            if (!unit.hasTasks() || (unit.hasTasks() && unit.getCurrentTask().getTaskId() == -1)) {
+                globalTask.addWorkerToList(workerId);
+                System.out.println("Added worker " + workerId + " to task (construct) " + globalTask.getTaskId());
+            }
         }
 
         return globalTask.getUnitsOnTask().size() >= WORKERS_ON_CONSTRUCT_TASK;
@@ -154,6 +162,7 @@ public class Earth {
     private static MapLocation pickStructureLocation() {
         MapLocation startingLocation = Earth.earthWorkerMap.get(getBestWorkerId()).getLocation();
         if (isGoodLocation(startingLocation)) {
+            structureLocations.add(Player.locationToString(startingLocation));
             return startingLocation;
         }
 
@@ -179,6 +188,7 @@ public class Earth {
                     frontier.add(nextLocation);
 
                     if (isGoodLocation(nextLocation)) {
+                        structureLocations.add(Player.locationToString(nextLocation));
                         return nextLocation;
                     }
                 }
@@ -298,7 +308,7 @@ public class Earth {
         }
 
         for (MapLocation location: openLocations) {
-            if (!Player.isLocationEmptyForStructure(location)) {
+            if (!Player.isLocationEmptyForStructure(location) || structureLocations.contains(Player.locationToString(location))) {
                 return false;
             }
         }
