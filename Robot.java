@@ -38,15 +38,13 @@ public abstract class Robot extends UnitInstance {
      * @param commandLocation The location of the rocket
      * @return If the unit was loaded or not
      */
-    public boolean requestUnitToLoad(MapLocation commandLocation) {
+    public void requestUnitToLoad(MapLocation commandLocation) {
         if (Player.gc.hasUnitAtLocation(commandLocation)) {
             Unit rocket = Player.gc.senseUnitAtLocation(commandLocation);
             Rocket rocketInstance = Earth.earthRocketMap.get(rocket.id());
 
-            return rocketInstance.loadUnit(this.getId());
+            rocketInstance.loadUnit(this.getId());
         }
-
-        return false;
     }
 
     /**
@@ -199,7 +197,7 @@ public abstract class Robot extends UnitInstance {
                 break;
             }
         }
-        
+
         MapLocation nextOpenLocation = movePathStack.pop();
         Stack<MapLocation> recalculatedPath = getPathFromBFS(nextOpenLocation);
 

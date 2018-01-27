@@ -6,13 +6,11 @@ public class Rocket extends UnitInstance {
 
     private boolean isBuilt;
     private boolean inFlight;
-    private int garrisonCount;
 
     public Rocket(int id, boolean isBuilt) {
         super(id);
         this.isBuilt = isBuilt;
         this.inFlight = false;
-        this.garrisonCount = 0;
 
         if (isBuilt) {
             Earth.createGlobalTask(Command.LOAD_ROCKET, this.getLocation());
@@ -27,13 +25,16 @@ public class Rocket extends UnitInstance {
     public void run() {
         if (isBuilt) {
 
-            if ((this.getLocation().getPlanet() == Planet.Earth && !inFlight && garrisonCount == 8) ||
-                    Player.gc.unit(this.getId()).health() < 100) {
+            if (!inFlight && this.getLocation().getPlanet() == Planet.Earth && Player.gc.unit(this.getId()).structureGarrison().size() == 8) {
 
-                // TODO: Dont forget about changing the location
+                // TODO: Don't forget about changing the location
                 MapLocation locationToLand = new MapLocation(Planet.Mars, 10, 10);
+                System.out.println("Rocket: " + this.getId() + " Trying to launch");
+
                 if (Player.gc.canLaunchRocket(this.getId(), locationToLand)) {
                     Player.gc.launchRocket(this.getId(), locationToLand);
+
+                    System.out.println("Rocket: " + this.getId() + " launched!");
                     inFlight = true;
                 }
 
@@ -48,6 +49,7 @@ public class Rocket extends UnitInstance {
      */
     public void unload() {
         for (int i = 0; i < 8; i++) {
+
             Direction direction = Direction.swigToEnum(i);
             if (Player.gc.canUnload(this.getId(), direction)) {
                 Player.gc.unload(this.getId(), direction);
@@ -91,9 +93,8 @@ public class Rocket extends UnitInstance {
         if (Player.gc.canLoad(this.getId(), unitId)) {
             Player.gc.load(this.getId(), unitId);
             Earth.earthGarrisonedUnits.add(unitId);
-            garrisonCount++;
-            System.out.println("Rocket: " + this.getId() + " loaded unit " + unitId);
 
+            System.out.println("Rocket: " + this.getId() + " loaded unit " + unitId);
             return true;
         }
 

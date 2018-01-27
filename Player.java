@@ -36,6 +36,7 @@ public class Player {
             }
             if (gc.planet() == Planet.Earth && gc.team() == Team.Red) {
                 System.out.println("Round number: " + gc.round());
+                System.out.println("Time left: " + gc.getTimeLeftMs());
                 System.out.println("Karbonite: " + gc.karbonite());
 
                 if (gc.round() == 1) {
@@ -49,8 +50,9 @@ public class Player {
                 Earth.execute();
 
                 System.out.println("");
-            } else {
-                // Mars.execute();
+            } else if (gc.team() == Team.Red) {
+                Mars.execute();
+                System.out.println("");
             }
 
             gc.nextTurn();

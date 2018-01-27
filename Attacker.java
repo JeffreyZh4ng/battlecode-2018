@@ -29,9 +29,6 @@ public abstract class Attacker extends Robot {
 
         } else if (this.hasTasks()) {
             executeCurrentTask();
-//            if (this.hasTasks() && this.getCurrentTask().getCommand() == Command.STALL) {
-//                return;
-//            }
 
         } else {
             wanderToGlobalAttack();
@@ -191,7 +188,7 @@ public abstract class Attacker extends Robot {
             case IN_COMBAT:
                 return runBattleAction();
             case STALL:
-                this.requestUnitToLoad(this.getLocation());
+                this.requestUnitToLoad(commandLocation);
                 return false;
             default:
                 System.out.println("Critical error occurred in attacker: " + this.getId());
