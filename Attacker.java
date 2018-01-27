@@ -1,5 +1,7 @@
 import bc.*;
 
+import java.util.ArrayList;
+
 public abstract class Attacker extends Robot {
 
     private int focusedTargetId;
@@ -15,6 +17,10 @@ public abstract class Attacker extends Robot {
 
     public int getFocusedTargetId() {
         return focusedTargetId;
+    }
+
+    public void setFocusedTargetId(int focusedTargetId) {
+        this.focusedTargetId = focusedTargetId;
     }
 
     /**
@@ -42,6 +48,49 @@ public abstract class Attacker extends Robot {
     public abstract boolean runBattleAction();
 
     /**
+     * A special movement that will move a robot in combat. Does not take into account a path.
+     * @param isTowardsTarget If you want to move the robot towards the enemy location
+     * @param enemyLocation The location of the enemy
+     */
+    public void inCombatMove(boolean isTowardsTarget, MapLocation enemyLocation) {
+        int directionToCheck = this.getLocation().directionTo(enemyLocation).swigValue();
+
+        if (!isTowardsTarget) {
+            directionToCheck += 4;
+        }
+
+        // Adds the direction to/away from the enemy and the adjacent directions
+        ArrayList<Integer> directionList = new ArrayList<>();
+        directionList.add(directionToCheck);
+        directionList.add(directionToCheck + 1);
+        directionList.add(directionToCheck - 1);
+
+        // Changes any value that is outside of the direction range
+        for (int i = 0; i < directionList.size(); i++) {
+            int directionValue = directionList.get(i);
+
+            if (directionValue > 7) {
+                directionList.set(i, directionValue - 8);
+
+            } else if (directionValue < 0) {
+                directionList.set(i, directionValue + 8);
+            }
+        }
+
+        for (int i = 0; i < directionList.size(); i++) {
+            Direction direction = Direction.swigToEnum(directionList.get(i));
+            if (Player.gc.canMove(this.getId(), direction)) {
+                Player.gc.moveRobot(this.getId(), direction);
+
+                System.out.println("Moved attacker: " + direction);
+                return;
+            }
+        }
+
+        System.out.println("Could not move the attacker: " + this.getId() + " in combat!");
+    }
+
+    /**
      * Senses nearby for enemy units. If any are found, set the emergency task to in combat. Will check if any
      * nearby units are in the global focused attack list. If not, it will pick the nearest unit and add it
      * to the global focused attack list. Will set its own focused target to the unit.
@@ -50,6 +99,7 @@ public abstract class Attacker extends Robot {
         VecUnit enemyUnits = this.getEnemyUnitsInRange();
         if (enemyUnits != null && enemyUnits.size() > 0) {
 
+            System.out.println("Attacker: " + this.getId() + " saw enemies!");
             if (this.getEmergencyTask() == null || this.getEmergencyTask().getCommand() != Command.IN_COMBAT) {
 
                 // This checks if you were the first to see the enemy location. If you were, the broadcast the location
@@ -62,14 +112,15 @@ public abstract class Attacker extends Robot {
             findBestTarget(enemyUnits);
 
         } else {
+            System.out.println("Attacker: " + this.getId() + " Did not see any enemies");
 
             // If the robot does not sense any enemies, but it is still in combat, the enemy it was in combat
             // with has been killed
             if (this.getEmergencyTask() != null && this.getEmergencyTask().getCommand() == Command.IN_COMBAT) {
+                System.out.println("Attacker has left combat. Checking if a global attack location has been seen");
+                checkGlobalAttackLocation();
                 this.setEmergencyTask(null);
             }
-
-            System.out.println("Attacker: " + this.getId() + " Did not see any enemies");
         }
     }
 
@@ -80,7 +131,11 @@ public abstract class Attacker extends Robot {
     private void setEmergencyTaskToInCombat() {
         System.out.println("Attacker: " + this.getId() + " setting emergency task to IN COMBAT!");
         this.setEmergencyTask(new RobotTask(-1, Command.IN_COMBAT, this.getLocation()));
-        this.pollCurrentTask();
+
+        // Optimally this if statement should never be needed but its here to guard against exceptions
+        if (this.hasTasks()) {
+            this.pollCurrentTask();
+        }
     }
 
     /**
@@ -89,16 +144,20 @@ public abstract class Attacker extends Robot {
      * enemy.
      */
     private void broadcastFocusedTarget() {
-        VecUnit nearbyUnits = Player.gc.senseNearbyUnits(this.getLocation(), 5);
+        VecUnit nearbyUnits = Player.gc.senseNearbyUnits(this.getLocation(), 20);
         Team team = Player.gc.team();
 
         for (int i = 0; i < nearbyUnits.size(); i++) {
 
+            // Checks if the nearby unit is not a worker, healer, or itself.
             Unit nearbyUnit = nearbyUnits.get(i);
-            if (nearbyUnit.team() == team && nearbyUnit.unitType() != UnitType.Worker && nearbyUnit.unitType() != UnitType.Healer) {
+            if (nearbyUnit.team() == team && nearbyUnit.unitType() != UnitType.Worker && nearbyUnit.unitType() != UnitType.Healer &&
+                    nearbyUnit.id() != this.getId()) {
 
+                // If the current nearby units task is not already alerted, and if the task isn't part of a global task, poll it
                 UnitInstance friendlyAttacker = Earth.earthAttackerMap.get(nearbyUnit.id());
-                if (friendlyAttacker.hasTasks() && friendlyAttacker.getCurrentTask().getCommand() != Command.ALERTED) {
+                if (friendlyAttacker.hasTasks() && friendlyAttacker.getCurrentTask().getCommand() != Command.ALERTED &&
+                        friendlyAttacker.getCurrentTask().getTaskId() == -1) {
                     friendlyAttacker.pollCurrentTask();
                 }
 
@@ -106,23 +165,29 @@ public abstract class Attacker extends Robot {
                 friendlyAttacker.addTaskToQueue(new RobotTask(-1, Command.ALERTED, this.getLocation()));
             }
         }
+
+        System.out.println("Attacker: " + this.getId() + " Finished trying to alert other units");
     }
 
     /**
      * Method that will check the enemy units nearby, if one of the nearby units is in the global focused targets,
      * set it to you this attackers focused attack
      */
-    private void findBestTarget(VecUnit enemyUnits) {
+    public void findBestTarget(VecUnit enemyUnits) {
+        ArrayList<Integer> enemyUnitIds = new ArrayList<>();
+        for (int i = 0; i < enemyUnits.size(); i++) {
+            enemyUnitIds.add(enemyUnits.get(i).id());
+        }
 
-        // If you don't have a target right now, or your target is no longer in the global focused target map, pick a new one
-        if (focusedTargetId == -1 || !Earth.earthFocusedTargets.contains(focusedTargetId)) {
+        // If your current focused attack target is not within the enemy units in your vision range, pick a new target
+        if (!enemyUnitIds.contains(this.getFocusedTargetId())) {
             for (int i = 0; i < enemyUnits.size(); i++) {
 
                 int enemyUnitId = enemyUnits.get(i).id();
                 if (Earth.earthFocusedTargets.contains(enemyUnitId)) {
                     focusedTargetId = enemyUnitId;
 
-                    System.out.println("Attacker: " + this.getId() + " is targeting enemy unit: " + enemyUnitId);
+                    System.out.println("Attacker: " + this.getId() + " is targeting new enemy unit: " + enemyUnitId);
                     return;
                 }
             }
@@ -134,6 +199,21 @@ public abstract class Attacker extends Robot {
             System.out.println("Attacker: " + this.getId() + " creating new focused attack target: " + enemyId);
         }
 
+    }
+
+    /**
+     * Helper method that will remove the global attack location if it has left combat and it can see the latest
+     * attack location.
+     */
+    private void checkGlobalAttackLocation() {
+        if (Earth.earthMainAttackStack.empty()) {
+
+            MapLocation location = Earth.earthMainAttackStack.peek();
+            if (this.getLocation().distanceSquaredTo(location) < this.getVisionRange()) {
+                System.out.println("Global attack location: " + Player.locationToString(location) + " has been checked!");
+                Earth.earthMainAttackStack.pop();
+            }
+        }
     }
 
     /**
@@ -201,10 +281,10 @@ public abstract class Attacker extends Robot {
      * locations in the queue, it will wander randomly
      */
     private void wanderToGlobalAttack() {
-        if (!Earth.earthMainAttackQueue.isEmpty()) {
-            MapLocation attackLocation = Earth.earthMainAttackQueue.peek();
+        if (!Earth.earthMainAttackStack.isEmpty()) {
+            MapLocation attackLocation = Earth.earthMainAttackStack.peek();
 
-            System.out.println("Attacker: " + this.getId() + " moving to global attack location!");
+            System.out.println("Attacker: " + this.getId() + " moving to global attack location: " + Player.locationToString(attackLocation));
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, attackLocation));
 
         } else {

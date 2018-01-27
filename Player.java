@@ -8,26 +8,16 @@ public class Player {
     public static final int NUMBER_OF_LOCATIONS_TO_CHECK = 200;
 
     public static final GameController gc = new GameController();
-    // TODO: Need to go through code and find any instances of Player.gc.Team() and replace with this. Need to
-    // TODO: reduce API calls because that is whats causing many timeout errors
     public static final Team team = gc.team();
-
-    public static ArrayList<MapLocation> enemyStartingLocations;
+    public static ArrayList<MapLocation> enemyStartingLocations = new ArrayList<>();
 
 
 
     public static void main(String[] args) {
 
         addStartingWorkersToEarthMap();
-        enemyStartingLocations = enemyLocations();
-
-        gc.queueResearch(UnitType.Ranger);
-        gc.queueResearch(UnitType.Ranger);
-        gc.queueResearch(UnitType.Rocket);
-        gc.queueResearch(UnitType.Mage);
-        gc.queueResearch(UnitType.Mage);
-        gc.queueResearch(UnitType.Mage);
-        gc.queueResearch(UnitType.Worker);
+        storeEnemyLocations();
+        queueUnitResearch();
 
         while (true) {
             if (gc.round() % 2 == 0) {
@@ -69,9 +59,9 @@ public class Player {
 
     /**
      * Method that will get the starting locations of all the enemy workers created when the game has started
-     * @return An array of enemy locations
+     * and will store them in the earth attack queue and the initial enemy locations array list
      */
-    public static ArrayList<MapLocation> enemyLocations() {
+    private static void storeEnemyLocations() {
         int mapCenterX = (int)((gc.startingMap(Planet.Earth).getWidth()) / 2);
         int mapCenterY = (int)((gc.startingMap(Planet.Earth).getHeight()) / 2);
 
@@ -93,8 +83,25 @@ public class Player {
             mapCenterY = (int)((gc.startingMap(Planet.Earth).getHeight()) / 2);
         }
 
-        return enemyLocations;
+        for (MapLocation enemyLocation : enemyLocations) {
+            enemyStartingLocations.add(enemyLocation);
+            Earth.earthMainAttackStack.push(enemyLocation);
+        }
     }
+
+    /**
+     * Helper that will queue all unit research
+     */
+    private static void queueUnitResearch() {
+        gc.queueResearch(UnitType.Ranger);
+        gc.queueResearch(UnitType.Ranger);
+        gc.queueResearch(UnitType.Rocket);
+        gc.queueResearch(UnitType.Mage);
+        gc.queueResearch(UnitType.Mage);
+        gc.queueResearch(UnitType.Mage);
+        gc.queueResearch(UnitType.Worker);
+    }
+
 
     /**
      * Simplified method of senseUnitAtLocation that will handle the exception of if the location is not visible.
@@ -181,27 +188,27 @@ public class Player {
         return convertedLocation.toString();
     }
 
-    /**
-     * A method that will convert the recognizable string back into a MapLocation
-     * @param location The MapLocation represented by the string
-     * @return A MapLocation that represents the string
-     */
-    public static MapLocation stringToLocation(String location) {
-        Planet mapPlanet;
-        if (location.charAt(0) == ' ') {
-            mapPlanet = Planet.Mars;
-            location = location.substring(1);
-        } else {
-            mapPlanet = Planet.Earth;
-        }
-
-        int spaceIndex = location.indexOf(' ');
-        int xLocation = Integer.parseInt(location.substring(0, spaceIndex));
-        location = location.substring(spaceIndex + 1);
-        int yLocation = Integer.parseInt(location);
-
-        return new MapLocation(mapPlanet, xLocation, yLocation);
-    }
+//    /**
+//     * A method that will convert the recognizable string back into a MapLocation
+//     * @param location The MapLocation represented by the string
+//     * @return A MapLocation that represents the string
+//     */
+//    public static MapLocation stringToLocation(String location) {
+//        Planet mapPlanet;
+//        if (location.charAt(0) == ' ') {
+//            mapPlanet = Planet.Mars;
+//            location = location.substring(1);
+//        } else {
+//            mapPlanet = Planet.Earth;
+//        }
+//
+//        int spaceIndex = location.indexOf(' ');
+//        int xLocation = Integer.parseInt(location.substring(0, spaceIndex));
+//        location = location.substring(spaceIndex + 1);
+//        int yLocation = Integer.parseInt(location);
+//
+//        return new MapLocation(mapPlanet, xLocation, yLocation);
+//    }
 
     /**
      * Method that will check if a location is empty. Checks if the location is onMap, passableTerrain,

@@ -14,7 +14,7 @@ public class Earth {
     public static int healerCount = 0;
     public static HashSet<String> structureLocations = new HashSet<>();
 
-    public static Queue<MapLocation> earthMainAttackQueue = new LinkedList<>();
+    public static Stack<MapLocation> earthMainAttackStack = new Stack<>();
     public static HashSet<Integer> earthFocusedTargets = new HashSet<>();
 
     public static Queue<GlobalTask> earthTaskQueue = new LinkedList<>();

@@ -18,7 +18,7 @@ public class Knight extends Attacker {
      */
     @Override
     public boolean runBattleAction() {
-        Team otherTeam = Player.gc.team() == Team.Blue ? Team.Red : Team.Blue;
+        Team otherTeam = Player.team == Team.Blue ? Team.Red : Team.Blue;
         VecUnit enemyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), otherTeam);
 
         if (enemyUnits.size() == 0) {
