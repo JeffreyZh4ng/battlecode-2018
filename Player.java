@@ -41,8 +41,11 @@ public class Player {
                 if (gc.round() == 100) {
                     storeEnemyLocations(true);
                 }
-
-                Earth.execute();
+                try {
+                    Earth.execute();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 System.out.println("");
             } else {
