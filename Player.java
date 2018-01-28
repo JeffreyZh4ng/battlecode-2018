@@ -245,18 +245,9 @@ public class Player {
             int randomY = (int)(Math.random() * height);
 
             MapLocation landingLocation = new MapLocation(Planet.Mars, randomX, randomY);
-            boolean isClear = true;
-
-            for (Direction direction : Direction.values()) {
-                if (Player.isLocationEmpty(landingLocation.add(direction))) {
-                    isClear = false;
-                    break;
-                }
-            }
-            if (isClear) {
+            if (Player.isLocationEmpty(landingLocation)) {
                 return landingLocation;
             }
-
         }
     }
 
