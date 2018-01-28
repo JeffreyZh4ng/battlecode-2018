@@ -1,7 +1,6 @@
 import bc.Team;
 import bc.Unit;
 import bc.VecUnit;
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 
 public class Healer extends Attacker {
 
