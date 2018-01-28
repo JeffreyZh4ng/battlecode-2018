@@ -171,7 +171,7 @@ public class Earth {
         int workerId = getBestWorkerId();
 
         MapLocation startingLocation = Earth.earthWorkerMap.get(workerId).getLocation();
-        if (isGoodLocation(startingLocation)) {
+        if (isGoodLocation(startingLocation, true)) {
             structureLocations.add(Player.locationToString(startingLocation));
             return startingLocation;
         }
@@ -197,7 +197,7 @@ public class Earth {
                     checkedLocations.put(Player.locationToString(nextLocation), nextLocation);
                     frontier.add(nextLocation);
 
-                    if (isGoodLocation(nextLocation)) {
+                    if (isGoodLocation(nextLocation, true)) {
                         structureLocations.add(Player.locationToString(nextLocation));
                         return nextLocation;
                     }
@@ -205,6 +205,19 @@ public class Earth {
             }
         }
 
+        // If you've looked through all the locations with the parameters, just pick a location
+        for (int emergencyWorkerId: Earth.earthWorkerMap.keySet()) {
+            MapLocation workerLocation = Earth.earthWorkerMap.get(emergencyWorkerId).getLocation();
+
+            for (int i = 0; i < 8; i++) {
+                MapLocation emergencyLocation = workerLocation.add(Direction.swigToEnum(i));
+                if (isGoodLocation(emergencyLocation, false)) {
+                    return emergencyLocation;
+                }
+            }
+        }
+
+        // This should NEVER return!
         return null;
     }
 
@@ -256,9 +269,10 @@ public class Earth {
      * is a good distance away from the enemy starting locations, if it isn't blocking any paths and if it isn't
      * adjacent to any other structures
      * @param mapLocation The location that you want to check
+     * @param considerEnemyDistance If you want to check the distance to enemy spawn points. Only toggled false in emergencies
      * @return If the location is a good place to build a structure
      */
-    private static boolean isGoodLocation(MapLocation mapLocation) {
+    private static boolean isGoodLocation(MapLocation mapLocation, boolean considerEnemyDistance) {
 
         // If there already is a structure there, return false
         if (Player.gc.hasUnitAtLocation(mapLocation)) {
@@ -270,9 +284,11 @@ public class Earth {
         }
 
         // Check if location is too close to the enemy starting positions
-        for (MapLocation enemyLocation: Player.enemyStartingLocations) {
-            if (mapLocation.distanceSquaredTo(enemyLocation) < SAFE_STRUCTURE_DISTANCE) {
-                return false;
+        if (considerEnemyDistance) {
+            for (MapLocation enemyLocation: Player.enemyStartingLocations) {
+                if (mapLocation.distanceSquaredTo(enemyLocation) < SAFE_STRUCTURE_DISTANCE) {
+                    return false;
+                }
             }
         }
 

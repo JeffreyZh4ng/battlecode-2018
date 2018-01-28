@@ -8,16 +8,14 @@ import java.util.LinkedList;
  */
 public abstract class Robot extends UnitInstance {
 
+    private static final int STUCK_TIME = 10;
+
     private Stack<MapLocation> movePathStack = null;
+    private int stuckCount = 0;
 
     public Robot(int id) {
         super(id);
     }
-
-    public static HashMap<String, HashMap<String, MapLocation>> savedMapsToDestinations = new HashMap<>();
-
-    public static final int STUCK_TIME = 10;
-    public int stuckCount = 0;
 
     /**
      * Overridden to set the path back to null if the task is completed
@@ -167,7 +165,8 @@ public abstract class Robot extends UnitInstance {
         HashMap<String, MapLocation> checkedLocations = new HashMap<>();
         checkedLocations.put(Player.locationToString(this.getLocation()), this.getLocation());
 
-        while (!frontier.isEmpty()) {
+        int counter = 0;
+        while (!frontier.isEmpty() && counter < 200) {
 
             // Get next direction to check around. Will put in the checked location a pair with the key as the
             // Next location with the value as the current location.
@@ -182,13 +181,16 @@ public abstract class Robot extends UnitInstance {
             for (Direction nextDirection: Player.getMoveDirections()) {
                 MapLocation nextLocation = currentLocation.add(nextDirection);
 
-                if (Player.isLocationEmpty(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
+                if (!checkedLocations.containsKey(Player.locationToString(nextLocation)) && Player.isLocationEmpty(nextLocation)) {
                     frontier.add(nextLocation);
                     checkedLocations.put(Player.locationToString(nextLocation), currentLocation);
                 }
             }
+
+            counter++;
         }
 
+        System.out.println("Ran the search: " + counter + "Times!");
         return backtrace(destinationLocation, checkedLocations);
     }
 

@@ -17,29 +17,48 @@ public class Mage extends Attacker{
      */
     @Override
     public boolean runBattleAction() {
-        Team otherTeam = Player.gc.team() == Team.Blue ? Team.Red : Team.Blue;
-        System.out.println("Mage id2 " + this.getId());
-        VecUnit enemyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getAttackRange(), otherTeam);
-
-        if (enemyUnits.size() == 0) {
-            enemyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), otherTeam);
-        }
-        if (enemyUnits.size() == 0) {
-            return false;
-        }
+//        Team otherTeam = Player.gc.team() == Team.Blue ? Team.Red : Team.Blue;
+//        System.out.println("Mage id2 " + this.getId());
+//        VecUnit enemyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getAttackRange(), otherTeam);
+//
+//        if (enemyUnits.size() == 0) {
+//            enemyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), otherTeam);
+//        }
+//        if (enemyUnits.size() == 0) {
+//            return false;
+//        }
+//
+//        if (Player.gc.isAttackReady(this.getId())) {
+//            Unit mostSurroundedUnit = getMostSurroundedEnemy(enemyUnits);
+//            int distanceToMostSurroundedUnit = (int)(this.getLocation().distanceSquaredTo(mostSurroundedUnit.location().mapLocation()));
+//
+//            if (distanceToMostSurroundedUnit > this.getAttackRange()) {
+//                if (Player.gc.isMoveReady(this.getId())) {
+//                    move(mostSurroundedUnit.location().mapLocation());
+//                }
+//            }
+//
+//            if (Player.gc.canAttack(this.getId(), mostSurroundedUnit.id())) {
+//                Player.gc.attack(this.getId(), mostSurroundedUnit.id());
+//            }
+//        }
+//
+//        return false;
 
         if (Player.gc.isAttackReady(this.getId())) {
-            Unit mostSurroundedUnit = getMostSurroundedEnemy(enemyUnits);
-            int distanceToMostSurroundedUnit = (int)(this.getLocation().distanceSquaredTo(mostSurroundedUnit.location().mapLocation()));
+            MapLocation enemyTargetLocation = Player.gc.unit(this.getFocusedTargetId()).location().mapLocation();
+            int distanceToTarget = (int)(this.getLocation().distanceSquaredTo(enemyTargetLocation));
 
-            if (distanceToMostSurroundedUnit > this.getAttackRange()) {
+            if (distanceToTarget > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {
-                    move(mostSurroundedUnit.location().mapLocation());
+                    System.out.println("Attacker " + this.getId() + " moved forwards in combat");
+                    this.inCombatMove(true, enemyTargetLocation);
                 }
             }
 
-            if (Player.gc.canAttack(this.getId(), mostSurroundedUnit.id())) {
-                Player.gc.attack(this.getId(), mostSurroundedUnit.id());
+            if (Player.gc.canAttack(this.getId(), this.getFocusedTargetId())) {
+                Player.gc.attack(this.getId(), this.getFocusedTargetId());
+                System.out.println("Attacker: " + this.getId() + " attacked enemy unit " + this.getFocusedTargetId());
             }
         }
 

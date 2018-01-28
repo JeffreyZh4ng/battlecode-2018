@@ -221,7 +221,6 @@ public class Player {
      * Temp helper method that will get a location on mars for the rocket to land
      * @return The location the rocket can land
      */
-    // TODO: Temp method redo
     public static MapLocation getRandomLocationToLandOnMars() {
         PlanetMap map = gc.startingMap(Planet.Mars);
         int width = (int)(map.getWidth());

@@ -255,7 +255,7 @@ public abstract class Attacker extends Robot {
         if (!Earth.earthMainAttackStack.empty()) {
 
             MapLocation location = Earth.earthMainAttackStack.peek();
-            if (this.getLocation().distanceSquaredTo(location) < this.getVisionRange()) {
+            if (this.getLocation().distanceSquaredTo(location) < this.getAttackRange()) {
                 System.out.println("Global attack location: " + Player.locationToString(location) + " has been checked!");
                 Earth.earthMainAttackStack.pop();
             }
