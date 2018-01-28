@@ -72,6 +72,12 @@ public abstract class Robot extends UnitInstance {
      */
     public boolean move(MapLocation destinationLocation) {
 
+        // If adjacent to destination, the robot has finished moving
+        if (this.getLocation().isAdjacentTo(destinationLocation)) {
+            movePathStack = null;
+            return true;
+        }
+
         // If the current path is null
         if (movePathStack == null) {
              movePathStack = getPathFromBFS(destinationLocation);
@@ -88,11 +94,6 @@ public abstract class Robot extends UnitInstance {
              }
         }
 
-        // If adjacent to destination, the robot has finished moving
-        if (movePathStack.peek().equals(destinationLocation)) {
-            movePathStack = null;
-            return true;
-        }
 
         // The check for if the robot can move is here because we want to check if the worker is at the destination
         // Immediately to return true before checking if it can move
