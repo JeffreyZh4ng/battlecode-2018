@@ -113,7 +113,7 @@ public abstract class Robot extends UnitInstance {
             } else if (stuckCount > 1) {
                 reroute();
                 if (movePathStack == null || movePathStack.isEmpty()) {
-                    
+
                     // After recalculating, the path is empty or null
                     return true;
                 }

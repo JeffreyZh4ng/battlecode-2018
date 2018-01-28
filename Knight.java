@@ -40,6 +40,12 @@ public class Knight extends Attacker {
             }
         }
 
+        // Recalculate the closest unit in case you can javelin in this turn too
+        Unit closestUnit = this.getClosestEnemy(enemyUnits);
+        if (Player.gc.canJavelin(this.getId(), closestUnit.id())) {
+            Player.gc.javelin(this.getId(), closestUnit.id());
+        }
+
         return false;
     }
 }

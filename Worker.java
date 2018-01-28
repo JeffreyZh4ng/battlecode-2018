@@ -124,9 +124,7 @@ public class Worker extends Robot {
      * Helper method that will control what the robot does when it has no current tasks
      */
     private void executeIdleActions() {
-        System.out.println("This is causing the leak?");
         MapLocation newMoveLocation = getNearestKarboniteLocation();
-        System.out.println("This is causing the leak?");
 
         if (newMoveLocation != null) {
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, newMoveLocation));
