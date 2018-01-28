@@ -14,6 +14,11 @@ public abstract class Robot extends UnitInstance {
         super(id);
     }
 
+    public static HashMap<String, HashMap<String, MapLocation>> savedMapsToDestinations = new HashMap<>();
+
+    public static final int STUCK_TIME = 10;
+    public int stuckCount = 0;
+
     /**
      * Overridden to set the path back to null if the task is completed
      */
@@ -85,12 +90,18 @@ public abstract class Robot extends UnitInstance {
              // After calculating the path, if it is still null, the robot is unable to reach the location.
             // If the robot is part of a global task, remove it from the task and the individual tasks it has.
              if (movePathStack == null) {
-                 System.out.println("Unit: " + this.getId() + " cannot reach the desired location");
+                 if (this.stuckCount >= STUCK_TIME) {
+                     System.out.println("Unit: " + this.getId() + " cannot reach the desired location");
 
-                 if (this.hasTasks() && this.getCurrentTask().getTaskId() != -1) {
-                     Earth.earthTaskMap.get(this.getCurrentTask().getTaskId()).removeWorkerFromList(this.getId());
+                     if (this.hasTasks() && this.getCurrentTask().getTaskId() != -1) {
+                         Earth.earthTaskMap.get(this.getCurrentTask().getTaskId()).removeWorkerFromList(this.getId());
+                     }
+                     return true;
+                 } else {
+                     stuckCount++;
+                     System.out.println("Stuck, count: " + stuckCount);
                  }
-                 return true;
+                 return false;
              }
         }
 
@@ -112,6 +123,11 @@ public abstract class Robot extends UnitInstance {
         }
     }
 
+    /**
+     * Creates a map to a given destination using breadth first search algorithm
+     * @param destinationLocation the shared destination
+     * @return a hashmap of strings(locations) and how to get to them from destination
+     */
     public HashMap<String, MapLocation> mapToDestinationFromBFS(MapLocation destinationLocation) {
         Queue<MapLocation> frontier = new LinkedList<>();
         frontier.add(destinationLocation);
