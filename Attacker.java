@@ -86,7 +86,7 @@ public abstract class Attacker extends Robot {
             if (Player.gc.canMove(this.getId(), direction)) {
                 Player.gc.moveRobot(this.getId(), direction);
 
-                System.out.println("Moved attacker: " + direction);
+                System.out.println("Moved attacker: " + this.getId() + " " + direction);
                 return;
             }
         }
@@ -180,7 +180,7 @@ public abstract class Attacker extends Robot {
      * Method that will check if the wander to attack location has been updated. If the robots current move to
      * attack location is different from the one at the top of the stack, change the location.
      */
-    private void updateLocationToWander() {
+    public void updateLocationToWander() {
         if (this.hasTasks() && !Earth.earthMainAttackStack.empty() && this.getCurrentTask().getCommand() == Command.WANDER) {
             MapLocation currentCommandLocation = this.getCurrentTask().getCommandLocation();
             MapLocation topGlobalAttackLocation = Earth.earthMainAttackStack.peek();
@@ -251,7 +251,7 @@ public abstract class Attacker extends Robot {
      * Helper method that will remove the global attack location if it has left combat and it can see the latest
      * attack location.
      */
-    private void checkGlobalAttackLocation() {
+    public void checkGlobalAttackLocation() {
         if (!Earth.earthMainAttackStack.empty()) {
 
             MapLocation location = Earth.earthMainAttackStack.peek();
@@ -266,7 +266,7 @@ public abstract class Attacker extends Robot {
      * Helper method that will run the emergency task for this unit. If it is the stall command, it will not
      * get rid of the emergency task.
      */
-    private void executeEmergencyTask() {
+    public void executeEmergencyTask() {
         if (executeTask(this.getEmergencyTask())) {
             System.out.println("Worker: " + this.getId() + " Finished emergency task!");
             this.setEmergencyTask(null);
@@ -277,7 +277,7 @@ public abstract class Attacker extends Robot {
      * Helper method that will run the workers current tasks. If it finished one, it will sense for enemy robots.
      * If any are found, set the emergency task to in combat and execute the attack command
      */
-    private void executeCurrentTask() {
+    public void executeCurrentTask() {
         if (this.hasTasks()) {
             System.out.println("Attacker: " + this.getId() + " on task " + this.getCurrentTask().getCommand());
         }
@@ -305,7 +305,7 @@ public abstract class Attacker extends Robot {
      * @param robotTask The task the robot has to complete
      * @return If the task was completed or not
      */
-    private boolean executeTask(RobotTask robotTask) {
+    public boolean executeTask(RobotTask robotTask) {
         Command robotCommand = robotTask.getCommand();
         MapLocation commandLocation = robotTask.getCommandLocation();
 
@@ -331,7 +331,7 @@ public abstract class Attacker extends Robot {
      * Method that will set the current task to wander to the global attack location. If there are no mare global
      * locations in the queue, it will wander randomly
      */
-    private void wanderToGlobalAttack() {
+    public void wanderToGlobalAttack() {
         if (!Earth.earthMainAttackStack.isEmpty()) {
             MapLocation attackLocation = Earth.earthMainAttackStack.peek();
 

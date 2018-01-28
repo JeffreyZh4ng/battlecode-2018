@@ -1,11 +1,11 @@
 import bc.*;
 
 import java.util.*;
-import java.util.stream.IntStream;
 
 public class Player {
 
-    public static final int NUMBER_OF_LOCATIONS_TO_CHECK = 200;
+    private static final int NUMBER_OF_LOCATIONS_TO_CHECK = 200;
+    private static int BUILD_ROUND;
 
     public static final GameController gc = new GameController();
     public static final Team team = gc.team();
@@ -18,6 +18,7 @@ public class Player {
         addStartingWorkersToEarthMap();
         storeEnemyLocations();
         queueUnitResearch();
+        getBuildRound();
 
         while (true) {
             if (gc.round() % 2 == 0) {
@@ -30,10 +31,6 @@ public class Player {
                 System.out.println("Karbonite: " + gc.karbonite());
 
                 if (gc.round() == 1) {
-                    System.out.println("canget To enemy: " + Earth.canGetToEnemy());
-                    cloneUnitsAtBeginning();
-                }
-                if (gc.round() == 10) {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
@@ -90,23 +87,12 @@ public class Player {
     }
 
     /**
-     * Helper method that will clone the workers right at the beginning of the game
+     * Looks at how much karbonite is around you to determine when to clone and when to start building factories
      */
-    private static void cloneUnitsAtBeginning() {
-        VecUnit units = Player.gc.myUnits();
-        for (int i = 0; i < units.size(); i++) {
+    private static void getBuildRound() {
+        PlanetMap map = gc.startingMap(Planet.Earth);
 
-            Unit worker = units.get(i);
-            if (worker.unitType() == UnitType.Worker) {
-                for (int j = 0; j < 8; j++) {
-
-                    Direction direction = Direction.swigToEnum(i);
-                    if (Player.gc.canReplicate(worker.id(), direction)) {
-                        Player.gc.replicate(worker.id(), direction);
-                    }
-                }
-            }
-        }
+        int maxKarbonite = 0;
     }
 
     /**
