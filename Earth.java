@@ -75,6 +75,14 @@ public class Earth {
         if (!earthTaskMap.containsKey(globalTask.getTaskId())) {
 
             MapLocation globalTaskLocation = pickStructureLocation();
+
+            // Checks if the location is already being used for another task. If it is, return early
+            for (int globalTaskId: Earth.earthTaskMap.keySet()) {
+                if (Earth.earthTaskMap.get(globalTaskId).getTaskLocation().equals(globalTaskLocation)) {
+                    return;
+                }
+            }
+
             System.out.println("Picked location: " + globalTaskLocation + " for task: " + globalTask.getCommand());
             globalTask.setTaskLocation(globalTaskLocation);
 
@@ -251,6 +259,15 @@ public class Earth {
      * @return If the location is a good place to build a structure
      */
     private static boolean isGoodLocation(MapLocation mapLocation) {
+
+        // If there already is a structure there, return false
+        if (Player.gc.hasUnitAtLocation(mapLocation)) {
+
+            UnitType unitType = Player.gc.senseUnitAtLocation(mapLocation).unitType();
+            if (unitType == UnitType.Factory || unitType == UnitType.Rocket) {
+                return false;
+            }
+        }
 
         // Check if location is too close to the enemy starting positions
         for (MapLocation enemyLocation: Player.enemyStartingLocations) {
