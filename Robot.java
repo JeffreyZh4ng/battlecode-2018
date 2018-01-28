@@ -123,36 +123,36 @@ public abstract class Robot extends UnitInstance {
         }
     }
 
-    /**
-     * Creates a map to a given destination using breadth first search algorithm
-     * @param destinationLocation the shared destination
-     * @return a hashmap of strings(locations) and how to get to them from destination
-     */
-    public HashMap<String, MapLocation> mapToDestinationFromBFS(MapLocation destinationLocation) {
-        Queue<MapLocation> frontier = new LinkedList<>();
-        frontier.add(destinationLocation);
-
-        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
-        checkedLocations.put(Player.locationToString(destinationLocation), destinationLocation);
-
-        while (!frontier.isEmpty()) {
-
-            // Get next direction to check around. Will put in the checked location a pair with the key as the
-            // Next location with the value as the current location.
-            MapLocation currentLocation = frontier.poll();
-
-            // Check if locations around frontier location have already been added to came from and if they are empty
-            for (Direction nextDirection: Player.getMoveDirections()) {
-                MapLocation nextLocation = currentLocation.add(nextDirection);
-
-                if (Player.isLocationEmptyForStructure(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
-                    frontier.add(nextLocation);
-                    checkedLocations.put(Player.locationToString(nextLocation), currentLocation);
-                }
-            }
-        }
-        return checkedLocations;
-    }
+//    /**
+//     * Creates a map to a given destination using breadth first search algorithm
+//     * @param destinationLocation the shared destination
+//     * @return a hashmap of strings(locations) and how to get to them from destination
+//     */
+//    public HashMap<String, MapLocation> mapToDestinationFromBFS(MapLocation destinationLocation) {
+//        Queue<MapLocation> frontier = new LinkedList<>();
+//        frontier.add(destinationLocation);
+//
+//        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
+//        checkedLocations.put(Player.locationToString(destinationLocation), destinationLocation);
+//
+//        while (!frontier.isEmpty()) {
+//
+//            // Get next direction to check around. Will put in the checked location a pair with the key as the
+//            // Next location with the value as the current location.
+//            MapLocation currentLocation = frontier.poll();
+//
+//            // Check if locations around frontier location have already been added to came from and if they are empty
+//            for (Direction nextDirection: Player.getMoveDirections()) {
+//                MapLocation nextLocation = currentLocation.add(nextDirection);
+//
+//                if (Player.isLocationEmptyForStructure(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
+//                    frontier.add(nextLocation);
+//                    checkedLocations.put(Player.locationToString(nextLocation), currentLocation);
+//                }
+//            }
+//        }
+//        return checkedLocations;
+//    }
 
     /**
      * Uses BreadthFirstSearch algorithm to get the path of a unit to the given destination. The path returned does
