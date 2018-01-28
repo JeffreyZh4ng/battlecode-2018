@@ -226,7 +226,7 @@ public class Earth {
      * The worker with the smallest total distance to the others will be returned.
      * @return The id of the worker with the smallest total distance to others
      */
-    private static int getBestWorkerId() {
+    public static int getBestWorkerId() {
         VecUnit units = Player.gc.myUnits();
         ArrayList<Unit> workerList = new ArrayList<>();
         for (int i = 0; i < units.size(); i++) {
@@ -486,17 +486,4 @@ public class Earth {
         earthStagingAttackerMap.clear();
     }
 
-    /**
-     * Checks if can get to any enemy starting location from first best worker location
-     * @return if can get to at least one enemy from best worker location
-     */
-    public static boolean canGetToEnemy() {
-        MapLocation myLocation = Player.gc.unit(getBestWorkerId()).location().mapLocation();
-        for (MapLocation enemyStartingLocation: Player.enemyStartingLocations) {
-            if (Player.isLocationAccessible(myLocation, enemyStartingLocation)) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

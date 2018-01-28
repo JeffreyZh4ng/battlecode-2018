@@ -19,7 +19,7 @@ public class Factory extends UnitInstance {
     public void run() {
         if (isBuilt) {
             UnitType unitToProduce = findUnitToProduce();
-            if (Player.gc.canProduceRobot(this.getId(), unitToProduce)) {
+            if (Player.gc.canProduceRobot(this.getId(), unitToProduce) && Earth.earthAttackerMap.size() < Player.UNIT_CAP) {
                 Player.gc.produceRobot(this.getId(), unitToProduce);
 
                 switch (unitToProduce) {
