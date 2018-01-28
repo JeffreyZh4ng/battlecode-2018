@@ -30,6 +30,7 @@ public class Player {
                 System.out.println("Karbonite: " + gc.karbonite());
 
                 if (gc.round() == 1) {
+                    System.out.println("canget To enemy: " + Earth.canGetToEnemy());
                     cloneUnitsAtBeginning();
                 }
                 if (gc.round() == 10) {
@@ -365,6 +366,33 @@ public class Player {
             }
         }
         return false;
+    }
+
+    public static int getPassableArea(MapLocation startLocation) {
+
+        Queue<MapLocation> frontier = new LinkedList<>();
+        frontier.add(startLocation);
+
+        HashSet<String> checkedLocations = new HashSet<>();
+        checkedLocations.add(Player.locationToString(startLocation));
+
+        while (!frontier.isEmpty()) {
+
+            // Get next direction to check around. Will put in the checked location a pair with the key as the
+            // Next location with the value as the current location.
+            MapLocation currentLocation = frontier.poll();
+
+            // Check if locations around frontier location have already been added to came from and if they are empty
+            for (Direction nextDirection: Player.getMoveDirections()) {
+                MapLocation nextLocation = currentLocation.add(nextDirection);
+
+                if (Player.isLocationEmptyForStructure(nextLocation) && !checkedLocations.contains(Player.locationToString(nextLocation))) {
+                    frontier.add(nextLocation);
+                    checkedLocations.add(Player.locationToString(nextLocation));
+                }
+            }
+        }
+        return checkedLocations.size();
     }
 }
 
