@@ -22,7 +22,7 @@ public class Healer extends Attacker {
             if (friendlyId == -1) {
                 return false;
             }
-            
+
             if (Player.gc.canHeal(this.getId(), friendlyId)) {
                 Player.gc.heal(this.getId(), friendlyId);
             }
@@ -72,7 +72,9 @@ public class Healer extends Attacker {
      */
     @Override
     public void updateTargets() {
-        this.setFocusedTargetId(getLowestHealthFriendly());
+        if (!Earth.earthAttackerMap.containsKey(this.getLowestHealthFriendly())) {
+            this.setFocusedTargetId(getLowestHealthFriendly());
+        }
     }
     
     @Override
