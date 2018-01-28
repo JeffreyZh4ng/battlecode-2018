@@ -272,7 +272,6 @@ public abstract class Attacker extends Robot {
                 if (Earth.earthMainAttackStack.size() > 0 && !commandLocation.equals(Earth.earthMainAttackStack.peek())) {
                     return true;
                 }
-                System.out.println("willwanderid: " + this.getId() + "my loc: " + this.getLocation() + " wanderLoc: " + commandLocation);
                 return this.pathManager(commandLocation);
             case ALERTED:
                 return this.pathManager(commandLocation);
