@@ -57,8 +57,27 @@ public class Factory extends UnitInstance {
 
                 MapLocation unloadLocation = this.getLocation().add(direction);
                 int unitId = Player.gc.senseUnitAtLocation(unloadLocation).id();
+                UnitType unitType = Player.gc.unit(unitId).unitType();
 
-                UnitInstance unitInstance = new Knight(unitId);
+                UnitInstance unitInstance = null;
+                switch (unitType) {
+                    case Knight:
+                        unitInstance = new Knight(unitId);
+                        break;
+                    case Ranger:
+                        unitInstance = new Ranger(unitId);
+                        break;
+                    case Healer:
+                        unitInstance = new Healer(unitId);
+                        break;
+                    case Mage:
+                        unitInstance = new Mage(unitId);
+                        break;
+                    default:
+                        unitInstance = new Knight(unitId);
+                        System.out.println("ERROR in UNLOAD, unit type: " + unitType);
+                }
+
                 Earth.earthStagingAttackerMap.put(unitId, unitInstance);
             }
         }
@@ -70,7 +89,9 @@ public class Factory extends UnitInstance {
      */
     private UnitType findUnitToProduce() {
         int armySize = Earth.earthAttackerMap.size();
-        if (armySize > 40 && Earth.mageCount < 5) {
+        if (Earth.healerCount < Earth.rangerCount) {
+            return UnitType.Healer;
+        } else if (armySize > 40 && Earth.mageCount < 5) {
             return UnitType.Mage;
         } else {
 //            int randomInt = (int)(Math.random() * 2);
