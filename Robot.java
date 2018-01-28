@@ -123,6 +123,7 @@ public abstract class Robot extends UnitInstance {
 
             System.out.println("Unit: " + this.getId() + " is stuck! Incrementing its stuck counter to: " + stuckCount);
             stuckCount++;
+            return false;
         }
 
         if (Player.gc.canMove(this.getId(), this.getLocation().directionTo(movePathStack.peek()))) {

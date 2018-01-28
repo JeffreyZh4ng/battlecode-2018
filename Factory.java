@@ -91,7 +91,7 @@ public class Factory extends UnitInstance {
         if (Earth.healerCount < (Earth.knightCount)*(2.0/3.0)) {
             return UnitType.Healer;
         } else {
-            return UnitType.Ranger;
+            return UnitType.Knight;
         }
     }
 }

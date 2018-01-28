@@ -1,6 +1,9 @@
 import bc.MapLocation;
+import bc.Unit;
 import bc.UnitType;
 import bc.VecUnit;
+
+import java.util.ArrayList;
 
 public class Healer extends Attacker {
 
@@ -41,18 +44,26 @@ public class Healer extends Attacker {
      */
     private int getLowestHealthFriendly() {
         VecUnit friendlyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getAttackRange(), Player.team);
-        if (friendlyUnits == null || friendlyUnits.size() == 0) {
+        ArrayList<Unit> attackingUnits = new ArrayList<>();
+        for (int i = 0; i < friendlyUnits.size(); i++) {
+            UnitType unitType = friendlyUnits.get(i).unitType();
+
+            if (unitType != UnitType.Healer && unitType != UnitType.Worker && unitType != UnitType.Rocket && unitType != UnitType.Factory) {
+                attackingUnits.add(friendlyUnits.get(i));
+            }
+        }
+
+        if (attackingUnits.size() == 0) {
             return -1;
         }
 
-        int lowestHealthId = friendlyUnits.get(0).id();
-        int healthTotal = (int)(friendlyUnits.get(0).health());
+        int lowestHealthId = attackingUnits.get(0).id();
+        int healthTotal = (int)(attackingUnits.get(0).health());
 
-        for (int i = 0; i < friendlyUnits.size(); i++) {
-            if (friendlyUnits.get(i).health() < healthTotal && friendlyUnits.get(i).unitType() != UnitType.Healer &&
-                    friendlyUnits.get(i).unitType() != UnitType.Worker) {
-                lowestHealthId = friendlyUnits.get(i).id();
-                healthTotal = (int) (friendlyUnits.get(i).health());
+        for (int i = 0; i < attackingUnits.size(); i++) {
+            if (attackingUnits.get(i).health() < healthTotal) {
+                lowestHealthId = attackingUnits.get(i).id();
+                healthTotal = (int)(attackingUnits.get(i).health());
             }
         }
 
@@ -94,8 +105,11 @@ public class Healer extends Attacker {
     public void wanderToGlobalAttack() {
         if (this.getFocusedTargetId() == -1) {
             return;
+            
         } else {
             int friendlyTarget = this.getFocusedTargetId();
+            System.out.println(friendlyTarget);
+            System.out.println(Earth.earthAttackerMap.get(friendlyTarget).getId());
             MapLocation friendlyAttackerLocation = Earth.earthAttackerMap.get(friendlyTarget).getLocation();
             int distanceToFriendly = (int)(this.getLocation().distanceSquaredTo(friendlyAttackerLocation));
 
