@@ -93,10 +93,14 @@ public abstract class Robot extends UnitInstance {
 
         // If the current path is null
         if (movePathStack == null) {
-             movePathStack = getPathFromBFS(destinationLocation);
+            if (Player.gc.canMove(this.getId(), this.getLocation().directionTo(destinationLocation))) {
+                Player.gc.moveRobot(this.getId(), this.getLocation().directionTo(destinationLocation));
+                return false;
+            }
+            movePathStack = getPathFromBFS(destinationLocation);
 
              // After calculating the path, if it is still null, the robot is unable to reach the location.
-            // If the robot is part of a global task, remove it from the task and the individual tasks it has.
+             // If the robot is part of a global task, remove it from the task and the individual tasks it has.
              if (movePathStack == null) {
                  System.out.println("Unit: " + this.getId() + " cannot reach the desired location");
 
