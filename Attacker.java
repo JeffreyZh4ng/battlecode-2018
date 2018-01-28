@@ -264,6 +264,7 @@ public abstract class Attacker extends Robot {
             case MOVE:
                 return this.pathManager(commandLocation);
             case WANDER:
+                System.out.println("willwanderid: " + this.getId() + "my loc: " + this.getLocation() + " wanderLoc: " + commandLocation);
                 return this.pathManager(commandLocation);
             case ALERTED:
                 return this.pathManager(commandLocation);
@@ -288,7 +289,7 @@ public abstract class Attacker extends Robot {
 
             System.out.println("Attacker: " + this.getId() + " moving to global attack location: " + Player.locationToString(attackLocation));
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, attackLocation));
-
+            System.out.println("id: " + this.getId() + "addingal my loc: " + this.getLocation() + " wanderLoc: " + attackLocation);
         } else {
             VecMapLocation mapLocations = Player.gc.allLocationsWithin(this.getLocation(), this.getAttackRange());
 
@@ -304,6 +305,7 @@ public abstract class Attacker extends Robot {
 
             System.out.println("Attacker: " + this.getId() + " wandering to random location!");
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, wanderLocation));
+            System.out.println("id: " + this.getId() + "addingl my loc: " + this.getLocation() + " wanderLoc: " + wanderLocation);
         }
     }
 }

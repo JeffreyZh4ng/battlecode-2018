@@ -28,6 +28,9 @@ public class Player {
                 System.out.println("Round number: " + gc.round());
                 System.out.println("Time left: " + gc.getTimeLeftMs());
                 System.out.println("Karbonite: " + gc.karbonite());
+                System.out.println("worker size: " + Earth.earthWorkerMap.size());
+                System.out.println("attacker size: " + Earth.earthAttackerMap.size());
+                System.out.println("attack target size: " + Earth.earthFocusedTargets.size());
 
                 if (gc.round() == 1) {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
@@ -52,7 +55,6 @@ public class Player {
                 Mars.execute();
                 System.out.println("");
             }
-
             gc.nextTurn();
         }
     }
@@ -62,30 +64,13 @@ public class Player {
      * and will store them in the earth attack queue and the initial enemy locations array list
      */
     private static void storeEnemyLocations() {
-        int mapCenterX = (int)((gc.startingMap(Planet.Earth).getWidth()) / 2);
-        int mapCenterY = (int)((gc.startingMap(Planet.Earth).getHeight()) / 2);
-
-        ArrayList<MapLocation> enemyLocations = new ArrayList<>();
-        for (int workerId: Earth.earthWorkerMap.keySet()) {
-            MapLocation mapLocation = Earth.earthWorkerMap.get(workerId).getLocation();
-            int xDistance = mapCenterX - mapLocation.getX();
-            int yDistance = mapCenterY - mapLocation.getY();
-
-            if (mapCenterX % 2 == 0) {
-                mapCenterX--;
+        VecUnit startingUnits = gc.startingMap(Planet.Earth).getInitial_units();
+        for (int i = 0; i < startingUnits.size(); i++) {
+            Unit startingUnit = startingUnits.get(i);
+            if (startingUnit.team() != Player.team) {
+                enemyStartingLocations.add(startingUnit.location().mapLocation());
+                Earth.earthMainAttackStack.push(startingUnit.location().mapLocation());
             }
-            if (mapCenterY % 2 == 0) {
-                mapCenterY--;
-            }
-
-            enemyLocations.add(new MapLocation(Planet.Earth, mapCenterX + xDistance, mapCenterY + yDistance));
-            mapCenterX = (int)((gc.startingMap(Planet.Earth).getWidth()) / 2);
-            mapCenterY = (int)((gc.startingMap(Planet.Earth).getHeight()) / 2);
-        }
-
-        for (MapLocation enemyLocation : enemyLocations) {
-            enemyStartingLocations.add(enemyLocation);
-            Earth.earthMainAttackStack.push(enemyLocation);
         }
     }
 

@@ -118,7 +118,6 @@ public abstract class Robot extends UnitInstance {
      * @return A stack of MapLocations indicating the robots path to the destination
      */
     public Stack<MapLocation> getPathFromBFS(MapLocation destinationLocation) {
-
         Queue<MapLocation> frontier = new LinkedList<>();
         frontier.add(this.getLocation());
 
@@ -186,7 +185,7 @@ public abstract class Robot extends UnitInstance {
      * and the robot will wait until it can move in the intended direction
      */
     private void reroute() {
-        System.out.println("Worker: " + this.getId() + " rerouting");
+        System.out.println("Unit: " + this.getId() + " rerouting");
         Stack<MapLocation> originalPath = new Stack<>();
 
         while (movePathStack.size() > 1) {
