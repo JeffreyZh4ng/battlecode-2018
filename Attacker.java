@@ -242,6 +242,7 @@ public abstract class Attacker extends Robot {
             System.out.println("Attacker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
             if (this.getCurrentTask().getCommand() == Command.WANDER && Earth.earthMainAttackStack.size() > 0 &&
                     this.getCurrentTask().getCommandLocation().equals(Earth.earthMainAttackStack.peek())) {
+                System.out.println("attack target unreachable" + Earth.earthMainAttackStack.peek());
                 Earth.earthMainAttackStack.pop();
             }
             this.pollCurrentTask();
@@ -268,6 +269,9 @@ public abstract class Attacker extends Robot {
             case MOVE:
                 return this.pathManager(commandLocation);
             case WANDER:
+                if (Earth.earthMainAttackStack.size() > 0 && !commandLocation.equals(Earth.earthMainAttackStack.peek())) {
+                    return true;
+                }
                 System.out.println("willwanderid: " + this.getId() + "my loc: " + this.getLocation() + " wanderLoc: " + commandLocation);
                 return this.pathManager(commandLocation);
             case ALERTED:
