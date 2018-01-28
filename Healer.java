@@ -36,7 +36,7 @@ public class Healer extends Attacker {
     }
 
     /**
-     * Method that will find the id of lowest health unit in the healers attack range
+     * Method that will find the id of lowest health own team attacking unit in the healers attack range
      * @return The if of weakest unit in attack range
      */
     private int getLowestHealthFriendly() {
@@ -114,6 +114,7 @@ public class Healer extends Attacker {
             }
 
         } else {
+            System.out.println("Healer has focus");
             int friendlyTarget = this.getFocusedTargetId();
             System.out.println(friendlyTarget);
             System.out.println(Earth.earthAttackerMap.get(friendlyTarget).getId());
