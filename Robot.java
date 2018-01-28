@@ -68,7 +68,9 @@ public abstract class Robot extends UnitInstance {
             if (movePathStack == null) {
                 return true;
             } else {
-                movePathStack.pop();
+                if (!movePathStack.isEmpty()) {
+                    movePathStack.pop();
+                }
             }
         }
 
