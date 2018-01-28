@@ -116,7 +116,7 @@ public abstract class Robot extends UnitInstance {
         }
 
         // Will only try to recalculate if the stuck count is three or more
-        if (!Player.gc.canMove(this.getId(), this.getLocation().directionTo(movePathStack.peek()))) {
+        if (movePathStack.isEmpty() || !Player.gc.canMove(this.getId(), this.getLocation().directionTo(movePathStack.peek()))) {
             if (stuckCount >= MAX_STUCK_TIME) {
                 System.out.println("Unit: " + this.getId() + " is stuck and will remove the current move task");
                 return true;
