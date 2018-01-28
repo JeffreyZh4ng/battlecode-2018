@@ -16,7 +16,7 @@ public class Player {
     public static void main(String[] args) {
 
         addStartingWorkersToEarthMap();
-        storeEnemyLocations();
+        storeEnemyLocations(false);
         queueUnitResearch();
         getBuildRound();
 
@@ -36,14 +36,8 @@ public class Player {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
                 }
 
-                if (gc.round() == 500) {
-                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
-                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
-                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
-                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
-                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
-                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
-                    Earth.createGlobalTask(Command.CONSTRUCT_ROCKET, null);
+                if (gc.round() == 100) {
+                    storeEnemyLocations(true);
                 }
 
                 Earth.execute();
@@ -61,14 +55,17 @@ public class Player {
      * Method that will get the starting locations of all the enemy workers created when the game has started
      * and will store them in the earth attack queue and the initial enemy locations array list
      */
-    private static void storeEnemyLocations() {
+    private static void storeEnemyLocations(boolean addLocationToAttackMap) {
         VecUnit startingUnits = gc.startingMap(Planet.Earth).getInitial_units();
         for (int i = 0; i < startingUnits.size(); i++) {
 
             Unit startingUnit = startingUnits.get(i);
             if (startingUnit.team() != Player.team) {
-                enemyStartingLocations.add(startingUnit.location().mapLocation());
-                Earth.earthMainAttackStack.push(startingUnit.location().mapLocation());
+                if (addLocationToAttackMap) {
+                    Earth.earthMainAttackStack.push(startingUnit.location().mapLocation());
+                } else {
+                    enemyStartingLocations.add(startingUnit.location().mapLocation());
+                }
             }
         }
     }
@@ -77,13 +74,13 @@ public class Player {
      * Helper that will queue all unit research
      */
     private static void queueUnitResearch() {
-        gc.queueResearch(UnitType.Ranger);
-        gc.queueResearch(UnitType.Ranger);
+        gc.queueResearch(UnitType.Knight);
         gc.queueResearch(UnitType.Rocket);
-        gc.queueResearch(UnitType.Mage);
-        gc.queueResearch(UnitType.Mage);
-        gc.queueResearch(UnitType.Mage);
         gc.queueResearch(UnitType.Worker);
+        gc.queueResearch(UnitType.Knight);
+        gc.queueResearch(UnitType.Knight);
+        gc.queueResearch(UnitType.Rocket);
+        gc.queueResearch(UnitType.Rocket);
     }
 
     /**

@@ -19,7 +19,7 @@ public class Factory extends UnitInstance {
     public void run() {
         if (isBuilt) {
             UnitType unitToProduce = findUnitToProduce();
-            if (Player.gc.canProduceRobot(this.getId(), unitToProduce) && Player.gc.karbonite() > 80) {
+            if (Player.gc.canProduceRobot(this.getId(), unitToProduce)) {
                 Player.gc.produceRobot(this.getId(), unitToProduce);
 
                 switch (unitToProduce) {
@@ -88,7 +88,7 @@ public class Factory extends UnitInstance {
      * @return The unit to produce
      */
     private UnitType findUnitToProduce() {
-        if (Earth.healerCount < (Earth.knightCount)*(2.0/3.0)) {
+        if (Earth.healerCount < (Earth.knightCount)*(.5) && Earth.knightCount > 5) {
             return UnitType.Healer;
         } else {
             return UnitType.Knight;

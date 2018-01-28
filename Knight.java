@@ -19,21 +19,32 @@ public class Knight extends Attacker {
      */
     @Override
     public boolean runBattleAction() {
-        if (Player.gc.isAttackReady(this.getId())) {
-            MapLocation enemyTargetLocation = Player.gc.unit(this.getFocusedTargetId()).location().mapLocation();
-            int distanceToTarget = (int)(this.getLocation().distanceSquaredTo(enemyTargetLocation));
+        Team otherTeam = Player.team == Team.Blue ? Team.Red : Team.Blue;
+        VecUnit enemyUnits = Player.gc.senseNearbyUnitsByTeam(this.getLocation(), getVisionRange(), otherTeam);
 
-            if (distanceToTarget > this.getAttackRange()) {
+        if (enemyUnits.size() == 0) {
+            return true;
+        }
+
+        if (Player.gc.isAttackReady(this.getId())) {
+            Unit closestUnit = this.getClosestEnemy(enemyUnits);
+            int closestDistanceToUnit = (int)this.getLocation().distanceSquaredTo(closestUnit.location().mapLocation());
+
+            if (closestDistanceToUnit > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {
-                    System.out.println("Attacker " + this.getId() + " moved forwards in combat");
-                    this.inCombatMove(true, enemyTargetLocation);
+                    this.inCombatMove(true, closestUnit.location().mapLocation());
                 }
             }
 
-            if (Player.gc.canAttack(this.getId(), this.getFocusedTargetId())) {
-                Player.gc.attack(this.getId(), this.getFocusedTargetId());
-                System.out.println("Attacker: " + this.getId() + " attacked enemy unit " + this.getFocusedTargetId());
+            if (Player.gc.canAttack(this.getId(), closestUnit.id())) {
+                Player.gc.attack(this.getId(), closestUnit.id());
             }
+        }
+
+        // Recalculate the closest unit in case you can javelin in this turn too
+        Unit closestUnit = this.getClosestEnemy(enemyUnits);
+        if (Player.gc.canJavelin(this.getId(), closestUnit.id()) && Player.gc.isJavelinReady(this.getId())) {
+            Player.gc.javelin(this.getId(), closestUnit.id());
         }
         
         return false;

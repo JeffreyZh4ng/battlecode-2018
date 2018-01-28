@@ -48,7 +48,11 @@ public abstract class Robot extends UnitInstance {
             Unit rocket = Player.gc.senseUnitAtLocation(commandLocation);
             Rocket rocketInstance = Earth.earthRocketMap.get(rocket.id());
 
-            rocketInstance.loadUnit(this.getId());
+            try {
+                rocketInstance.loadUnit(this.getId());
+            } catch (Exception e) {
+                System.out.println("...");
+            }
         }
     }
 
@@ -79,7 +83,7 @@ public abstract class Robot extends UnitInstance {
     public boolean move(MapLocation destinationLocation) {
 
         // If adjacent to destination, the robot has finished moving
-        if (this.getLocation().isAdjacentTo(destinationLocation)) {
+        if (destinationLocation == null || this.getLocation().isAdjacentTo(destinationLocation)) {
             movePathStack = null;
             return true;
         }

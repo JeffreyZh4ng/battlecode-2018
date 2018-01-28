@@ -59,6 +59,10 @@ public abstract class Attacker extends Robot {
     public void inCombatMove(boolean isTowardsTarget, MapLocation enemyLocation) {
         int directionToCheck = this.getLocation().directionTo(enemyLocation).swigValue();
 
+        if (Player.gc.canMove(this.getId(), Direction.swigToEnum(directionToCheck))) {
+            Player.gc.moveRobot(this.getId(), Direction.swigToEnum(directionToCheck));
+        }
+
         if (!isTowardsTarget) {
             directionToCheck += 4;
         }
@@ -83,7 +87,7 @@ public abstract class Attacker extends Robot {
 
         for (Integer aDirectionList : directionList) {
             Direction direction = Direction.swigToEnum(aDirectionList);
-            if (Player.gc.canMove(this.getId(), direction)) {
+            if (Player.gc.canMove(this.getId(), direction) && Player.gc.isMoveReady(this.getId())) {
                 Player.gc.moveRobot(this.getId(), direction);
 
                 System.out.println("Moved attacker: " + this.getId() + " " + direction);
@@ -185,7 +189,7 @@ public abstract class Attacker extends Robot {
             MapLocation currentCommandLocation = this.getCurrentTask().getCommandLocation();
             MapLocation topGlobalAttackLocation = Earth.earthMainAttackStack.peek();
 
-            if (!currentCommandLocation.equals(topGlobalAttackLocation)) {
+            if (currentCommandLocation == null || !currentCommandLocation.equals(topGlobalAttackLocation)) {
                 System.out.println("Attacker: " + this.getId() + " setting task location to new attack location");
                 this.pollCurrentTask();
                 this.addTaskToQueue(new RobotTask(-1, Command.WANDER, topGlobalAttackLocation));

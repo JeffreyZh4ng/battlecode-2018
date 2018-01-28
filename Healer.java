@@ -64,6 +64,7 @@ public class Healer extends Attacker {
             }
         }
 
+        System.out.println("Healer " + this.getId() + " targeting: " + lowestHealthId);
         return lowestHealthId;
     }
 
@@ -72,7 +73,8 @@ public class Healer extends Attacker {
      */
     @Override
     public void updateTargets() {
-        if (!Earth.earthAttackerMap.containsKey(this.getLowestHealthFriendly())) {
+        if (!Earth.earthAttackerMap.containsKey(this.getFocusedTargetId())) {
+            System.out.println("Finding a new target!");
             this.setFocusedTargetId(getLowestHealthFriendly());
         }
     }
@@ -102,9 +104,11 @@ public class Healer extends Attacker {
      */
     @Override
     public void wanderToGlobalAttack() {
+        System.out.println(this.getFocusedTargetId());
         if (this.getFocusedTargetId() == -1) {
             for (int i = 0; i < 8; i++) {
                 if (Player.gc.canMove(this.getId(), Direction.swigToEnum(i)) && Player.gc.isMoveReady(this.getId())) {
+                    System.out.println("Moving....");
                     Player.gc.moveRobot(this.getId(), Direction.swigToEnum(i));
                 }
             }
@@ -116,8 +120,9 @@ public class Healer extends Attacker {
             MapLocation friendlyAttackerLocation = Earth.earthAttackerMap.get(friendlyTarget).getLocation();
             int distanceToFriendly = (int)(this.getLocation().distanceSquaredTo(friendlyAttackerLocation));
 
-            if (distanceToFriendly > this.getAttackRange() - 10) {
+            if (distanceToFriendly > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {
+                    System.out.println("Healer " + this.getId() + " moving towards  " + this.getFocusedTargetId() + " " + Player.gc.unit(this.getFocusedTargetId()).unitType());
                     this.inCombatMove(true, friendlyAttackerLocation);
                 }
             }
