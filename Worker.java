@@ -323,9 +323,7 @@ public class Worker extends Robot {
      * @param radius The radius to wander in
      */
     private void wanderWithinRadius(int radius) {
-        System.out.println("This is causing the leak?1");
         VecMapLocation mapLocations = Player.gc.allLocationsWithin(spawnLocation, radius);
-        System.out.println("This is causing the leak?1");
 
         MapLocation wanderLocation = null;
         while (wanderLocation == null) {

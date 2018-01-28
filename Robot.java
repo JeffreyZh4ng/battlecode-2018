@@ -74,6 +74,9 @@ public abstract class Robot extends UnitInstance {
      * @return True if the robot was able to move
      */
     public boolean move(MapLocation destinationLocation) {
+        if (Player.gc.getTimeLeftMs() < 1000) {
+            return false;
+        }
 
         // If adjacent to destination, the robot has finished moving
         if (this.getLocation().isAdjacentTo(destinationLocation)) {
@@ -166,7 +169,7 @@ public abstract class Robot extends UnitInstance {
         checkedLocations.put(Player.locationToString(this.getLocation()), this.getLocation());
 
         int counter = 0;
-        while (!frontier.isEmpty() && counter < 200) {
+        while (!frontier.isEmpty()) {
 
             // Get next direction to check around. Will put in the checked location a pair with the key as the
             // Next location with the value as the current location.
@@ -190,7 +193,7 @@ public abstract class Robot extends UnitInstance {
             counter++;
         }
 
-        System.out.println("Ran the search: " + counter + "Times!");
+        System.out.println("Ran the search: " + counter + " Times!");
         return backtrace(destinationLocation, checkedLocations);
     }
 
