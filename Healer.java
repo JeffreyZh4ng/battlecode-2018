@@ -105,7 +105,7 @@ public class Healer extends Attacker {
     public void wanderToGlobalAttack() {
         if (this.getFocusedTargetId() == -1) {
             return;
-            
+
         } else {
             int friendlyTarget = this.getFocusedTargetId();
             System.out.println(friendlyTarget);
