@@ -240,6 +240,10 @@ public abstract class Attacker extends Robot {
 
         if (this.hasTasks() && executeTask(this.getCurrentTask())) {
             System.out.println("Attacker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+            if (this.getCurrentTask().getCommand() == Command.WANDER && Earth.earthMainAttackStack.size() > 0 &&
+                    this.getCurrentTask().getCommandLocation().equals(Earth.earthMainAttackStack.peek())) {
+                Earth.earthMainAttackStack.pop();
+            }
             this.pollCurrentTask();
 
             if (getEnemyUnitsInRange().size() > 0) {
