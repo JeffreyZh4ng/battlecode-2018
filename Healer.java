@@ -22,11 +22,8 @@ public class Healer extends Attacker {
             if (friendlyId == -1) {
                 return false;
             }
-
-            int friendlyHealth = (int)(Player.gc.unit(friendlyId).health());
-            int friendlyMaxHealth = (int)(Player.gc.unit(friendlyId).maxHealth());
-            if (Player.gc.canHeal(this.getId(), friendlyId) && (friendlyMaxHealth - friendlyHealth) >
-                    (-1 * Player.gc.unit(this.getId()).damage())) {
+            
+            if (Player.gc.canHeal(this.getId(), friendlyId)) {
                 Player.gc.heal(this.getId(), friendlyId);
             }
 
@@ -105,7 +102,7 @@ public class Healer extends Attacker {
     public void wanderToGlobalAttack() {
         if (this.getFocusedTargetId() == -1) {
             for (int i = 0; i < 8; i++) {
-                if (Player.gc.canMove(this.getId(), Direction.swigToEnum(i))) {
+                if (Player.gc.canMove(this.getId(), Direction.swigToEnum(i)) && Player.gc.isMoveReady(this.getId())) {
                     Player.gc.moveRobot(this.getId(), Direction.swigToEnum(i));
                 }
             }
