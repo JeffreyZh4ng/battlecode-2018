@@ -29,6 +29,7 @@ public abstract class Attacker extends Robot {
     public void runAttacker() {
 
         updateTargets();
+        updateLocationToWander();
 
         if (this.getEmergencyTask() != null) {
             executeEmergencyTask();
@@ -77,8 +78,8 @@ public abstract class Attacker extends Robot {
             }
         }
 
-        for (int i = 0; i < directionList.size(); i++) {
-            Direction direction = Direction.swigToEnum(directionList.get(i));
+        for (Integer aDirectionList : directionList) {
+            Direction direction = Direction.swigToEnum(aDirectionList);
             if (Player.gc.canMove(this.getId(), direction)) {
                 Player.gc.moveRobot(this.getId(), direction);
 
@@ -110,6 +111,7 @@ public abstract class Attacker extends Robot {
             }
 
             findBestTarget(enemyUnits);
+            addGlobalAttackLocation();
 
         } else {
             System.out.println("Attacker: " + this.getId() + " Did not see any enemies");
@@ -169,6 +171,45 @@ public abstract class Attacker extends Robot {
         }
 
         System.out.println("Attacker: " + this.getId() + " Finished trying to alert other units");
+    }
+
+    /**
+     * Method that will check if the wander to attack location has been updated. If the robots current move to
+     * attack location is different from the one at the top of the stack, change the location.
+     */
+    private void updateLocationToWander() {
+        if (this.hasTasks() && !Earth.earthMainAttackStack.empty() && this.getCurrentTask().getCommand() == Command.WANDER) {
+            MapLocation currentCommandLocation = this.getCurrentTask().getCommandLocation();
+            MapLocation topGlobalAttackLocation = Earth.earthMainAttackStack.peek();
+
+            if (!currentCommandLocation.equals(topGlobalAttackLocation)) {
+                System.out.println("Attacker: " + this.getId() + " setting task location to new attack location");
+                this.pollCurrentTask();
+                this.addTaskToQueue(new RobotTask(-1, Command.WANDER, topGlobalAttackLocation));
+            }
+        }
+    }
+
+    /**
+     * Method that will add a unit to the global attack location map if the one on top is not within the units sight radius
+     * This means an enemy has appeared outside of the global attack location and we want to add another location for units to go to
+     */
+    private void addGlobalAttackLocation() {
+
+        System.out.println("Attacker: " + this.getId() + " checking if the location is in the global map!");
+
+        // Checks if the global attack map is empty. If it is it will add the focused target location to the map.
+        MapLocation enemyLocation = Player.gc.unit(this.getFocusedTargetId()).location().mapLocation();
+        if (Earth.earthMainAttackStack.empty()) {
+            Earth.earthMainAttackStack.push(enemyLocation);
+
+        } else {
+            int distanceToAttackLocation = (int)(this.getLocation().distanceSquaredTo(Earth.earthMainAttackStack.peek()));
+            if (distanceToAttackLocation > this.getVisionRange()) {
+                Earth.earthMainAttackStack.add(enemyLocation);
+            }
+        }
+
     }
 
     /**
@@ -269,9 +310,6 @@ public abstract class Attacker extends Robot {
             case MOVE:
                 return this.pathManager(commandLocation);
             case WANDER:
-                if (Earth.earthMainAttackStack.size() > 0 && !commandLocation.equals(Earth.earthMainAttackStack.peek())) {
-                    return true;
-                }
                 return this.pathManager(commandLocation);
             case ALERTED:
                 return this.pathManager(commandLocation);
@@ -296,7 +334,7 @@ public abstract class Attacker extends Robot {
 
             System.out.println("Attacker: " + this.getId() + " moving to global attack location: " + Player.locationToString(attackLocation));
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, attackLocation));
-            System.out.println("id: " + this.getId() + "addingal my loc: " + this.getLocation() + " wanderLoc: " + attackLocation);
+
         } else {
             VecMapLocation mapLocations = Player.gc.allLocationsWithin(this.getLocation(), this.getAttackRange());
 
@@ -312,7 +350,6 @@ public abstract class Attacker extends Robot {
 
             System.out.println("Attacker: " + this.getId() + " wandering to random location!");
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, wanderLocation));
-            System.out.println("id: " + this.getId() + "addingl my loc: " + this.getLocation() + " wanderLoc: " + wanderLocation);
         }
     }
 }

@@ -63,6 +63,7 @@ public class Player {
     private static void storeEnemyLocations() {
         VecUnit startingUnits = gc.startingMap(Planet.Earth).getInitial_units();
         for (int i = 0; i < startingUnits.size(); i++) {
+
             Unit startingUnit = startingUnits.get(i);
             if (startingUnit.team() != Player.team) {
                 enemyStartingLocations.add(startingUnit.location().mapLocation());
@@ -169,28 +170,6 @@ public class Player {
         return convertedLocation.toString();
     }
 
-//    /**
-//     * A method that will convert the recognizable string back into a MapLocation
-//     * @param location The MapLocation represented by the string
-//     * @return A MapLocation that represents the string
-//     */
-//    public static MapLocation stringToLocation(String location) {
-//        Planet mapPlanet;
-//        if (location.charAt(0) == ' ') {
-//            mapPlanet = Planet.Mars;
-//            location = location.substring(1);
-//        } else {
-//            mapPlanet = Planet.Earth;
-//        }
-//
-//        int spaceIndex = location.indexOf(' ');
-//        int xLocation = Integer.parseInt(location.substring(0, spaceIndex));
-//        location = location.substring(spaceIndex + 1);
-//        int yLocation = Integer.parseInt(location);
-//
-//        return new MapLocation(mapPlanet, xLocation, yLocation);
-//    }
-
     /**
      * Method that will check if a location is empty. Checks if the location is onMap, passableTerrain,
      * and if it is not occupied by a unit.
@@ -237,45 +216,6 @@ public class Player {
         PlanetMap planetMap = gc.startingMap(mapLocation.getPlanet());
         return planetMap.onMap(mapLocation) && planetMap.isPassableTerrainAt(mapLocation) > 0;
     }
-
-//    /**
-//     * Method that will find locations on mars that will let rockets land
-//     */
-//    // TODO: Redo
-//    public static void findPassableMarsThreeSquares() {
-//        ArrayList<MapLocation> availableLocations = new ArrayList<>();
-//        PlanetMap marsStartingMap = Player.gc.startingMap(Planet.Mars);
-//        for (int x = 1; x < marsStartingMap.getWidth() - 1; x++) {
-//            for (int y = 1; y < marsStartingMap.getHeight() -1; y++) {
-//                MapLocation location = new MapLocation(Planet.Mars, x, y);
-//                boolean isClear = true;
-//                for (Direction direction : Direction.values()) {
-//                    if (availableLocations.contains(location.add(direction)) || marsStartingMap.isPassableTerrainAt(location.add(direction)) == 0) {
-//                        isClear = false;
-//                        break;
-//                    }
-//                }
-//                if (isClear) {
-//                    availableLocations.add(location);
-//                }
-//            }
-//        }
-//        availableLandingLocations = availableLocations;
-//    }
-//
-//    /**
-//     * Gets a landing location for mars
-//     * @return The landing location
-//     */
-//    // TODO: Redo
-//    public static MapLocation getLandingLocation() {
-//        if (availableLandingLocations.size() == 0) {
-//            return null;
-//        }
-//        MapLocation location = availableLandingLocations.get(0);
-//        availableLandingLocations.remove(0);
-//        return location;
-//    }
 
     /**
      * Temp helper method that will get a location on mars for the rocket to land

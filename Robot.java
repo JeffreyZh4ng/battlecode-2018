@@ -94,12 +94,12 @@ public abstract class Robot extends UnitInstance {
              }
         }
 
-
         // The check for if the robot can move is here because we want to check if the worker is at the destination
         // Immediately to return true before checking if it can move
         if (!Player.gc.isMoveReady(this.getId())) {
             return false;
         }
+
         if (!Player.gc.canMove(this.getId(), this.getLocation().directionTo(movePathStack.peek()))) {
             reroute();
         }
