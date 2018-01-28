@@ -318,6 +318,41 @@ public class Player {
 
         return closestUnitIds;
     }
+
+    /**
+     * Utilizes breadth first search algorithm to check if location will ever be accesible, does not consider units as obstacles
+     * @param startLocation the location to start search from
+     * @param destination the destination location
+     * @return if the destination is accessible
+     */
+    public static boolean isLocationAccessible(MapLocation startLocation, MapLocation destination) {
+        Queue<MapLocation> frontier = new LinkedList<>();
+        frontier.add(startLocation);
+
+        HashMap<String, MapLocation> checkedLocations = new HashMap<>();
+        checkedLocations.put(Player.locationToString(startLocation), startLocation);
+
+        while (!frontier.isEmpty()) {
+
+            // Get next direction to check around. Will put in the checked location a pair with the key as the
+            // Next location with the value as the current location.
+            MapLocation currentLocation = frontier.poll();
+            if (currentLocation.isAdjacentTo(destination)) {
+                return true;
+            }
+
+            // Check if locations around frontier location have already been added to came from and if they are empty
+            for (Direction nextDirection: Player.getMoveDirections()) {
+                MapLocation nextLocation = currentLocation.add(nextDirection);
+
+                if (Player.isLocationEmptyForStructure(nextLocation) && !checkedLocations.containsKey(Player.locationToString(nextLocation))) {
+                    frontier.add(nextLocation);
+                    checkedLocations.put(Player.locationToString(nextLocation), currentLocation);
+                }
+            }
+        }
+        return false;
+    }
 }
 
 

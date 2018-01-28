@@ -485,4 +485,18 @@ public class Earth {
         }
         earthStagingAttackerMap.clear();
     }
+
+    /**
+     * Checks if can get to any enemy starting location from first best worker location
+     * @return if can get to at least one enemy from best worker location
+     */
+    public static boolean canGetToEnemy() {
+        MapLocation myLocation = Player.gc.unit(getBestWorkerId()).location().mapLocation();
+        for (MapLocation enemyStartingLocation: Player.enemyStartingLocations) {
+            if (Player.isLocationAccessible(myLocation, enemyStartingLocation)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

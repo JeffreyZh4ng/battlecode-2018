@@ -88,18 +88,10 @@ public class Factory extends UnitInstance {
      * @return The unit to produce
      */
     private UnitType findUnitToProduce() {
-        int armySize = Earth.earthAttackerMap.size();
-        if (Earth.healerCount < Earth.rangerCount) {
+        if (Earth.healerCount < (Earth.knightCount)*(2.0/3.0)) {
             return UnitType.Healer;
-        } else if (armySize > 40 && Earth.mageCount < 5) {
-            return UnitType.Mage;
         } else {
-//            int randomInt = (int)(Math.random() * 2);
-//            if (randomInt == 0) {
-//                return UnitType.Knight;
-//            } else {
-                return UnitType.Ranger;
-//            }
+            return UnitType.Ranger;
         }
     }
 }

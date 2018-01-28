@@ -58,6 +58,7 @@ public abstract class Robot extends UnitInstance {
      * @return If the robot has completed the task or not
      */
     public boolean pathManager(MapLocation destinationLocation) {
+
         if (move(destinationLocation)) {
             System.out.println("Unit: " + this.getId() + " moved!");
             if (movePathStack == null) {
@@ -83,6 +84,13 @@ public abstract class Robot extends UnitInstance {
             return true;
         }
 
+        //TODO: moving this above next statment didnt break anything?
+        // The check for if the robot can move is here because we want to check if the worker is at the destination
+        // Immediately to return true before checking if it can move
+        if (!Player.gc.isMoveReady(this.getId())) {
+            return false;
+        }
+
         // If the current path is null
         if (movePathStack == null) {
              movePathStack = getPathFromBFS(destinationLocation);
@@ -97,12 +105,6 @@ public abstract class Robot extends UnitInstance {
                  }
                  return true;
              }
-        }
-
-        // The check for if the robot can move is here because we want to check if the worker is at the destination
-        // Immediately to return true before checking if it can move
-        if (!Player.gc.isMoveReady(this.getId())) {
-            return false;
         }
 
         // Will only try to recalculate if the stuck count is three or more

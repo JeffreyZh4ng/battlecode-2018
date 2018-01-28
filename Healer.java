@@ -1,5 +1,6 @@
-import bc.*;
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
+import bc.MapLocation;
+import bc.UnitType;
+import bc.VecUnit;
 
 public class Healer extends Attacker {
 
@@ -98,7 +99,7 @@ public class Healer extends Attacker {
             MapLocation friendlyAttackerLocation = Earth.earthAttackerMap.get(friendlyTarget).getLocation();
             int distanceToFriendly = (int)(this.getLocation().distanceSquaredTo(friendlyAttackerLocation));
 
-            if (distanceToFriendly > this.getAttackRange()) {
+            if (distanceToFriendly > this.getAttackRange() - 10) {
                 if (Player.gc.isMoveReady(this.getId())) {
                     this.inCombatMove(true, friendlyAttackerLocation);
                 }
