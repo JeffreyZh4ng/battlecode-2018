@@ -1,7 +1,4 @@
-import bc.MapLocation;
-import bc.Unit;
-import bc.UnitType;
-import bc.VecUnit;
+import bc.*;
 
 import java.util.ArrayList;
 
@@ -26,7 +23,10 @@ public class Healer extends Attacker {
                 return false;
             }
 
-            if (Player.gc.canHeal(this.getId(), friendlyId)) {
+            int friendlyHealth = (int)(Player.gc.unit(friendlyId).health());
+            int friendlyMaxHealth = (int)(Player.gc.unit(friendlyId).maxHealth());
+            if (Player.gc.canHeal(this.getId(), friendlyId) && (friendlyMaxHealth - friendlyHealth) >
+                    (-1 * Player.gc.unit(this.getId()).damage())) {
                 Player.gc.heal(this.getId(), friendlyId);
             }
 
@@ -104,7 +104,11 @@ public class Healer extends Attacker {
     @Override
     public void wanderToGlobalAttack() {
         if (this.getFocusedTargetId() == -1) {
-            return;
+            for (int i = 0; i < 8; i++) {
+                if (Player.gc.canMove(this.getId(), Direction.swigToEnum(i))) {
+                    Player.gc.moveRobot(this.getId(), Direction.swigToEnum(i));
+                }
+            }
 
         } else {
             int friendlyTarget = this.getFocusedTargetId();

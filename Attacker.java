@@ -294,8 +294,6 @@ public abstract class Attacker extends Robot {
             if (getEnemyUnitsInRange().size() > 0) {
                 updateTargets();
                 executeTask(this.getEmergencyTask());
-            } else {
-                executeCurrentTask();
             }
         }
     }
@@ -342,13 +340,16 @@ public abstract class Attacker extends Robot {
             VecMapLocation mapLocations = Player.gc.allLocationsWithin(this.getLocation(), this.getAttackRange());
 
             MapLocation wanderLocation = null;
-            while (wanderLocation == null) {
+            int counter = 0;
+            while (wanderLocation == null && counter < 10) {
                 System.out.println("Attacker: " + this.getId() + " trying to find a random location!");
                 int randomLocation = (int)(Math.random() * mapLocations.size());
 
                 if (Player.isLocationEmpty(mapLocations.get(randomLocation))) {
                     wanderLocation = mapLocations.get(randomLocation);
                 }
+
+                counter++;
             }
 
             System.out.println("Attacker: " + this.getId() + " wandering to random location!");
