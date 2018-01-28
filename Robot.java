@@ -58,7 +58,7 @@ public abstract class Robot extends UnitInstance {
      * @return If the robot has completed the task or not
      */
     public boolean pathManager(MapLocation destinationLocation) {
-        
+
         if (move(destinationLocation)) {
             System.out.println("Unit: " + this.getId() + " moved!");
             if (movePathStack == null) {
