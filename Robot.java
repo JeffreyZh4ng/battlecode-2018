@@ -8,7 +8,7 @@ import java.util.LinkedList;
  */
 public abstract class Robot extends UnitInstance {
 
-    private static final int MAX_STUCK_TIME = 5;
+    private static final int MAX_STUCK_TIME = 4;
 
     private Stack<MapLocation> movePathStack = null;
     private int stuckCount = 0;
@@ -76,9 +76,6 @@ public abstract class Robot extends UnitInstance {
      * @return True if the robot was able to move
      */
     public boolean move(MapLocation destinationLocation) {
-        if (Player.gc.getTimeLeftMs() < 1000) {
-            return false;
-        }
 
         // If adjacent to destination, the robot has finished moving
         if (this.getLocation().isAdjacentTo(destinationLocation)) {
@@ -113,11 +110,17 @@ public abstract class Robot extends UnitInstance {
             if (stuckCount >= MAX_STUCK_TIME) {
                 System.out.println("Unit: " + this.getId() + " is stuck and will remove the current move task");
                 return true;
-            } else if (stuckCount > 2) {
+            } else if (stuckCount > 1) {
                 reroute();
-            } else {
-                stuckCount++;
+                if (movePathStack == null || movePathStack.isEmpty()) {
+                    
+                    // After recalculating, the path is empty or null
+                    return true;
+                }
             }
+
+            System.out.println("Unit: " + this.getId() + " is stuck! Incrementing its stuck counter to: " + stuckCount);
+            stuckCount++;
         }
 
         if (Player.gc.canMove(this.getId(), this.getLocation().directionTo(movePathStack.peek()))) {

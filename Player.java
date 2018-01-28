@@ -30,6 +30,9 @@ public class Player {
                 System.out.println("Karbonite: " + gc.karbonite());
 
                 if (gc.round() == 1) {
+                    cloneUnitsAtBeginning();
+                }
+                if (gc.round() == 10) {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
@@ -83,6 +86,26 @@ public class Player {
         gc.queueResearch(UnitType.Mage);
         gc.queueResearch(UnitType.Mage);
         gc.queueResearch(UnitType.Worker);
+    }
+
+    /**
+     * Helper method that will clone the workers right at the beginning of the game
+     */
+    private static void cloneUnitsAtBeginning() {
+        VecUnit units = Player.gc.myUnits();
+        for (int i = 0; i < units.size(); i++) {
+
+            Unit worker = units.get(i);
+            if (worker.unitType() == UnitType.Worker) {
+                for (int j = 0; j < 8; j++) {
+
+                    Direction direction = Direction.swigToEnum(i);
+                    if (Player.gc.canReplicate(worker.id(), direction)) {
+                        Player.gc.replicate(worker.id(), direction);
+                    }
+                }
+            }
+        }
     }
 
     /**
