@@ -17,7 +17,7 @@ public class Worker extends Robot {
     @Override
     public void run() {
 
-        System.out.println("Worker: " + this.getId() + " location: " + Player.locationToString(this.getLocation()));
+        // System.out.println("Worker: " + this.getId() + " location: " + Player.locationToString(this.getLocation()));
 
         if (this.getEmergencyTask() != null) {
             executeEmergencyTask();
@@ -46,7 +46,7 @@ public class Worker extends Robot {
 
             GlobalTask currentGlobalTask = Earth.earthTaskMap.get(this.getCurrentTask().getTaskId());
             if (currentGlobalTask.checkGlobalTaskStatus(this.getCurrentTask().getCommand())) {
-                System.out.println("Worker: " + this.getId() + " popped task " + this.getCurrentTask().getCommand());
+                // System.out.println("Worker: " + this.getId() + " popped task " + this.getCurrentTask().getCommand());
                 this.pollCurrentTask();
 
                 // If the task was already completed, check if the next one was completed as well
@@ -62,7 +62,7 @@ public class Worker extends Robot {
      */
     private void executeEmergencyTask() {
         if (executeTask(this.getEmergencyTask())) {
-            System.out.println("Worker: " + this.getId() + " Finished emergency task!");
+            // System.out.println("Worker: " + this.getId() + " Finished emergency task!");
             this.setEmergencyTask(null);
         }
     }
@@ -72,13 +72,13 @@ public class Worker extends Robot {
      */
     private void executeCurrentTask() {
         if (this.hasTasks() || this.getEmergencyTask() != null) {
-            System.out.println("Worker " + this.getId() + " on task " + this.getCurrentTask().getCommand() +
-                    " in global task: " + this.getCurrentTask().getTaskId() + " at " + Player.locationToString(this.getCurrentTask().getCommandLocation()));
+            // System.out.println("Worker " + this.getId() + " on task " + this.getCurrentTask().getCommand() +
+             //        " in global task: " + this.getCurrentTask().getTaskId() + " at " + Player.locationToString(this.getCurrentTask().getCommandLocation()));
         }
 
         if (this.hasTasks() || this.getEmergencyTask() != null) {
             if (executeTask(this.getCurrentTask())) {
-                System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+                // System.out.println("Worker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
                 this.pollCurrentTask();
 
                 // If the worker has completed the current task, check if it can also complete the next one
@@ -115,7 +115,7 @@ public class Worker extends Robot {
                 this.requestUnitToLoad(commandLocation);
                 return false;
             default:
-                System.out.println("Critical error occurred in Worker: " + this.getId());
+                // System.out.println("Critical error occurred in Worker: " + this.getId());
                 return true;
         }
     }
@@ -128,11 +128,11 @@ public class Worker extends Robot {
 
         if (newMoveLocation != null) {
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, newMoveLocation));
-            System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
+            // System.out.println("Worker: " + this.getId() + " Setting task to wander and mine");
 
         } else {
             wanderWithinRadius(100);
-            System.out.println("Worker: " + this.getId() + " Wandering!");
+            // System.out.println("Worker: " + this.getId() + " Wandering!");
         }
     }
 
@@ -160,8 +160,8 @@ public class Worker extends Robot {
 
                     Earth.earthStagingWorkerMap.put(clonedWorkerId, newWorker);
 
-                    System.out.println("Worker: " + this.getId() + " Cloned worker!");
-                    System.out.println("New worker has ID of: " + clonedWorkerId);
+                    // System.out.println("Worker: " + this.getId() + " Cloned worker!");
+                    // System.out.println("New worker has ID of: " + clonedWorkerId);
                     return true;
                 }
             }
@@ -197,7 +197,7 @@ public class Worker extends Robot {
             // Set the global task variable hasBlueprinted to true
             Earth.earthTaskMap.get(this.getCurrentTask().getTaskId()).structureHasBeenBlueprinted();
 
-            System.out.println("Worker: " + this.getId() + " Blueprinted structure at " + Player.locationToString(commandLocation));
+            // System.out.println("Worker: " + this.getId() + " Blueprinted structure at " + Player.locationToString(commandLocation));
             return true;
         }
 
@@ -221,7 +221,7 @@ public class Worker extends Robot {
 
         if (Player.gc.canBuild(this.getId(), structureId)) {
             Player.gc.build(this.getId(), structureId);
-            System.out.println("Worker: " + this.getId() + " is building structure " + structureId);
+            // System.out.println("Worker: " + this.getId() + " is building structure " + structureId);
 
             // Check if it can clone here because we know it has no path when it is building and while building
             // Is when you need another worker the most
@@ -243,7 +243,7 @@ public class Worker extends Robot {
                 // Set the global task variable hasBlueprinted to true
                 Earth.earthTaskMap.get(this.getCurrentTask().getTaskId()).structureHasBeenBuilt();
 
-                System.out.println("Worker: " + this.getId() + " Built structure");
+                // System.out.println("Worker: " + this.getId() + " Built structure");
                 return true;
             }
         }
@@ -260,7 +260,7 @@ public class Worker extends Robot {
             MapLocation newLocation = Player.gc.unit(this.getId()).location().mapLocation().add(direction);
             if (Player.gc.canHarvest(this.getId(), direction) && Player.karboniteAt(newLocation) > 0) {
                 Player.gc.harvest(this.getId(), direction);
-                System.out.println("Worker: " + this.getId() + " mined karbonite");
+                // System.out.println("Worker: " + this.getId() + " mined karbonite");
                 break;
             }
         }

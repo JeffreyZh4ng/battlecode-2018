@@ -69,7 +69,7 @@ public abstract class Attacker extends Robot {
         VecUnit enemyUnits = this.getEnemyUnitsInRange();
         if (enemyUnits != null && enemyUnits.size() > 0) {
 
-            System.out.println("Attacker: " + this.getId() + " saw enemies!");
+            // System.out.println("Attacker: " + this.getId() + " saw enemies!");
             if (this.getEmergencyTask() == null || this.getEmergencyTask().getCommand() != Command.IN_COMBAT) {
 
                 // This checks if you were the first to see the enemy location. If you were, the broadcast the location
@@ -83,12 +83,12 @@ public abstract class Attacker extends Robot {
             addGlobalAttackLocation();
 
         } else {
-            System.out.println("Attacker: " + this.getId() + " Did not see any enemies");
+            // System.out.println("Attacker: " + this.getId() + " Did not see any enemies");
 
             // If the robot does not sense any enemies, but it is still in combat, the enemy it was in combat
             // with has been killed
             if (this.getEmergencyTask() != null && this.getEmergencyTask().getCommand() == Command.IN_COMBAT) {
-                System.out.println("Attacker has left combat. Checking if a global attack location has been seen");
+                // System.out.println("Attacker has left combat. Checking if a global attack location has been seen");
                 this.setEmergencyTask(null);
             }
 
@@ -101,7 +101,7 @@ public abstract class Attacker extends Robot {
      * in the task queue.
      */
     private void setEmergencyTaskToInCombat() {
-        System.out.println("Attacker: " + this.getId() + " setting emergency task to IN COMBAT!");
+        // System.out.println("Attacker: " + this.getId() + " setting emergency task to IN COMBAT!");
         this.setEmergencyTask(new RobotTask(-1, Command.IN_COMBAT, this.getLocation()));
 
         // Optimally this if statement should never be needed but its here to guard against exceptions
@@ -134,12 +134,12 @@ public abstract class Attacker extends Robot {
                     friendlyAttacker.pollCurrentTask();
                 }
 
-                System.out.println("Attacker: " + this.getId() + " has alerted " + friendlyAttacker.getId());
+                // System.out.println("Attacker: " + this.getId() + " has alerted " + friendlyAttacker.getId());
                 friendlyAttacker.addTaskToQueue(new RobotTask(-1, Command.ALERTED, this.getLocation()));
             }
         }
 
-        System.out.println("Attacker: " + this.getId() + " Finished trying to alert other units");
+        // System.out.println("Attacker: " + this.getId() + " Finished trying to alert other units");
     }
 
     /**
@@ -152,7 +152,7 @@ public abstract class Attacker extends Robot {
             MapLocation topGlobalAttackLocation = Earth.earthMainAttackStack.peek();
 
             if (currentCommandLocation == null || !currentCommandLocation.equals(topGlobalAttackLocation)) {
-                System.out.println("Attacker: " + this.getId() + " setting task location to new attack location");
+                // System.out.println("Attacker: " + this.getId() + " setting task location to new attack location");
                 this.pollCurrentTask();
                 this.addTaskToQueue(new RobotTask(-1, Command.WANDER, topGlobalAttackLocation));
             }
@@ -165,7 +165,7 @@ public abstract class Attacker extends Robot {
      */
     private void addGlobalAttackLocation() {
 
-        System.out.println("Attacker: " + this.getId() + " checking if the location is in the global map!");
+        // System.out.println("Attacker: " + this.getId() + " checking if the location is in the global map!");
 
         // Checks if the global attack map is empty. If it is it will add the focused target location to the map.
         MapLocation enemyLocation = Player.gc.unit(this.getFocusedTargetId()).location().mapLocation();
@@ -199,7 +199,7 @@ public abstract class Attacker extends Robot {
                 if (Earth.earthFocusedTargets.contains(enemyUnitId)) {
                     focusedTargetId = enemyUnitId;
 
-                    System.out.println("Attacker: " + this.getId() + " is targeting new enemy unit: " + enemyUnitId);
+                    // System.out.println("Attacker: " + this.getId() + " is targeting new enemy unit: " + enemyUnitId);
                     return;
                 }
             }
@@ -208,7 +208,7 @@ public abstract class Attacker extends Robot {
             Earth.earthFocusedTargets.add(enemyId);
             focusedTargetId = enemyId;
 
-            System.out.println("Attacker: " + this.getId() + " creating new focused attack target: " + enemyId);
+            // System.out.println("Attacker: " + this.getId() + " creating new focused attack target: " + enemyId);
         }
 
     }
@@ -222,7 +222,7 @@ public abstract class Attacker extends Robot {
 
             MapLocation location = Earth.earthMainAttackStack.peek();
             if (this.getLocation().distanceSquaredTo(location) < this.getAttackRange()) {
-                System.out.println("Global attack location: " + Player.locationToString(location) + " has been checked!");
+                // System.out.println("Global attack location: " + Player.locationToString(location) + " has been checked!");
                 Earth.earthMainAttackStack.pop();
             }
         }
@@ -234,7 +234,7 @@ public abstract class Attacker extends Robot {
      */
     public void executeEmergencyTask() {
         if (executeTask(this.getEmergencyTask())) {
-            System.out.println("Worker: " + this.getId() + " Finished emergency task!");
+            // System.out.println("Worker: " + this.getId() + " Finished emergency task!");
             this.setEmergencyTask(null);
         }
     }
@@ -245,14 +245,14 @@ public abstract class Attacker extends Robot {
      */
     public void executeCurrentTask() {
         if (this.hasTasks()) {
-            System.out.println("Attacker: " + this.getId() + " on task " + this.getCurrentTask().getCommand());
+            // System.out.println("Attacker: " + this.getId() + " on task " + this.getCurrentTask().getCommand());
         }
 
         if (this.hasTasks() && executeTask(this.getCurrentTask())) {
-            System.out.println("Attacker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+            // System.out.println("Attacker: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
             if (this.getCurrentTask().getCommand() == Command.WANDER && Earth.earthMainAttackStack.size() > 0 &&
                     this.getCurrentTask().getCommandLocation().equals(Earth.earthMainAttackStack.peek())) {
-                System.out.println("attack target unreachable" + Earth.earthMainAttackStack.peek());
+                // System.out.println("attack target unreachable" + Earth.earthMainAttackStack.peek());
                 Earth.earthMainAttackStack.pop();
             }
             this.pollCurrentTask();
@@ -286,7 +286,7 @@ public abstract class Attacker extends Robot {
                 this.requestUnitToLoad(commandLocation);
                 return false;
             default:
-                System.out.println("Critical error occurred in attacker: " + this.getId());
+                // System.out.println("Critical error occurred in attacker: " + this.getId());
                 return true;
         }
     }
@@ -299,7 +299,7 @@ public abstract class Attacker extends Robot {
         if (!Earth.earthMainAttackStack.isEmpty()) {
             MapLocation attackLocation = Earth.earthMainAttackStack.peek();
 
-            System.out.println("Attacker: " + this.getId() + " moving to global attack location: " + Player.locationToString(attackLocation));
+            // System.out.println("Attacker: " + this.getId() + " moving to global attack location: " + Player.locationToString(attackLocation));
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, attackLocation));
 
         } else {
@@ -308,7 +308,7 @@ public abstract class Attacker extends Robot {
             MapLocation wanderLocation = null;
             int counter = 0;
             while (wanderLocation == null && counter < 10) {
-                System.out.println("Attacker: " + this.getId() + " trying to find a random location!");
+                // System.out.println("Attacker: " + this.getId() + " trying to find a random location!");
                 int randomLocation = (int)(Math.random() * mapLocations.size());
 
                 if (Player.isLocationEmpty(mapLocations.get(randomLocation))) {
@@ -318,7 +318,7 @@ public abstract class Attacker extends Robot {
                 counter++;
             }
 
-            System.out.println("Attacker: " + this.getId() + " wandering to random location!");
+            // System.out.println("Attacker: " + this.getId() + " wandering to random location!");
             this.addTaskToQueue(new RobotTask(-1, Command.WANDER, wanderLocation));
         }
     }

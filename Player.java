@@ -25,10 +25,10 @@ public class Player {
                 System.runFinalization();
                 System.gc();
             }
-            if (gc.planet() == Planet.Earth) {
-                System.out.println("Round number: " + gc.round());
-                System.out.println("Time left: " + gc.getTimeLeftMs());
-                System.out.println("Karbonite: " + gc.karbonite());
+            if (gc.planet() == Planet.Earth && gc.getTimeLeftMs() > 500) {
+                // System.out.println("Round number: " + gc.round());
+                // System.out.println("Time left: " + gc.getTimeLeftMs());
+                // System.out.println("Karbonite: " + gc.karbonite());
 
                 if (gc.round() == 1) {
                     Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
@@ -39,16 +39,30 @@ public class Player {
                 if (gc.round() == 100) {
                     storeEnemyLocations(true);
                 }
+//
+//                if (gc.round() >= 500 && gc.round() % 50 == 0 && Earth.earthWorkerMap.size() > 0) {
+//                    Earth.createGlobalTask(Command.CONSTRUCT_FACTORY, null);
+//                }
+//                if (gc.round() < 470 && Earth.earthWorkerMap.size() == 0) {
+//                    VecUnit units = gc.myUnits();
+//                    for (int i = 0; i < units.size(); i++) {
+//                        if (units.get(i).unitType() == UnitType.Factory) {
+//                            int factoryId = units.get(i).id();
+//                            Factory factory = (Factory)Earth.earthFactoryMap.get(factoryId);
+//                            factory.emergencyRun();
+//                        }
+//                    }
+//                }
 
                 try {
                     Earth.execute();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                System.out.println("");
+                // System.out.println("");
             } else {
                 Mars.execute();
-                System.out.println("");
+                // System.out.println("");
             }
             gc.nextTurn();
         }

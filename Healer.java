@@ -64,7 +64,7 @@ public class Healer extends Attacker {
             }
         }
 
-        System.out.println("Healer " + this.getId() + " targeting: " + lowestHealthId);
+        // System.out.println("Healer " + this.getId() + " targeting: " + lowestHealthId);
         return lowestHealthId;
     }
 
@@ -74,7 +74,7 @@ public class Healer extends Attacker {
     @Override
     public void updateTargets() {
         if (!Earth.earthAttackerMap.containsKey(this.getFocusedTargetId())) {
-            System.out.println("Finding a new target!");
+            // System.out.println("Finding a new target!");
             this.setFocusedTargetId(getLowestHealthFriendly());
         }
     }
@@ -90,11 +90,11 @@ public class Healer extends Attacker {
     @Override
     public void executeCurrentTask() {
         if (this.hasTasks()) {
-            System.out.println("Healer: " + this.getId() + " on task " + this.getCurrentTask().getCommand());
+            // System.out.println("Healer: " + this.getId() + " on task " + this.getCurrentTask().getCommand());
         }
 
         if (this.hasTasks() && executeTask(this.getCurrentTask())) {
-            System.out.println("Healer: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
+            // System.out.println("Healer: " + this.getId() + " has finished task: " + this.getCurrentTask().getCommand());
             this.pollCurrentTask();
         }
     }
@@ -104,26 +104,26 @@ public class Healer extends Attacker {
      */
     @Override
     public void wanderToGlobalAttack() {
-        System.out.println(this.getFocusedTargetId());
+        // System.out.println(this.getFocusedTargetId());
         if (this.getFocusedTargetId() == -1) {
             for (int i = 0; i < 8; i++) {
                 if (Player.gc.canMove(this.getId(), Direction.swigToEnum(i)) && Player.gc.isMoveReady(this.getId())) {
-                    System.out.println("Moving....");
+                    // System.out.println("Moving....");
                     Player.gc.moveRobot(this.getId(), Direction.swigToEnum(i));
                 }
             }
 
         } else {
-            System.out.println("Healer has focus");
+            // System.out.println("Healer has focus");
             int friendlyTarget = this.getFocusedTargetId();
-            System.out.println(friendlyTarget);
-            System.out.println(Earth.earthAttackerMap.get(friendlyTarget).getId());
+            // System.out.println(friendlyTarget);
+            // System.out.println(Earth.earthAttackerMap.get(friendlyTarget).getId());
             MapLocation friendlyAttackerLocation = Earth.earthAttackerMap.get(friendlyTarget).getLocation();
             int distanceToFriendly = (int)(this.getLocation().distanceSquaredTo(friendlyAttackerLocation));
 
             if (distanceToFriendly > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {
-                    System.out.println("Healer " + this.getId() + " moving towards  " + this.getFocusedTargetId() + " " + Player.gc.unit(this.getFocusedTargetId()).unitType());
+                    // System.out.println("Healer " + this.getId() + " moving towards  " + this.getFocusedTargetId() + " " + Player.gc.unit(this.getFocusedTargetId()).unitType());
                     this.inCombatMove(true, friendlyAttackerLocation);
                 }
             }

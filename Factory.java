@@ -10,6 +10,19 @@ public class Factory extends UnitInstance {
     }
 
     /**
+     * Emergency build worker
+     */
+    public void emergencyRun() {
+        if (isBuilt) {
+            if (Player.gc.canProduceRobot(this.getId(), UnitType.Worker)) {
+                Player.gc.produceRobot(this.getId(), UnitType.Worker);
+            }
+        }
+
+        unload();
+    }
+
+    /**
      * Method that will run code for the factory
      */
     @Override
@@ -70,6 +83,10 @@ public class Factory extends UnitInstance {
                     case Mage:
                         unitInstance = new Mage(unitId);
                         break;
+                    case Worker:
+                        unitInstance = new Worker(unitId);
+                        Earth.earthStagingWorkerMap.put(unitId, unitInstance);
+                        return;
                     default:
                         unitInstance = new Knight(unitId);
                         System.out.println("ERROR in UNLOAD, unit type: " + unitType);

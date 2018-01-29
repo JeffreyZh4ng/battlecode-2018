@@ -51,7 +51,7 @@ public abstract class Robot extends UnitInstance {
             try {
                 rocketInstance.loadUnit(this.getId());
             } catch (Exception e) {
-                System.out.println("...");
+                // System.out.println("...");
             }
         }
     }
@@ -64,7 +64,7 @@ public abstract class Robot extends UnitInstance {
     public boolean pathManager(MapLocation destinationLocation) {
 
         if (move(destinationLocation)) {
-            System.out.println("Unit: " + this.getId() + " moved!");
+            // System.out.println("Unit: " + this.getId() + " moved!");
             if (movePathStack == null) {
                 return true;
             } else {
@@ -108,7 +108,7 @@ public abstract class Robot extends UnitInstance {
              // After calculating the path, if it is still null, the robot is unable to reach the location.
              // If the robot is part of a global task, remove it from the task and the individual tasks it has.
              if (movePathStack == null) {
-                 System.out.println("Unit: " + this.getId() + " cannot reach the desired location");
+                 // System.out.println("Unit: " + this.getId() + " cannot reach the desired location");
 
                  if (this.hasTasks() && this.getCurrentTask().getTaskId() != -1) {
                      Earth.earthTaskMap.get(this.getCurrentTask().getTaskId()).removeWorkerFromList(this.getId());
@@ -120,7 +120,7 @@ public abstract class Robot extends UnitInstance {
         // Will only try to recalculate if the stuck count is three or more
         if (movePathStack.isEmpty() || !Player.gc.canMove(this.getId(), this.getLocation().directionTo(movePathStack.peek()))) {
             if (stuckCount >= MAX_STUCK_TIME) {
-                System.out.println("Unit: " + this.getId() + " is stuck and will remove the current move task");
+                // System.out.println("Unit: " + this.getId() + " is stuck and will remove the current move task");
                 return true;
             } else if (stuckCount > 1) {
                 reroute();
@@ -131,7 +131,7 @@ public abstract class Robot extends UnitInstance {
                 }
             }
 
-            System.out.println("Unit: " + this.getId() + " is stuck! Incrementing its stuck counter to: " + stuckCount);
+            // System.out.println("Unit: " + this.getId() + " is stuck! Incrementing its stuck counter to: " + stuckCount);
             stuckCount++;
             return false;
         }
@@ -214,7 +214,7 @@ public abstract class Robot extends UnitInstance {
             counter++;
         }
 
-        System.out.println("Ran the search: " + counter + " Times!");
+        // System.out.println("Ran the search: " + counter + " Times!");
         return backtrace(destinationLocation, checkedLocations);
     }
 
@@ -254,7 +254,7 @@ public abstract class Robot extends UnitInstance {
      * and the robot will wait until it can move in the intended direction
      */
     private void reroute() {
-        System.out.println("Unit: " + this.getId() + " rerouting");
+        // System.out.println("Unit: " + this.getId() + " rerouting");
         Stack<MapLocation> originalPath = new Stack<>();
 
         while (movePathStack.size() > 1) {

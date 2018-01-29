@@ -28,19 +28,19 @@ public class Ranger extends Attacker {
 
             if (distanceToTarget > this.getAttackRange()) {
                 if (Player.gc.isMoveReady(this.getId())) {
-                    System.out.println("Attacker " + this.getId() + " moved forwards in combat");
+                    // System.out.println("Attacker " + this.getId() + " moved forwards in combat");
                     this.inCombatMove(true, enemyTargetLocation);
                 }
             } else if (distanceToTarget < MIN_ATTACK_RANGE) {
                 if (Player.gc.isMoveReady(this.getId())) {
-                    System.out.println("Attacker " + this.getId() + " moved backwards in combat");
+                    // System.out.println("Attacker " + this.getId() + " moved backwards in combat");
                     this.inCombatMove(false, enemyTargetLocation);
                 }
             }
 
             if (Player.gc.canAttack(this.getId(), this.getFocusedTargetId())) {
                 Player.gc.attack(this.getId(), this.getFocusedTargetId());
-                System.out.println("Attacker: " + this.getId() + " attacked enemy unit " + this.getFocusedTargetId());
+                // System.out.println("Attacker: " + this.getId() + " attacked enemy unit " + this.getFocusedTargetId());
             }
         }
 
@@ -80,7 +80,7 @@ public class Ranger extends Attacker {
                 if (Earth.earthFocusedTargets.contains(enemyUnitId) && distanceToEnemy > MIN_ATTACK_RANGE) {
                     this.setFocusedTargetId(enemyUnitId);
 
-                    System.out.println("Attacker: " + this.getId() + " is targeting new enemy unit: " + enemyUnitId);
+                    // System.out.println("Attacker: " + this.getId() + " is targeting new enemy unit: " + enemyUnitId);
                     return;
                 }
             }
@@ -89,7 +89,7 @@ public class Ranger extends Attacker {
             Earth.earthFocusedTargets.add(enemyId);
             this.setFocusedTargetId(enemyId);
 
-            System.out.println("Attacker: " + this.getId() + " creating new focused attack target: " + enemyId);
+            // System.out.println("Attacker: " + this.getId() + " creating new focused attack target: " + enemyId);
         }
     }
 
