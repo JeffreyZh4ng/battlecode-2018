@@ -84,6 +84,9 @@ public abstract class Robot extends UnitInstance {
      */
     public boolean move(MapLocation destinationLocation) {
 
+        if (Player.gc.getTimeLeftMs() < 1000) {
+            return false;
+        }
         // If adjacent to destination, the robot has finished moving
         if (destinationLocation == null || this.getLocation().isAdjacentTo(destinationLocation)) {
             movePathStack = null;

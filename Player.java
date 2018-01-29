@@ -25,7 +25,7 @@ public class Player {
                 System.runFinalization();
                 System.gc();
             }
-            if (gc.planet() == Planet.Earth && gc.getTimeLeftMs() > 500) {
+            if (gc.planet() == Planet.Earth) {
                 // System.out.println("Round number: " + gc.round());
                 // System.out.println("Time left: " + gc.getTimeLeftMs());
                 // System.out.println("Karbonite: " + gc.karbonite());
