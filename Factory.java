@@ -35,19 +35,19 @@ public class Factory extends UnitInstance {
                 switch (unitToProduce) {
                     case Knight:
                         Earth.knightCount++;
-                        System.out.println("Knight count " + Earth.knightCount);
+                        //System.out.println("Knight count " + Earth.knightCount);
                         break;
                     case Ranger:
                         Earth.rangerCount++;
-                        System.out.println("Ranger count " + Earth.rangerCount);
+                        //System.out.println("Ranger count " + Earth.rangerCount);
                         break;
                     case Healer:
                         Earth.healerCount++;
-                        System.out.println("Healer count " + Earth.healerCount);
+                        //System.out.println("Healer count " + Earth.healerCount);
                         break;
                     case Mage:
                         Earth.mageCount++;
-                        System.out.println("Mage count " + Earth.mageCount);
+                        //System.out.println("Mage count " + Earth.mageCount);
                         break;
                 }
             }
