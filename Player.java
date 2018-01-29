@@ -4,8 +4,6 @@ import java.util.*;
 
 public class Player {
 
-    public static int UNIT_CAP;
-    public static boolean ROCKET_PRIORITY;
     private static final int NUMBER_OF_LOCATIONS_TO_CHECK = 200;
     private static int BUILD_ROUND;
 
@@ -18,9 +16,9 @@ public class Player {
     public static void main(String[] args) {
 
         addStartingWorkersToEarthMap();
-        System.out.println(Earth.earthWorkerMap.size());
         storeEnemyLocations(false);
         queueUnitResearch();
+        getBuildRound();
 
         while (true) {
             if (gc.round() % 2 == 0) {
@@ -41,11 +39,8 @@ public class Player {
                 if (gc.round() == 100) {
                     storeEnemyLocations(true);
                 }
-                try {
-                    Earth.execute();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+
+                Earth.execute();
 
                 System.out.println("");
             } else {
@@ -54,7 +49,6 @@ public class Player {
             }
             gc.nextTurn();
         }
-
     }
 
     /**
@@ -144,14 +138,12 @@ public class Player {
      * Method that will add all the workers on earth to the HashMap of workers at the beginning of the game
      */
     private static void addStartingWorkersToEarthMap() {
-        VecUnit startingUnits = gc.startingMap(Planet.Earth).getInitial_units();
-        for (int i = 0; i < startingUnits.size(); i++) {
-            if (startingUnits.get(i).team() == team) {
-                int unitId = startingUnits.get(i).id();
-                UnitInstance worker = new Worker(unitId);
+        VecUnit units = gc.myUnits();
+        for (int i = 0; i < units.size(); i++) {
+            int unitId = units.get(i).id();
+            UnitInstance worker = new Worker(unitId);
 
-                Earth.earthWorkerMap.put(unitId, worker);
-            }
+            Earth.earthWorkerMap.put(unitId, worker);
         }
     }
 
@@ -245,9 +237,18 @@ public class Player {
             int randomY = (int)(Math.random() * height);
 
             MapLocation landingLocation = new MapLocation(Planet.Mars, randomX, randomY);
-            if (Player.isLocationEmpty(landingLocation)) {
+            boolean isClear = true;
+
+            for (Direction direction : Direction.values()) {
+                if (Player.isLocationEmpty(landingLocation.add(direction))) {
+                    isClear = false;
+                    break;
+                }
+            }
+            if (isClear) {
                 return landingLocation;
             }
+
         }
     }
 
@@ -384,30 +385,6 @@ public class Player {
             }
         }
         return checkedLocations.size();
-    }
-
-    public static void setProduceNumber() {
-        int workerId = Earth.getBestWorkerId();
-        int area = getPassableArea(Earth.earthWorkerMap.get(workerId).getLocation());
-        if (area < 100) {
-            UNIT_CAP = 20;
-        } else if (area < 200) {
-            UNIT_CAP = 50;
-        } else {
-            UNIT_CAP = 100;
-        }
-    }
-
-    public static void setRocketPriority() {
-        MapLocation myLocation = Earth.earthWorkerMap.get(Earth.getBestWorkerId()).getLocation();
-        for (MapLocation enemyStartingLocation: Player.enemyStartingLocations) {
-            if (!Player.isLocationAccessible(myLocation, enemyStartingLocation)) {
-                ROCKET_PRIORITY = false;
-                return;
-            }
-        }
-
-        ROCKET_PRIORITY = true;
     }
 }
 
