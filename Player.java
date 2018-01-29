@@ -39,7 +39,7 @@ public class Player {
                 if (gc.round() == 100) {
                     storeEnemyLocations(true);
                 }
-                
+
                 try {
                     Earth.execute();
                 } catch (Exception e) {
@@ -78,12 +78,11 @@ public class Player {
      */
     private static void queueUnitResearch() {
         gc.queueResearch(UnitType.Knight);
-        gc.queueResearch(UnitType.Rocket);
-        gc.queueResearch(UnitType.Worker);
+        gc.queueResearch(UnitType.Healer);
         gc.queueResearch(UnitType.Knight);
+        gc.queueResearch(UnitType.Healer);
         gc.queueResearch(UnitType.Knight);
-        gc.queueResearch(UnitType.Rocket);
-        gc.queueResearch(UnitType.Rocket);
+        gc.queueResearch(UnitType.Healer);
     }
 
     /**

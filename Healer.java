@@ -27,7 +27,7 @@ public class Healer extends Attacker {
                 Player.gc.heal(this.getId(), friendlyId);
             }
 
-            if (Player.gc.canOvercharge(this.getId(), friendlyId)) {
+            if (Player.gc.canOvercharge(this.getId(), friendlyId) && Player.gc.isOverchargeReady(this.getId())) {
                 Player.gc.overcharge(this.getId(), friendlyId);
             }
         }

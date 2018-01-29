@@ -1,7 +1,4 @@
-import bc.Direction;
-import bc.MapLocation;
-import bc.Planet;
-import bc.UnitType;
+import bc.*;
 
 public class Factory extends UnitInstance {
 
@@ -88,11 +85,15 @@ public class Factory extends UnitInstance {
      * @return The unit to produce
      */
     private UnitType findUnitToProduce() {
-        if (Earth.healerCount < (Earth.knightCount)*(.5) && Earth.knightCount > 5) {
+
+        if (Earth.healerCount < (Earth.knightCount) * (.5) && Earth.knightCount > 5) {
             return UnitType.Healer;
         } else {
+
             return UnitType.Knight;
+
         }
+
     }
 }
 

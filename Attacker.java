@@ -57,45 +57,7 @@ public abstract class Attacker extends Robot {
      * @param enemyLocation The location of the enemy
      */
     public void inCombatMove(boolean isTowardsTarget, MapLocation enemyLocation) {
-        int directionToCheck = this.getLocation().directionTo(enemyLocation).swigValue();
-
-        if (Player.gc.canMove(this.getId(), Direction.swigToEnum(directionToCheck))) {
-            Player.gc.moveRobot(this.getId(), Direction.swigToEnum(directionToCheck));
-        }
-
-        if (!isTowardsTarget) {
-            directionToCheck += 4;
-        }
-
-        // Adds the direction to/away from the enemy and the adjacent directions
-        ArrayList<Integer> directionList = new ArrayList<>();
-        directionList.add(directionToCheck);
-        directionList.add(directionToCheck + 1);
-        directionList.add(directionToCheck - 1);
-
-        // Changes any value that is outside of the direction range
-        for (int i = 0; i < directionList.size(); i++) {
-            int directionValue = directionList.get(i);
-
-            if (directionValue > 7) {
-                directionList.set(i, directionValue - 8);
-
-            } else if (directionValue < 0) {
-                directionList.set(i, directionValue + 8);
-            }
-        }
-
-        for (Integer aDirectionList : directionList) {
-            Direction direction = Direction.swigToEnum(aDirectionList);
-            if (Player.gc.canMove(this.getId(), direction) && Player.gc.isMoveReady(this.getId())) {
-                Player.gc.moveRobot(this.getId(), direction);
-
-                System.out.println("Moved attacker: " + this.getId() + " " + direction);
-                return;
-            }
-        }
-
-        System.out.println("Could not move the attacker: " + this.getId() + " in combat!");
+        move(enemyLocation);
     }
 
     /**
